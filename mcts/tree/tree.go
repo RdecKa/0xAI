@@ -4,15 +4,6 @@ import (
 	"fmt"
 )
 
-// ---------------------
-// |     NodeValue     |
-// ---------------------
-
-// NodeValue is an iterface for a value that can be in the node
-type NodeValue interface {
-	String() string
-}
-
 // ----------------
 // |     Node     |
 // ----------------
@@ -20,26 +11,24 @@ type NodeValue interface {
 // Node represents a node in a tree
 type Node struct {
 	children []*Node
-	value    NodeValue
+	value    interface{}
 }
 
 // NewNode creates a new Node with value v and returns a pointer to that node
-func NewNode(v NodeValue) *Node {
-	return &Node{make([]*Node, 0), v}
+func NewNode(v interface{}) *Node {
+	return &Node{nil, v}
 }
 
-func (n Node) String() string {
+func (n *Node) String() string {
 	s := ""
-	s += n.value.String()
-	s += "("
-	for i, c := range n.children {
+	for i, c := range (*n).children {
 		if i > 0 {
 			s += ", "
 		}
 		s += c.String()
 	}
-	s += ")"
-	return s
+
+	return fmt.Sprintf("%v (%s)", n.value, s)
 }
 
 // GetChildren returns list of node n's successors
@@ -48,13 +37,13 @@ func (n *Node) GetChildren() []*Node {
 }
 
 // GetValue returns node n's value
-func (n *Node) GetValue() NodeValue {
+func (n *Node) GetValue() interface{} {
 	return n.value
 }
 
-// AddChild adds a child newNode to Node n (to the end of the list of children)
-func (n *Node) AddChild(newNode *Node) {
-	n.children = append(n.children, newNode)
+// SetChildren sets children of a node n
+func (n *Node) SetChildren(children []*Node) {
+	n.children = children
 }
 
 // ----------------
@@ -66,7 +55,7 @@ type Tree struct {
 	root *Node
 }
 
-// NewTree creates a tree with the given root node
+// NewTree creates a tree with given root node
 func NewTree(root *Node) *Tree {
 	return &Tree{root}
 }

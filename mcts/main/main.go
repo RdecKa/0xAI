@@ -4,37 +4,55 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/RdecKa/mcts/tree"
+	"github.com/RdecKa/mcts/mcts"
 )
 
-// BasicNodeValue is a simple node value, used for testing
-type BasicNodeValue struct {
+// Dummy state
+type dummyState struct {
+	num   int
+	depth int
+}
+
+func (s dummyState) String() string {
+	return strconv.Itoa(s.num) + "<" + strconv.Itoa(s.depth) + ">"
+}
+
+func (s dummyState) GetPossibleActions() []mcts.Action {
+	numPossibleActions := 5 - s.num
+	if numPossibleActions < 0 {
+		numPossibleActions = 0
+	}
+	possibleActions := make([]mcts.Action, numPossibleActions)
+	for i := range possibleActions {
+		possibleActions[i] = dummyAction{"act" + strconv.Itoa(i), i}
+	}
+	return possibleActions
+}
+
+func (s dummyState) GetSuccessorState(a mcts.Action) mcts.State {
+	ac := a.(dummyAction)
+	return dummyState{s.num + ac.i + 1, s.depth + 1}
+}
+
+func (s dummyState) EvaluateFinalState() float64 {
+	return float64(s.num * s.depth)
+}
+
+// Dummy action
+type dummyAction struct {
 	s string
-}
-
-func (b BasicNodeValue) String() string {
-	return b.s
-}
-
-// IntNodeValue is another simple node value, used for testing
-type IntNodeValue struct {
 	i int
 }
 
-func (i IntNodeValue) String() string {
-	return strconv.Itoa(i.i)
+func (a dummyAction) String() string {
+	return a.s + "<" + strconv.Itoa(a.i) + ">"
 }
 
 func main() {
-	t := tree.NewTree(tree.NewNode(BasicNodeValue{"Mudkip"}))
-	t.GetRoot().AddChild(tree.NewNode(BasicNodeValue{"Lapras"}))
-	t.GetRoot().AddChild(tree.NewNode(IntNodeValue{12345}))
-	fmt.Printf("%s", t)
-	for i, c := range t.GetRoot().GetChildren() {
-		c.AddChild(tree.NewNode(BasicNodeValue{"Pikachu"}))
-		c.AddChild(tree.NewNode(BasicNodeValue{"Chikorita"}))
-		c.AddChild(tree.NewNode(IntNodeValue{(i + 1) * 1000}))
-		c.GetChildren()[1].AddChild(tree.NewNode(IntNodeValue{5}))
+	initState := dummyState{0, 0}
+	mcts := mcts.InitMCTS(initState)
+	for i := 0; i < 1000; i++ {
+		mcts.RunIteration()
 	}
-	fmt.Printf("%s", t)
+	fmt.Println(mcts)
 }
