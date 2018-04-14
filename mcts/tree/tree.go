@@ -20,15 +20,26 @@ func NewNode(v interface{}) *Node {
 }
 
 func (n *Node) String() string {
-	s := ""
-	for i, c := range (*n).children {
-		if i > 0 {
-			s += ", "
-		}
-		s += c.String()
+	return fmt.Sprintf("%v", n.value)
+}
+
+func (n *Node) stringWithChildren(level int) string {
+	if n == nil {
+		return ""
 	}
 
-	return fmt.Sprintf("%v (%s)", n.value, s)
+	s := ""
+	for i := 0; i < level; i++ {
+		s += "\t"
+	}
+
+	s += n.String() + "\n"
+
+	for _, child := range n.children {
+		s += child.stringWithChildren(level + 1)
+	}
+
+	return s
 }
 
 // GetChildren returns list of node n's successors
@@ -61,7 +72,7 @@ func NewTree(root *Node) *Tree {
 }
 
 func (t Tree) String() string {
-	return fmt.Sprintf("%v\n", t.root)
+	return t.root.stringWithChildren(0)
 }
 
 // GetRoot returns root node of the tree

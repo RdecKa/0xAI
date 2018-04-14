@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"strconv"
 
 	"github.com/RdecKa/mcts/mcts"
@@ -51,7 +50,7 @@ func (a dummyAction) String() string {
 
 func main() {
 	initState := dummyState{0, 0}
-	explorationFactor := math.Sqrt(2)
+	explorationFactor := 10.0 //math.Sqrt(2)
 	mcts := mcts.InitMCTS(initState, explorationFactor)
 	for i := 0; i < 1000; i++ {
 		mcts.RunIteration()
