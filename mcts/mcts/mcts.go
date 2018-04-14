@@ -69,6 +69,7 @@ func (mcts *MCTS) String() string {
 func InitMCTS(s State, c float64) *MCTS {
 	node := createMCTSNode(s)
 	mctsTree := tree.NewTree(node)
+	rand.Seed(time.Now().UTC().UnixNano())
 	return &MCTS{mctsTree, c}
 }
 
@@ -98,10 +99,33 @@ func (mcts *MCTS) selExpPlayBack(node *tree.Node) float64 {
 
 	if len(children) == 0 {
 		// Leaf node reached, selection phase finished
+
+		// Expansion phase
 		mcts.expansion(node)
-		score := mcts.playout(node)
+		// Select one of the new children (if there are any) and run playout
+		// from there
+		newChildren := node.GetChildren()
+		var newNode *tree.Node
+		if len(newChildren) > 0 {
+			newNode = newChildren[rand.Intn(len(newChildren))]
+		}
+
+		// Playout phase
+		var score float64
+		if newNode != nil {
+			score = mcts.playout(newNode)
+		} else {
+			score = mcts.playout(node)
+		}
+
+		// Backpropagation begins - update two last nodes:
+		// 	Old leaf node
 		nodeValue.updateNodeValues(score)
-		// Backpropagation begins
+		// 	New leaf node (if it was added in expansion phase)
+		if newNode != nil {
+			newNode.GetValue().(*mctsNodeValue).updateNodeValues(score)
+		}
+
 		return score
 	}
 
@@ -142,7 +166,6 @@ func (mcts *MCTS) expansion(node *tree.Node) {
 
 // playout starts playout phase of MCTS from Node node
 func (mcts *MCTS) playout(node *tree.Node) float64 {
-	rand.Seed(time.Now().UTC().UnixNano())
 	nodeValue := node.GetValue().(*mctsNodeValue)
 	state := nodeValue.state
 	return playoutFromState(state)
