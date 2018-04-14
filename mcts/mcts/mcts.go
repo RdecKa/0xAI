@@ -57,8 +57,8 @@ func (mnv *mctsNodeValue) updateNodeValues(score float64) {
 
 // MCTS represens Monte Carlo Tree Search
 type MCTS struct {
-	// TODO: try without nested struct
 	mcTree *tree.Tree // Monte Carlo tree
+	c      float64    // exploration parameter
 }
 
 func (mcts *MCTS) String() string {
@@ -66,10 +66,10 @@ func (mcts *MCTS) String() string {
 }
 
 // InitMCTS initializes MCTS (State s is inserted in the root)
-func InitMCTS(s State) *MCTS {
+func InitMCTS(s State, c float64) *MCTS {
 	node := createMCTSNode(s)
 	mctsTree := tree.NewTree(node)
-	return &MCTS{mctsTree}
+	return &MCTS{mctsTree, c}
 }
 
 func createMCTSNode(s State) *tree.Node {
@@ -98,11 +98,11 @@ func (mcts *MCTS) selectionAndBackpropagation(node *tree.Node) float64 {
 	}
 
 	// Iterate through all children, find the best one
-	maxUCTValue := getUCTValue(children[0], nodeValue.n)
+	maxUCTValue := mcts.getUCTValue(children[0], nodeValue.n)
 	bestNode := children[0]
 
 	for i, child := range children { // TODO: children[1:]
-		UCTValue := getUCTValue(child, nodeValue.n)
+		UCTValue := mcts.getUCTValue(child, nodeValue.n)
 		if UCTValue > maxUCTValue {
 			maxUCTValue = UCTValue
 			bestNode = children[i]
@@ -144,11 +144,10 @@ func playoutFromState(state State) float64 {
 	return playoutFromState(state.GetSuccessorState(randomAction))
 }
 
-// getUCTValue calculates UCT value of a node.
+// getUCTValue calculates UCT value of a node node.
 // Argument n represents N value of parent node (how many times parent node was
 // visited)
-func getUCTValue(node *tree.Node, parentN uint) float64 {
-
+func (mcts *MCTS) getUCTValue(node *tree.Node, parentN uint) float64 {
 	// Assert that nodeValue is of type *mctsNodeValue
 	nodeValue := node.GetValue().(*mctsNodeValue)
 
@@ -156,8 +155,6 @@ func getUCTValue(node *tree.Node, parentN uint) float64 {
 		return math.MaxFloat64
 	}
 
-	const c = 1 // TODO: Find appropriate value
-
 	return float64(nodeValue.q) +
-		c*math.Sqrt(math.Log(float64(parentN))/float64(nodeValue.n))
+		mcts.c*math.Sqrt(math.Log(float64(parentN))/float64(nodeValue.n))
 }
