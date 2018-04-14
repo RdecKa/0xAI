@@ -38,7 +38,7 @@ type Action interface {
 type mctsNodeValue struct {
 	state State   // state that this node represents
 	n     uint    // how many times this node was visited
-	q     float64 // estimated value of state
+	q     float64 // estimated value of State state
 }
 
 func (mnv mctsNodeValue) String() string {
@@ -72,6 +72,7 @@ func InitMCTS(s State, c float64) *MCTS {
 	return &MCTS{mctsTree, c}
 }
 
+// createMCTSNode creates new node with value {state=s, n=0, q=0}
 func createMCTSNode(s State) *tree.Node {
 	value := mctsNodeValue{s, 0, 0}
 	node := tree.NewNode(&value)
@@ -80,42 +81,53 @@ func createMCTSNode(s State) *tree.Node {
 
 // RunIteration runs one iteration of MCTS
 func (mcts *MCTS) RunIteration() {
-	mcts.selectionAndBackpropagation(mcts.mcTree.GetRoot())
+	mcts.selExpPlayBack(mcts.mcTree.GetRoot())
 }
 
-// Phases of MCTS: selection, expansion, playout, backpropagation
-
-func (mcts *MCTS) selectionAndBackpropagation(node *tree.Node) float64 {
+// selExpPlayBack performs one iteration of MCTS
+// Phases of MCTS:
+// 	selection: recursively call itself on the node's child with the highest
+//		UCT value
+// 	expansion: expand leaf node that was reached by recursive call
+// 	playout: randomly select moves until goal state is reached (no possible
+//		actions)
+// 	backpropagation: update values on nodes on selected branch in the tree
+func (mcts *MCTS) selExpPlayBack(node *tree.Node) float64 {
 	children := node.GetChildren()
 	nodeValue := node.GetValue().(*mctsNodeValue)
 
 	if len(children) == 0 {
-		// Leaf node reached
+		// Leaf node reached, selection phase finished
 		mcts.expansion(node)
 		score := mcts.playout(node)
 		nodeValue.updateNodeValues(score)
+		// Backpropagation begins
 		return score
 	}
 
-	// Iterate through all children, find the best one
+	// Iterate through all children, find the one with the highest UCT value
 	maxUCTValue := mcts.getUCTValue(children[0], nodeValue.n)
 	bestNode := children[0]
 
-	for i, child := range children { // TODO: children[1:]
+	for i, child := range children[1:] {
 		UCTValue := mcts.getUCTValue(child, nodeValue.n)
 		if UCTValue > maxUCTValue {
 			maxUCTValue = UCTValue
-			bestNode = children[i]
+			bestNode = children[i+1] // +1 because i starts at 0, but the array with children[1]
 		}
 	}
 
-	score := mcts.selectionAndBackpropagation(bestNode)
+	// Recursive call (selection)
+	score := mcts.selExpPlayBack(bestNode)
 
+	// Update N and Q values (backpropagation)
 	nodeValue.updateNodeValues(score)
 
 	return score
 }
 
+// expansion finds all possible successor states and adds them as child nodes
+// of Node node
 func (mcts *MCTS) expansion(node *tree.Node) {
 	nodeValue := node.GetValue().(*mctsNodeValue)
 	state := nodeValue.state
@@ -128,6 +140,7 @@ func (mcts *MCTS) expansion(node *tree.Node) {
 	node.SetChildren(successorNodes)
 }
 
+// playout starts playout phase of MCTS from Node node
 func (mcts *MCTS) playout(node *tree.Node) float64 {
 	rand.Seed(time.Now().UTC().UnixNano())
 	nodeValue := node.GetValue().(*mctsNodeValue)
@@ -135,6 +148,8 @@ func (mcts *MCTS) playout(node *tree.Node) float64 {
 	return playoutFromState(state)
 }
 
+// playoutFromState recursively performs a random action from the list of
+// possible actions. After reaching a goal state it returns its value
 func playoutFromState(state State) float64 {
 	possibleActions := state.GetPossibleActions()
 	if possibleActions == nil || len(possibleActions) <= 0 {
@@ -144,7 +159,7 @@ func playoutFromState(state State) float64 {
 	return playoutFromState(state.GetSuccessorState(randomAction))
 }
 
-// getUCTValue calculates UCT value of a node node.
+// getUCTValue calculates UCT value of a Node node.
 // Argument n represents N value of parent node (how many times parent node was
 // visited)
 func (mcts *MCTS) getUCTValue(node *tree.Node, parentN uint) float64 {
