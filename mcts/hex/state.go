@@ -1,41 +1,6 @@
 package hex
 
-import (
-	"fmt"
-)
-
-// -----------------
-// |     Color     |
-// -----------------
-
-type color byte
-
-// enum for players (colors)
-const (
-	None color = 0
-	Red  color = 1
-	Blue color = 2
-)
-
-func (c color) String() string {
-	switch c {
-	case Red:
-		return "r"
-	case Blue:
-		return "b"
-	default:
-		return "."
-	}
-}
-
-func getColorFromBits(bits uint64) color {
-	if bits == 1 {
-		return Red
-	} else if bits == 2 {
-		return Blue
-	}
-	return None
-}
+import "fmt"
 
 // -----------------
 // |     State     |
@@ -112,24 +77,4 @@ func (s State) GetSuccessorState(a Action) *State {
 	newState.lastPlayer = a.c
 	newState.setCell(a.x, a.y, a.c)
 	return newState
-}
-
-// ------------------
-// |     Action     |
-// ------------------
-
-// Action shows where next stone will be placed and of which color
-type Action struct {
-	x, y byte
-	c    color
-}
-
-// NewAction creates a new action. x and y are coordinates of a stone placed by
-// color color
-func NewAction(x, y byte, c color) *Action {
-	return &Action{x, y, c}
-}
-
-func (a Action) String() string {
-	return fmt.Sprintf("%s: (%d, %d)", a.c, a.x, a.y)
 }
