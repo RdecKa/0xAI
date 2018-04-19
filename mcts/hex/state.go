@@ -78,3 +78,19 @@ func (s State) GetSuccessorState(a Action) *State {
 	newState.setCell(a.x, a.y, a.c)
 	return newState
 }
+
+// GetPossibleActions returns a list of all possible actions from State s
+func (s State) GetPossibleActions() []Action {
+	actions := make([]Action, 0, s.size*s.size)
+	for rowIndex := byte(0); rowIndex < s.size; rowIndex++ {
+		row := s.grid[rowIndex]
+		for colIndex := byte(0); colIndex < s.size; colIndex++ {
+			bits := row & 3 // Get last two bits of a row
+			if getColorFromBits(bits) == None {
+				actions = append(actions, Action{colIndex, rowIndex, s.lastPlayer.opponent()})
+			}
+			row = row >> 2
+		}
+	}
+	return actions
+}

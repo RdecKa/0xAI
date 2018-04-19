@@ -32,3 +32,14 @@ func getColorFromBits(bits uint64) color {
 	}
 	return None
 }
+
+func (c color) opponent() color {
+	if c != Red && c != Blue {
+		return None
+	}
+
+	if c == Red {
+		return Blue
+	}
+	return Red
+}

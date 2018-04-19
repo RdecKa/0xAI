@@ -63,8 +63,15 @@ func main() {
 	action := hex.NewAction(0, 2, hex.Red)
 	state = state.GetSuccessorState(*action)
 
-	action2 := hex.NewAction(3, 4, hex.Blue)
-	state = state.GetSuccessorState(*action2)
+	action = hex.NewAction(3, 4, hex.Blue)
+	state = state.GetSuccessorState(*action)
+
+	action = hex.NewAction(3, 1, hex.Red)
+	state = state.GetSuccessorState(*action)
 
 	fmt.Println(state)
+
+	actions := state.GetPossibleActions()
+
+	fmt.Println("Possible actions:", actions)
 }
