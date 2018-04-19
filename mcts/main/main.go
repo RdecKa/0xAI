@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/RdecKa/mcts/hex"
 	"github.com/RdecKa/mcts/mcts"
 )
 
@@ -49,11 +50,21 @@ func (a dummyAction) String() string {
 }
 
 func main() {
-	initState := dummyState{0, 0}
+	/*initState := dummyState{0, 0}
 	explorationFactor := 10.0 //math.Sqrt(2)
 	mcts := mcts.InitMCTS(initState, explorationFactor)
 	for i := 0; i < 1000; i++ {
 		mcts.RunIteration()
 	}
-	fmt.Println(mcts)
+	fmt.Println(mcts)*/
+
+	state := hex.NewState(5)
+
+	action := hex.NewAction(0, 2, hex.Red)
+	state = state.GetSuccessorState(*action)
+
+	action2 := hex.NewAction(3, 4, hex.Blue)
+	state = state.GetSuccessorState(*action2)
+
+	fmt.Println(state)
 }
