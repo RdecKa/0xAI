@@ -61,7 +61,7 @@ func (s *State) getColorOn(x, y byte) color {
 // setCell puts a stone of color c into cell (x, y)
 // Cell (x, y) must be empty and valid
 func (s *State) setCell(x, y byte, c color) {
-	bits := uint64(c << (x * 2))
+	bits := uint64(c) << (x * 2)
 	s.grid[y] |= bits
 }
 
