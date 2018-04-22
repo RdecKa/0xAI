@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/RdecKa/mcts/astarsearch"
+	"github.com/RdecKa/mcts/game"
 	"github.com/RdecKa/mcts/hex"
-	"github.com/RdecKa/mcts/mcts"
 )
 
 // Dummy state
@@ -18,25 +19,29 @@ func (s dummyState) String() string {
 	return strconv.Itoa(s.num) + "<" + strconv.Itoa(s.depth) + ">"
 }
 
-func (s dummyState) GetPossibleActions() []mcts.Action {
+func (s dummyState) GetPossibleActions() []game.Action {
 	numPossibleActions := 5 - s.num
 	if numPossibleActions < 0 {
 		numPossibleActions = 0
 	}
-	possibleActions := make([]mcts.Action, numPossibleActions)
+	possibleActions := make([]game.Action, numPossibleActions)
 	for i := range possibleActions {
 		possibleActions[i] = dummyAction{"act" + strconv.Itoa(i), i}
 	}
 	return possibleActions
 }
 
-func (s dummyState) GetSuccessorState(a mcts.Action) mcts.State {
+func (s dummyState) GetSuccessorState(a game.Action) game.State {
 	ac := a.(dummyAction)
 	return dummyState{s.num + ac.i + 1, s.depth + 1}
 }
 
-func (s dummyState) EvaluateFinalState() float64 {
+func (s dummyState) EvaluateGoalState() float64 {
 	return float64(s.num * s.depth)
+}
+
+func (s dummyState) IsGoalState() bool {
+	return false
 }
 
 // Dummy action
@@ -58,20 +63,27 @@ func main() {
 	}
 	fmt.Println(mcts)*/
 
-	state := hex.NewState(5)
+	state := hex.NewState(4)
 
-	action := hex.NewAction(0, 2, hex.Red)
-	state = state.GetSuccessorState(*action)
+	actions := []*hex.Action{
+		hex.NewAction(1, 0, hex.Red),
+		hex.NewAction(0, 1, hex.Blue),
+		hex.NewAction(1, 3, hex.Red),
+		hex.NewAction(1, 1, hex.Blue),
+		hex.NewAction(1, 2, hex.Red),
+		hex.NewAction(2, 0, hex.Blue),
+		hex.NewAction(2, 1, hex.Red),
+		hex.NewAction(3, 0, hex.Blue),
+	}
 
-	action = hex.NewAction(3, 4, hex.Blue)
-	state = state.GetSuccessorState(*action)
-
-	action = hex.NewAction(3, 1, hex.Red)
-	state = state.GetSuccessorState(*action)
+	for _, a := range actions {
+		state = state.GetSuccessorState(*a)
+	}
 
 	fmt.Println(state)
 
-	actions := state.GetPossibleActions()
-
-	fmt.Println("Possible actions:", actions)
+	initialState := hex.GetInitialState(hex.Blue, state)
+	astar := astarsearch.InitSearch(initialState)
+	solutionExists := astar.Search()
+	fmt.Printf("Solution exists? %v\n", solutionExists)
 }

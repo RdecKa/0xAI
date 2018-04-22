@@ -7,38 +7,18 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/RdecKa/mcts/game"
 	"github.com/RdecKa/mcts/tree"
 )
-
-// -----------------
-// |     State     |
-// -----------------
-
-// State represents a state in a game
-type State interface {
-	String() string
-	GetPossibleActions() []Action
-	GetSuccessorState(Action) State
-	EvaluateFinalState() float64
-}
-
-// ------------------
-// |     Action     |
-// ------------------
-
-// Action represents an action in a game
-type Action interface {
-	String() string
-}
 
 // -------------------------
 // |     mctsNodeValue     |
 // -------------------------
 
 type mctsNodeValue struct {
-	state State   // state that this node represents
-	n     uint    // how many times this node was visited
-	q     float64 // estimated value of State state
+	state game.State // state that this node represents
+	n     uint       // how many times this node was visited
+	q     float64    // estimated value of State state
 }
 
 func (mnv mctsNodeValue) String() string {
@@ -66,7 +46,7 @@ func (mcts *MCTS) String() string {
 }
 
 // InitMCTS initializes MCTS (State s is inserted in the root)
-func InitMCTS(s State, c float64) *MCTS {
+func InitMCTS(s game.State, c float64) *MCTS {
 	node := createMCTSNode(s)
 	mctsTree := tree.NewTree(node)
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -74,7 +54,7 @@ func InitMCTS(s State, c float64) *MCTS {
 }
 
 // createMCTSNode creates new node with value {state=s, n=0, q=0}
-func createMCTSNode(s State) *tree.Node {
+func createMCTSNode(s game.State) *tree.Node {
 	value := mctsNodeValue{s, 0, 0}
 	node := tree.NewNode(&value)
 	return node
@@ -173,10 +153,10 @@ func (mcts *MCTS) playout(node *tree.Node) float64 {
 
 // playoutFromState recursively performs a random action from the list of
 // possible actions. After reaching a goal state it returns its value
-func playoutFromState(state State) float64 {
+func playoutFromState(state game.State) float64 {
 	possibleActions := state.GetPossibleActions()
 	if possibleActions == nil || len(possibleActions) <= 0 {
-		return state.EvaluateFinalState()
+		return state.EvaluateGoalState()
 	}
 	randomAction := possibleActions[rand.Intn(len(possibleActions))]
 	return playoutFromState(state.GetSuccessorState(randomAction))

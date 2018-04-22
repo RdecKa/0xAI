@@ -13,7 +13,7 @@ type Action struct {
 }
 
 // NewAction creates a new action. x and y are coordinates of a stone placed by
-// color color
+// the player c
 func NewAction(x, y byte, c color) *Action {
 	return &Action{x, y, c}
 }

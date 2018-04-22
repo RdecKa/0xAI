@@ -17,6 +17,9 @@ import "fmt"
 //		Lowest two bits represent the cell with index 0. Because of using 64
 //		bits for a row, maximal size of the grid is 32x32.
 //	lastPlayer is the color of the player who made the last action
+//
+// A goal of the red player is to connect top-most and bottom-most row while a
+// goal of the blue player is to connect left-most and right-most column
 type State struct {
 	size       byte
 	grid       []uint64
@@ -29,7 +32,7 @@ func NewState(size byte) *State {
 	return &State{size, grid, Blue} // Blue is set as last player, so Red always starts
 }
 
-func (s State) String() string {
+func (s *State) String() string {
 	r := ""
 	for rowIndex, row := range s.grid {
 		for i := 0; i < rowIndex; i++ {
@@ -44,8 +47,13 @@ func (s State) String() string {
 	return r
 }
 
+// GetSize returns size of the grid
+func (s *State) GetSize() int {
+	return int(s.size)
+}
+
 // getColorOn returns the color of the stone in cell (x, y)
-func (s State) getColorOn(x, y byte) color {
+func (s *State) getColorOn(x, y byte) color {
 	row := s.grid[y]
 	return getCellInRow(row, x)
 }
@@ -64,12 +72,22 @@ func getCellInRow(row uint64, index byte) color {
 	return getColorFromBits(bits)
 }
 
-func (s State) clone() *State {
+func (s *State) clone() *State {
 	return &State{s.size, s.grid, s.lastPlayer}
 }
 
+// IsCellValid returns true if a cell (x, y) is on the grid, and false otherwise
+func (s *State) IsCellValid(x, y int) bool {
+	return x >= 0 && x < int(s.size) && y >= 0 && y < int(s.size)
+}
+
+// IsCellEmpty returns true if a cell (x, y) is empty
+func (s *State) IsCellEmpty(x, y byte) bool {
+	return s.getColorOn(x, y) == None
+}
+
 // GetSuccessorState returns a state after Action a is performed
-func (s State) GetSuccessorState(a Action) *State {
+func (s *State) GetSuccessorState(a Action) *State {
 	newState := s.clone()
 	if a.c == s.lastPlayer {
 		panic(fmt.Sprintf("Player cannot do two moves in a row! (last player: %s, current action: %s)", s.lastPlayer, a.c))
@@ -80,7 +98,7 @@ func (s State) GetSuccessorState(a Action) *State {
 }
 
 // GetPossibleActions returns a list of all possible actions from State s
-func (s State) GetPossibleActions() []Action {
+func (s *State) GetPossibleActions() []Action {
 	actions := make([]Action, 0, s.size*s.size)
 	for rowIndex := byte(0); rowIndex < s.size; rowIndex++ {
 		row := s.grid[rowIndex]
@@ -93,4 +111,11 @@ func (s State) GetPossibleActions() []Action {
 		}
 	}
 	return actions
+}
+
+// TODO:
+// IsGoalState returns true if the game is decided (one player has a "virtual
+// connection" and false otherwise)
+func (s *State) IsGoalState() bool {
+	return true
 }
