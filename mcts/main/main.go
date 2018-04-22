@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/RdecKa/mcts/astarsearch"
 	"github.com/RdecKa/mcts/game"
 	"github.com/RdecKa/mcts/hex"
 )
@@ -63,7 +62,7 @@ func main() {
 	}
 	fmt.Println(mcts)*/
 
-	state := hex.NewState(4)
+	state := hex.NewState(5)
 
 	actions := []*hex.Action{
 		hex.NewAction(1, 0, hex.Red),
@@ -74,6 +73,12 @@ func main() {
 		hex.NewAction(2, 0, hex.Blue),
 		hex.NewAction(2, 1, hex.Red),
 		hex.NewAction(3, 0, hex.Blue),
+		hex.NewAction(4, 0, hex.Red),
+		hex.NewAction(3, 1, hex.Blue),
+		hex.NewAction(4, 2, hex.Red),
+		hex.NewAction(4, 1, hex.Blue),
+		hex.NewAction(0, 0, hex.Red),
+		hex.NewAction(0, 2, hex.Blue),
 	}
 
 	for _, a := range actions {
@@ -82,8 +87,5 @@ func main() {
 
 	fmt.Println(state)
 
-	initialState := hex.GetInitialState(hex.Blue, state)
-	astar := astarsearch.InitSearch(initialState)
-	solutionExists := astar.Search()
-	fmt.Printf("Solution exists? %v\n", solutionExists)
+	fmt.Printf("Solution exists? %v\n", state.IsGoalState())
 }

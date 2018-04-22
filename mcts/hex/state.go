@@ -1,6 +1,10 @@
 package hex
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/RdecKa/mcts/astarsearch"
+)
 
 // -----------------
 // |     State     |
@@ -113,9 +117,20 @@ func (s *State) GetPossibleActions() []Action {
 	return actions
 }
 
-// TODO:
-// IsGoalState returns true if the game is decided (one player has a "virtual
-// connection" and false otherwise)
+// IsGoalState returns true if the game is decided (one player has a
+// connection) and false otherwise
 func (s *State) IsGoalState() bool {
-	return true
+	players := []color{Red, Blue}
+
+	for _, player := range players {
+		initialState := GetInitialState(player, s)
+		aStarSearch := astarsearch.InitSearch(initialState)
+		solutionExists := aStarSearch.Search()
+
+		if solutionExists {
+			return true
+		}
+	}
+
+	return false
 }
