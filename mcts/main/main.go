@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 
 	"github.com/RdecKa/mcts/game"
 	"github.com/RdecKa/mcts/hex"
+	"github.com/RdecKa/mcts/mcts"
 )
 
 // Dummy state
@@ -54,15 +56,16 @@ func (a dummyAction) String() string {
 }
 
 func main() {
-	/*initState := dummyState{0, 0}
-	explorationFactor := 10.0 //math.Sqrt(2)
-	mcts := mcts.InitMCTS(initState, explorationFactor)
-	for i := 0; i < 1000; i++ {
+	initState := hex.NewState(3)
+	explorationFactor := math.Sqrt(2)
+	mcts := mcts.InitMCTS(*initState, explorationFactor)
+	for i := 0; i < 5; i++ {
+		fmt.Println("Iteration")
 		mcts.RunIteration()
+		fmt.Println(mcts)
 	}
-	fmt.Println(mcts)*/
 
-	state := hex.NewState(5)
+	/*state := hex.NewState(5)
 
 	actions := []*hex.Action{
 		hex.NewAction(1, 0, hex.Red),
@@ -87,5 +90,5 @@ func main() {
 
 	fmt.Println(state)
 
-	fmt.Printf("Solution exists? %v\n", state.IsGoalState())
+	fmt.Printf("Solution exists? %v\n", state.IsGoalState())*/
 }

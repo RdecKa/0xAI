@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/RdecKa/mcts/astarsearch"
+	"github.com/RdecKa/mcts/game"
 )
 
 // -----------------
@@ -36,7 +37,7 @@ func NewState(size byte) *State {
 	return &State{size, grid, Blue} // Blue is set as last player, so Red always starts
 }
 
-func (s *State) String() string {
+func (s State) String() string {
 	r := ""
 	for rowIndex, row := range s.grid {
 		for i := 0; i < rowIndex; i++ {
@@ -76,8 +77,8 @@ func getCellInRow(row uint64, index byte) color {
 	return getColorFromBits(bits)
 }
 
-func (s *State) clone() *State {
-	return &State{s.size, s.grid, s.lastPlayer}
+func (s *State) clone() game.State {
+	return State{s.size, s.grid, s.lastPlayer}
 }
 
 // IsCellValid returns true if a cell (x, y) is on the grid, and false otherwise
@@ -91,8 +92,9 @@ func (s *State) IsCellEmpty(x, y byte) bool {
 }
 
 // GetSuccessorState returns a state after Action a is performed
-func (s *State) GetSuccessorState(a Action) *State {
-	newState := s.clone()
+func (s State) GetSuccessorState(action game.Action) game.State {
+	a := action.(Action)
+	newState := s.clone().(State)
 	if a.c == s.lastPlayer {
 		panic(fmt.Sprintf("Player cannot do two moves in a row! (last player: %s, current action: %s)", s.lastPlayer, a.c))
 	}
@@ -102,8 +104,8 @@ func (s *State) GetSuccessorState(a Action) *State {
 }
 
 // GetPossibleActions returns a list of all possible actions from State s
-func (s *State) GetPossibleActions() []Action {
-	actions := make([]Action, 0, s.size*s.size)
+func (s State) GetPossibleActions() []game.Action {
+	actions := make([]game.Action, 0, s.size*s.size)
 	for rowIndex := byte(0); rowIndex < s.size; rowIndex++ {
 		row := s.grid[rowIndex]
 		for colIndex := byte(0); colIndex < s.size; colIndex++ {
@@ -119,11 +121,11 @@ func (s *State) GetPossibleActions() []Action {
 
 // IsGoalState returns true if the game is decided (one player has a
 // connection) and false otherwise
-func (s *State) IsGoalState() bool {
+func (s State) IsGoalState() bool {
 	players := []color{Red, Blue}
 
 	for _, player := range players {
-		initialState := GetInitialState(player, s)
+		initialState := GetInitialState(player, &s)
 		aStarSearch := astarsearch.InitSearch(initialState)
 		solutionExists := aStarSearch.Search()
 
@@ -133,4 +135,10 @@ func (s *State) IsGoalState() bool {
 	}
 
 	return false
+}
+
+// EvaluateGoalState returns 1.0 because the player who makes the last action
+// (action that leads to the goal state) wins
+func (s State) EvaluateGoalState() float64 {
+	return 1.0
 }
