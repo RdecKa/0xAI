@@ -28,16 +28,19 @@ func (n *Node) stringWithChildren(level int) string {
 		return ""
 	}
 
-	s := ""
+	s := "*"
 	for i := 0; i < level; i++ {
-		s += "\t"
+		s += "---*"
 	}
+	s += fmt.Sprintf(" (level %d)\n", level)
 
 	s += n.String() + "\n"
 
 	for _, child := range n.children {
 		s += child.stringWithChildren(level + 1)
 	}
+
+	s += "\n"
 
 	return s
 }
