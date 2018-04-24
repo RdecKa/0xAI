@@ -78,7 +78,11 @@ func getCellInRow(row uint64, index byte) color {
 }
 
 func (s *State) clone() game.State {
-	return State{s.size, s.grid, s.lastPlayer}
+	newGrid := make([]uint64, len(s.grid))
+	for i, v := range s.grid {
+		newGrid[i] = v
+	}
+	return State{s.size, newGrid, s.lastPlayer}
 }
 
 // IsCellValid returns true if a cell (x, y) is on the grid, and false otherwise
