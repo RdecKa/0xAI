@@ -99,12 +99,13 @@ func (mcts *MCTS) selExpPlayBack(node *tree.Node) float64 {
 		}
 
 		// Backpropagation begins - update two last nodes:
-		// 	Old leaf node
-		nodeValue.updateNodeValues(score)
 		// 	New leaf node (if it was added in expansion phase)
 		if newNode != nil {
 			newNode.GetValue().(*mctsNodeValue).updateNodeValues(score)
+			score = -score // Negate the value because node is newNode's opponent!
 		}
+		// 	Old leaf node
+		nodeValue.updateNodeValues(score)
 
 		return score
 	}
@@ -122,7 +123,7 @@ func (mcts *MCTS) selExpPlayBack(node *tree.Node) float64 {
 	}
 
 	// Recursive call (selection)
-	score := mcts.selExpPlayBack(bestNode)
+	score := -mcts.selExpPlayBack(bestNode)
 
 	// Update N and Q values (backpropagation)
 	nodeValue.updateNodeValues(score)
@@ -135,6 +136,12 @@ func (mcts *MCTS) selExpPlayBack(node *tree.Node) float64 {
 func (mcts *MCTS) expansion(node *tree.Node) {
 	nodeValue := node.GetValue().(*mctsNodeValue)
 	state := nodeValue.state
+
+	if state.IsGoalState() {
+		// Do not expand goal states
+		return
+	}
+
 	possibleActions := state.GetPossibleActions()
 	successorNodes := make([]*tree.Node, len(possibleActions))
 
@@ -154,12 +161,15 @@ func (mcts *MCTS) playout(node *tree.Node) float64 {
 // playoutFromState recursively performs a random action from the list of
 // possible actions. After reaching a goal state it returns its value
 func playoutFromState(state game.State) float64 {
-	possibleActions := state.GetPossibleActions()
-	if possibleActions == nil || len(possibleActions) <= 0 {
+	if state.IsGoalState() {
 		return state.EvaluateGoalState()
 	}
+	possibleActions := state.GetPossibleActions()
+	if possibleActions == nil || len(possibleActions) <= 0 {
+		panic(fmt.Sprintf("Not in a goal state yet, but no action possible. Something is wrong."))
+	}
 	randomAction := possibleActions[rand.Intn(len(possibleActions))]
-	return playoutFromState(state.GetSuccessorState(randomAction))
+	return -playoutFromState(state.GetSuccessorState(randomAction))
 }
 
 // getUCTValue calculates UCT value of a Node node.

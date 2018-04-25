@@ -56,39 +56,11 @@ func (a dummyAction) String() string {
 }
 
 func main() {
-	initState := hex.NewState(3)
+	initState := hex.NewState(2)
 	explorationFactor := math.Sqrt(2)
 	mcts := mcts.InitMCTS(*initState, explorationFactor)
-	for i := 0; i < 5; i++ {
-		fmt.Println("Iteration")
+	for i := 0; i < 30000; i++ {
 		mcts.RunIteration()
-		fmt.Println(mcts)
 	}
-
-	/*state := hex.NewState(5)
-
-	actions := []*hex.Action{
-		hex.NewAction(1, 0, hex.Red),
-		hex.NewAction(0, 1, hex.Blue),
-		hex.NewAction(1, 3, hex.Red),
-		hex.NewAction(1, 1, hex.Blue),
-		hex.NewAction(1, 2, hex.Red),
-		hex.NewAction(2, 0, hex.Blue),
-		hex.NewAction(2, 1, hex.Red),
-		hex.NewAction(3, 0, hex.Blue),
-		hex.NewAction(4, 0, hex.Red),
-		hex.NewAction(3, 1, hex.Blue),
-		hex.NewAction(4, 2, hex.Red),
-		hex.NewAction(4, 1, hex.Blue),
-		hex.NewAction(0, 0, hex.Red),
-		hex.NewAction(0, 2, hex.Blue),
-	}
-
-	for _, a := range actions {
-		state = state.GetSuccessorState(*a)
-	}
-
-	fmt.Println(state)
-
-	fmt.Printf("Solution exists? %v\n", state.IsGoalState())*/
+	fmt.Println(mcts)
 }
