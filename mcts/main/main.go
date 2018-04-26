@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/RdecKa/mcts/hex"
@@ -14,5 +15,9 @@ func main() {
 	for i := 0; i < 30000; i++ {
 		mc.RunIteration()
 	}
-	mcts.WriteToFile(*mc, "./out")
+	err := mcts.WriteToFile(*mc, "./out")
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(mc)
 }

@@ -21,6 +21,19 @@ func (mcts MCTS) MarshalJSON() ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
+// MarshalJSON implements Marshaler interface
+// It returns mctsNodeValue in JSON format
+func (mnv mctsNodeValue) MarshalJSON() ([]byte, error) {
+	buffer := bytes.NewBufferString("{")
+	jsonValue, err := json.Marshal(mnv.state)
+	if err != nil {
+		return nil, err
+	}
+	buffer.WriteString(fmt.Sprintf("\"N\": %d, \"Q\": %f, \"state\": %s", mnv.n, mnv.q, jsonValue))
+	buffer.WriteString("}")
+	return buffer.Bytes(), nil
+}
+
 // WriteToFile saves MCTS in JSON format to the file folder/currentDate
 func WriteToFile(mcts MCTS, folder string) error {
 	// Create a new file
@@ -36,11 +49,15 @@ func WriteToFile(mcts MCTS, folder string) error {
 	// Create JSON
 	jsonText, err := json.Marshal(mcts)
 	if err != nil {
-		fmt.Println("error:", err)
+		return err
 	}
 
+	// Add indent
+	var out bytes.Buffer
+	json.Indent(&out, jsonText, "", "\t")
+
 	// Write to file
-	_, err = f.Write(jsonText)
+	_, err = f.Write(out.Bytes())
 	if err != nil {
 		return err
 	}
