@@ -2,7 +2,11 @@ function visualize_mcts() {
 	return new Vue({
 		el: '#mcts',
 		data: {
-			json: mcs_json.tree.root,
+			json: mcst_json.tree.root,
+			showN: true,
+			showQ: true,
+			showGrid: true,
+			showLastPlayer: true
 		},
 		props: {
 			model: Object
@@ -13,7 +17,11 @@ function visualize_mcts() {
 Vue.component('item', {
 	template: '#item-template',
 	props: {
-		model: Object
+		model: Object,
+		showN: Boolean,
+		showQ: Boolean,
+		showGrid: Boolean,
+		showLastPlayer: Boolean,
 	},
 	data: function () {
 		return {

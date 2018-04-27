@@ -13,30 +13,51 @@
 				<div
 					:class="{bold: !isGoal}"
 					@click="toggle">
-					<span>
-						N: {{ model.value.N }},
-						Q: {{ model.value.Q}},
-						lastPlayer: {{ model.value.state.lastPlayer }},
-						grid: {{ model.value.state.grid }}
-					</span>
+					<span v-if="showN">N: {{ model.value.N }},</span>
+					<span v-if="showQ">Q: {{ model.value.Q}},</span>
+					<span v-if="showLastPlayer">lastPlayer: {{ model.value.state.lastPlayer }},</span>
+					<span v-if="showGrid">grid: {{ model.value.state.grid }}</span>
 					<span v-if="!isGoal">[{{ open ? '-' : '+' }}]</span>
 				</div>
+
 				<ul v-show="open" v-if="!isGoal">
 					<item
 					class="item"
 					v-for="(model, index) in model.children"
 					:key="index"
-					:model="model">
+					:model="model"
+					:show-n="showN"
+					:show-q="showQ"
+					:show-last-player="showLastPlayer"
+					:show-grid="showGrid">
 					</item>
 				</ul>
 			</li>
 		</script>
 
-		<ul id="mcts">
-			<item
-				class="item"
-				:model="json">
-			</item>
-		</ul>
+		<div id="mcts">
+			<input v-model.bool="showN" type="checkbox" id="showNcheck" name="showNcheck" value="showNcheck">
+			<label for="showNcheck">show N</label>
+
+			<input v-model.bool="showQ" type="checkbox" id="showQcheck" name="showQcheck" value="showQcheck">
+			<label for="showQcheck">show Q</label>
+
+			<input v-model.bool="showLastPlayer" type="checkbox" id="showLastPlayercheck" name="showLastPlayercheck" value="showLastPlayercheck">
+			<label for="showLastPlayercheck">show last player</label>
+
+			<input v-model.bool="showGrid" type="checkbox" id="showGridcheck" name="showGridcheck" value="showGridcheck">
+			<label for="showGridcheck">show grid</label>
+
+			<ul>
+				<item
+					class="item"
+					:model="json"
+					:show-n="showN"
+					:show-q="showQ"
+					:show-last-player="showLastPlayer"
+					:show-grid="showGrid">
+				</item>
+			</ul>
+		</div>
 	</body>
 </html>

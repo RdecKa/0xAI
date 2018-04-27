@@ -1,4 +1,4 @@
-let mcs_json = {
+let mcst_json = {
 	"tree": {
 		"root": {
 			"value": {
