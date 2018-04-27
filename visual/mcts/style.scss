@@ -1,0 +1,37 @@
+$n-color: #00BDFF;
+$q-color: #CC3D14;
+$lp-color: #FF990A;
+$g-color: #691ACC;
+
+$font-general: 'Open Sans', sans-serif;
+
+body {
+	font-family: $font-general;
+}
+
+.info-n {
+	color: $n-color;
+}
+
+.info-q {
+	color: $q-color;
+}
+
+.info-lp {
+	color: $lp-color;
+}
+
+.info-g {
+	color: $g-color;
+}
+
+.extendable:hover {
+	opacity: 0.7;
+	cursor: pointer;
+}
+
+#mcts {
+	ul {
+		list-style-type: none;
+	}
+}

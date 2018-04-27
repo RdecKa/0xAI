@@ -2,22 +2,23 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>MCTS</title>
-		<!--<link rel="stylesheet" type="text/css" href="style.css">-->
+		<link rel="stylesheet" type="text/css" href="style.css">
 		<script src="https://unpkg.com/vue"></script>
 		<script src="visualize_mcts.js"></script>
 		<script src="data.js"></script>
+		<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
 	</head>
 	<body>
 		<script type="text/x-template" id="item-template">
 			<li>
-				<div
-					:class="{bold: !isGoal}"
+				<div class="record"
+					:class="{extendable : !isGoal}"
 					@click="toggle">
-					<span v-if="showN">N: {{ model.value.N }},</span>
-					<span v-if="showQ">Q: {{ model.value.Q}},</span>
-					<span v-if="showLastPlayer">lastPlayer: {{ model.value.state.lastPlayer }},</span>
-					<span v-if="showGrid">grid: {{ model.value.state.grid }}</span>
-					<span v-if="!isGoal">[{{ open ? '-' : '+' }}]</span>
+					<span v-if="!isGoal" class="expand-sign">[{{ open ? '-' : '+' }}]</span>
+					<span v-if="showN" class="info-n">N: {{ model.value.N }},</span>
+					<span v-if="showQ" class="info-q">Q: {{ model.value.Q}},</span>
+					<span v-if="showLastPlayer" class="info-lp">lastPlayer: {{ model.value.state.lastPlayer }},</span>
+					<span v-if="showGrid" class="info-g">grid: {{ model.value.state.grid }}</span>
 				</div>
 
 				<ul v-show="open" v-if="!isGoal">
