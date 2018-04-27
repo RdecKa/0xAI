@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+	<head>
+		<meta charset="UTF-8">
+		<title>MCTS</title>
+		<!--<link rel="stylesheet" type="text/css" href="style.css">-->
+		<script src="https://unpkg.com/vue"></script>
+		<script src="visualize_mcts.js"></script>
+		<script src="data.js"></script>
+	</head>
+	<body>
+		<script type="text/x-template" id="item-template">
+			<li>
+				<div
+					:class="{bold: !isGoal}"
+					@click="toggle">
+					<span>
+						N: {{ model.value.N }},
+						Q: {{ model.value.Q}},
+						lastPlayer: {{ model.value.state.lastPlayer }},
+						grid: {{ model.value.state.grid }}
+					</span>
+					<span v-if="!isGoal">[{{ open ? '-' : '+' }}]</span>
+				</div>
+				<ul v-show="open" v-if="!isGoal">
+					<item
+					class="item"
+					v-for="(model, index) in model.children"
+					:key="index"
+					:model="model">
+					</item>
+				</ul>
+			</li>
+		</script>
+
+		<ul id="mcts">
+			<item
+				class="item"
+				:model="json">
+			</item>
+		</ul>
+	</body>
+</html>
