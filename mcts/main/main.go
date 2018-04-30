@@ -13,6 +13,7 @@ func main() {
 	boardSize := flag.Int("size", 3, "Board size")
 	numIterations := flag.Int("iter", 10000, "Number of iterations")
 	indentJSON := flag.Bool("indent", false, "Indent JSON output")
+	output := flag.String("output", ".", "Output file")
 	flag.Parse()
 	fmt.Printf("Using boardSize = %d, numIterations = %d\n", *boardSize, *numIterations)
 
@@ -25,7 +26,7 @@ func main() {
 	}
 
 	filePrefix := fmt.Sprintf("out_%02d_%d", *boardSize, *numIterations)
-	err := mcts.WriteToFile(*mc, "./out", filePrefix, *indentJSON)
+	err := mcts.WriteToFile(*mc, *output, filePrefix, *indentJSON)
 	if err != nil {
 		fmt.Println(err)
 	}
