@@ -35,10 +35,10 @@ func (mnv mctsNodeValue) MarshalJSON() ([]byte, error) {
 }
 
 // WriteToFile saves MCTS in JSON format to the file folder/currentDate
-func WriteToFile(mcts MCTS, folder string, addIndent bool) error {
+func WriteToFile(mcts MCTS, folder string, filePrefix string, addIndent bool) error {
 	// Create a new file
 	t := time.Now()
-	fileName := folder + "/out_" + t.Format("2006-01-02T15:04:05") + ".json"
+	fileName := folder + "/" + filePrefix + "_" + t.Format("2006-01-02T15:04:05") + ".json"
 	fmt.Printf("Writing MCTS to file %s ... ", fileName)
 	f, err := os.Create(fileName)
 	if err != nil {

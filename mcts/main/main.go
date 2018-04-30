@@ -24,7 +24,8 @@ func main() {
 		mc.RunIteration()
 	}
 
-	err := mcts.WriteToFile(*mc, "./out", *indentJSON)
+	filePrefix := fmt.Sprintf("out_%02d_%d", *boardSize, *numIterations)
+	err := mcts.WriteToFile(*mc, "./out", filePrefix, *indentJSON)
 	if err != nil {
 		fmt.Println(err)
 	}
