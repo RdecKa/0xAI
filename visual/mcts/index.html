@@ -49,6 +49,14 @@
 			<input v-model.bool="showGrid" type="checkbox" id="showGridcheck" name="showGridcheck" value="showGridcheck">
 			<label for="showGridcheck">show grid</label>
 
+			<br/>
+
+			<label for="sortBy">Sort by</label>
+			<select v-model.string="sortBy" id="sortBy">
+				<option value="q">Q value</option>
+				<option value="n">N value</option>
+			</select>
+
 			<ul>
 				<item
 					class="item"

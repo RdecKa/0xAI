@@ -6,10 +6,21 @@ function visualize_mcts() {
 			showN: true,
 			showQ: true,
 			showGrid: true,
-			showLastPlayer: true
+			showLastPlayer: true,
+			sortBy: "n"
 		},
 		props: {
 			model: Object
+		},
+		watch: {
+			sortBy: function(val) {
+				switch(val) {
+					case "q":
+						sortJSON(this.json, compareByQ);
+					case "n":
+						sortJSON(this.json, compareByN);
+				}
+			}
 		}
 	});
 }
@@ -43,5 +54,25 @@ Vue.component('item', {
 });
 
 window.onload = function() {
+	sortJSON(mcst_json.tree.root, compareByN);
 	let app = visualize_mcts();
 };
+
+function sortJSON(json, sortBy) {
+	sortChildren(json.children, sortBy);
+	for (let c in json.children) {
+		sortJSON(json.children[c], sortBy);
+	}
+}
+
+function sortChildren(children, sortBy) {
+	children.sort(sortBy);
+}
+
+function compareByN(a, b) {
+	return b.value.N - a.value.N;
+}
+
+function compareByQ(a, b) {
+	return b.value.Q - a.value.Q;
+}
