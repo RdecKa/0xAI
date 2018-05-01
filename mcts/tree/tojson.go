@@ -28,6 +28,10 @@ func (node Node) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	if string(jsonValue) == "{}" {
+		buffer.WriteString("}")
+		return buffer.Bytes(), nil
+	}
 	buffer.WriteString(fmt.Sprintf("\"value\": %s,", jsonValue))
 
 	buffer.WriteString("\"children\":[")
