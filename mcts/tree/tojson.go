@@ -30,11 +30,23 @@ func (node Node) MarshalJSON() ([]byte, error) {
 	}
 	buffer.WriteString(fmt.Sprintf("\"value\": %s,", jsonValue))
 
-	jsonValue, err = json.Marshal(node.children)
-	if err != nil {
-		return nil, err
+	buffer.WriteString("\"children\":[")
+	firstWritten := false
+	for _, c := range node.children {
+		jsonValue, err = json.Marshal(c)
+		if err != nil {
+			return nil, err
+		}
+		if string(jsonValue) != "{}" {
+			if !firstWritten {
+				firstWritten = true
+			} else {
+				buffer.WriteString(",")
+			}
+			buffer.WriteString(fmt.Sprintf("%s", jsonValue))
+		}
 	}
-	buffer.WriteString(fmt.Sprintf("\"children\": %s", jsonValue))
+	buffer.WriteString("]")
 
 	buffer.WriteString("}")
 	return buffer.Bytes(), nil

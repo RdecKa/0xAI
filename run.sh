@@ -5,7 +5,26 @@ visual_data_folder="visual/mcts/"
 visual_data_json_file="${visual_data_folder}data.js"
 visual_html_index="${visual_data_folder}index.html"
 
-go run mcts/main/main.go -output=$output_folder -indent=false -iter=10000 -size=3
+indent=false
+iter=10000
+size=3
+
+while getopts 'in:o:s:' flag; do
+	case "${flag}" in
+		i) indent='true' ;;
+		n) iter="${OPTARG}" ;;
+		o) output_folder="${OPTARG}" ;;
+		s) size="${OPTARG}" ;;
+		*) echo "Unexpected option ${flag}" ;;
+	esac
+done
+
+go run mcts/main/main.go -output=$output_folder -indent=$indent -iter=$iter -size=$size
+status=$?
+if [ "$status" -ne 0 ]; then
+	echo "Error occured."
+	exit 1
+fi
 
 # Get the newest file in output directory
 data_file_name=$(ls -t $output_folder | head -1)

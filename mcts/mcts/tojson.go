@@ -24,6 +24,10 @@ func (mcts MCTS) MarshalJSON() ([]byte, error) {
 // MarshalJSON implements Marshaler interface
 // It returns mctsNodeValue in JSON format
 func (mnv mctsNodeValue) MarshalJSON() ([]byte, error) {
+	if mnv.n < 1 {
+		// Do not include nodes that have not been visited
+		return bytes.NewBufferString("{}").Bytes(), nil
+	}
 	buffer := bytes.NewBufferString("{")
 	jsonValue, err := json.Marshal(mnv.state)
 	if err != nil {

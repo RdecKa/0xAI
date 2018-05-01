@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"math"
+	"os"
 
 	"github.com/RdecKa/mcts/hex"
 	"github.com/RdecKa/mcts/mcts"
@@ -19,9 +20,13 @@ func main() {
 
 	initState := hex.NewState(byte(*boardSize))
 	explorationFactor := math.Sqrt(2)
-	mc := mcts.InitMCTS(*initState, explorationFactor)
+	minBeforeExpand := uint(10)
+	mc := mcts.InitMCTS(*initState, explorationFactor, minBeforeExpand)
 
 	for i := 0; i < *numIterations; i++ {
+		if i > 0 && i%10000 == 0 {
+			fmt.Printf("Finished iteration %d\n", i)
+		}
 		mc.RunIteration()
 	}
 
@@ -29,5 +34,6 @@ func main() {
 	err := mcts.WriteToFile(*mc, *output, filePrefix, *indentJSON)
 	if err != nil {
 		fmt.Println(err)
+		os.Exit(1)
 	}
 }

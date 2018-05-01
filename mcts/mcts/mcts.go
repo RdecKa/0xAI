@@ -39,6 +39,7 @@ func (mnv *mctsNodeValue) updateNodeValues(score float64) {
 type MCTS struct {
 	mcTree *tree.Tree // Monte Carlo tree
 	c      float64    // exploration parameter
+	minN   uint       // minimal number of visits of a node before it can be expanded
 }
 
 func (mcts *MCTS) String() string {
@@ -46,11 +47,11 @@ func (mcts *MCTS) String() string {
 }
 
 // InitMCTS initializes MCTS (State s is inserted in the root)
-func InitMCTS(s game.State, c float64) *MCTS {
+func InitMCTS(s game.State, c float64, minN uint) *MCTS {
 	node := createMCTSNode(s)
 	mctsTree := tree.NewTree(node)
 	rand.Seed(time.Now().UTC().UnixNano())
-	return &MCTS{mctsTree, c}
+	return &MCTS{mctsTree, c, minN}
 }
 
 // createMCTSNode creates new node with value {state=s, n=0, q=0}
@@ -69,7 +70,8 @@ func (mcts *MCTS) RunIteration() {
 // Phases of MCTS:
 // 	selection: recursively call itself on the node's child with the highest
 //		UCT value
-// 	expansion: expand leaf node that was reached by recursive call
+// 	expansion: expand leaf node that was reached by recursive call (only if the
+//		node has been visited often enough)
 // 	playout: randomly select moves until goal state is reached (no possible
 //		actions)
 // 	backpropagation: update values on nodes on selected branch in the tree
@@ -139,6 +141,11 @@ func (mcts *MCTS) expansion(node *tree.Node) {
 
 	if state.IsGoalState() {
 		// Do not expand goal states
+		return
+	}
+
+	if nodeValue.n < mcts.minN {
+		// Do not expand a node that has not been visited at least minN times
 		return
 	}
 
