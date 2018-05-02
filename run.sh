@@ -8,9 +8,11 @@ visual_html_index="${visual_data_folder}index.html"
 indent=false
 iter=10000
 size=3
+browser=false
 
-while getopts 'in:o:s:' flag; do
+while getopts 'bin:o:s:' flag; do
 	case "${flag}" in
+		b) browser=true ;;
 		i) indent='true' ;;
 		n) iter="${OPTARG}" ;;
 		o) output_folder="${OPTARG}" ;;
@@ -33,4 +35,6 @@ echo -n "let mcst_json = " > $visual_data_json_file
 cat "${output_folder}${data_file_name}" >> $visual_data_json_file
 
 # Open in browser
-xdg-open $visual_html_index
+if [ "$browser" = true ]; then
+	xdg-open $visual_html_index
+fi
