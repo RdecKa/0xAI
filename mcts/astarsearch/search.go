@@ -43,7 +43,7 @@ type AStarSearch struct {
 }
 
 func makeAStarNode(state State, pathFromStart int) *tree.Node {
-	nodeValue := aStarNodeValue{state, pathFromStart, state.GetEstimateToReachGoal()}
+	nodeValue := aStarNodeValue{state, pathFromStart, pathFromStart + state.GetEstimateToReachGoal()}
 	return tree.NewNode(&nodeValue)
 }
 
@@ -57,7 +57,6 @@ func InitSearch(initialState State) *AStarSearch {
 	heap.Push(newFrontier, pq.NewItem(0, startNode)) // Init frontier with the initial state
 
 	visitedStates := make(map[State]struct{})
-	visitedStates[initialState] = struct{}{} // Mark initial state as visited
 
 	aStar := &AStarSearch{newTree, *newFrontier, visitedStates}
 	return aStar
@@ -73,10 +72,20 @@ func (aStar *AStarSearch) Search() bool {
 		// Get state from node
 		nodeValue := currentNode.GetValue().(*aStarNodeValue)
 		currentState := nodeValue.state
+
+		_, ok := aStar.visitedStates[currentState]
+		if ok {
+			// State was already expanded, discard ot
+			continue
+		}
+
 		if currentState.IsGoalState() {
 			// Solution found
 			return true
 		}
+
+		// Add the current state to the list of visited states
+		aStar.visitedStates[currentState] = struct{}{}
 
 		// Get the cost of the path from start to the current node
 		pathFromStart := nodeValue.pathFromStart
@@ -87,20 +96,35 @@ func (aStar *AStarSearch) Search() bool {
 		for _, sucState := range successorStates {
 			_, ok := aStar.visitedStates[sucState]
 			if ok {
-				// State sucState revisited, discard it
+				// Successor state was already expanded, discard it
 				continue
 			}
 
-			// Add a state to the list of visited states
-			aStar.visitedStates[sucState] = struct{}{}
-
+			// Add a new node to the priority queue
 			sucNode := makeAStarNode(sucState, pathFromStart+1)
-
-			// TODO: check if discarding revisited states implemented correctly
-			p := sucNode.GetValue().(*aStarNodeValue).heuristicValue
-			heap.Push(&aStar.frontier, pq.NewItem(p, sucNode))
+			priority := sucNode.GetValue().(*aStarNodeValue).heuristicValue
+			heap.Push(&aStar.frontier, pq.NewItem(priority, sucNode))
 		}
+
+		/*fmt.Println("Priority queue:")
+		for _, el := range aStar.frontier {
+			fmt.Println(el.GetValue().(*tree.Node).GetValue())
+			fmt.Println(el.GetValue().(*tree.Node).GetValue().(*aStarNodeValue).state)
+		}
+		fmt.Println("End of priority queue")*/
 	}
 
 	return false
+}
+
+// same compares two tree nodes and returns true if they contain the same state
+func same(a, b interface{}) bool {
+	if a == b {
+		return true
+	}
+
+	av := a.(*tree.Node).GetValue().(*aStarNodeValue)
+	bv := b.(*tree.Node).GetValue().(*aStarNodeValue)
+
+	return (av.state.String() == bv.state.String())
 }

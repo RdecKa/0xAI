@@ -30,9 +30,14 @@ func (i *Item) UpdatePriority(newPriority int, pq *PriorityQueue) {
 	heap.Fix(pq, i.index)
 }
 
-// GetValue returns value of the item
+// GetValue returns value of Item i
 func (i *Item) GetValue() interface{} {
 	return i.value
+}
+
+// GetPriority returns priority of Item i
+func (i *Item) GetPriority() int {
+	return i.priority
 }
 
 // -------------------------
@@ -58,6 +63,8 @@ func (pq *PriorityQueue) Len() int {
 // Swap swaps elements with indices i and j in pq
 func (pq *PriorityQueue) Swap(i, j int) {
 	(*pq)[i], (*pq)[j] = (*pq)[j], (*pq)[i]
+	(*pq)[i].index = i
+	(*pq)[j].index = j
 }
 
 // Less returns true if priority of element on index i is smaller than priority
@@ -79,4 +86,16 @@ func (pq *PriorityQueue) Pop() interface{} {
 	item := (*pq)[hLen-1]
 	*pq = (*pq)[0 : hLen-1]
 	return item.value
+}
+
+// Contains checks whether PriorityQueue pq contains element el, using function
+// same for comparison
+func (pq *PriorityQueue) Contains(el interface{}, same func(a, b interface{}) bool) *Item {
+	for _, item := range *pq {
+		i := item.value
+		if same(el, i) {
+			return item
+		}
+	}
+	return nil
 }
