@@ -3,6 +3,9 @@
 package astarsearch
 
 import (
+	"container/heap"
+
+	"github.com/RdecKa/mcts/pq"
 	"github.com/RdecKa/mcts/tree"
 )
 
@@ -15,6 +18,7 @@ type State interface {
 	IsGoalState() bool
 	GetEstimateToReachGoal() int
 	GetSuccessorStates() []State
+	String() string
 }
 
 // --------------------------
@@ -34,7 +38,7 @@ type aStarNodeValue struct {
 // AStarSearch represents a search tree for A* Search and its frontier
 type AStarSearch struct {
 	tree          *tree.Tree         // Search tree
-	frontier      []*tree.Node       // List of nodes to be expanded
+	frontier      pq.PriorityQueue   // List of nodes to be expanded
 	visitedStates map[State]struct{} // A list of states that have already been added to the frontier
 }
 
@@ -48,11 +52,14 @@ func makeAStarNode(state State, pathFromStart int) *tree.Node {
 func InitSearch(initialState State) *AStarSearch {
 	startNode := makeAStarNode(initialState, 0)
 	newTree := tree.NewTree(startNode)
-	newFrontier := make([]*tree.Node, 1, 50) // Create a new frontier (initial size = 1, reserved size = 50)
-	newFrontier[0] = startNode               // Init frontier with the initial state
+
+	newFrontier := pq.New(50)                        // Create a new frontier
+	heap.Push(newFrontier, pq.NewItem(0, startNode)) // Init frontier with the initial state
+
 	visitedStates := make(map[State]struct{})
 	visitedStates[initialState] = struct{}{} // Mark initial state as visited
-	aStar := &AStarSearch{newTree, newFrontier, visitedStates}
+
+	aStar := &AStarSearch{newTree, *newFrontier, visitedStates}
 	return aStar
 }
 
@@ -61,8 +68,7 @@ func InitSearch(initialState State) *AStarSearch {
 func (aStar *AStarSearch) Search() bool {
 	for len(aStar.frontier) > 0 {
 		// Pop frontier
-		currentNode := aStar.frontier[0]
-		aStar.frontier = aStar.frontier[1:]
+		currentNode := heap.Pop(&aStar.frontier).(*tree.Node)
 
 		// Get state from node
 		nodeValue := currentNode.GetValue().(*aStarNodeValue)
@@ -91,8 +97,8 @@ func (aStar *AStarSearch) Search() bool {
 			sucNode := makeAStarNode(sucState, pathFromStart+1)
 
 			// TODO: check if discarding revisited states implemented correctly
-			// TODO: insert in an ordered list - now it works as BFS
-			aStar.frontier = append(aStar.frontier, sucNode)
+			p := sucNode.GetValue().(*aStarNodeValue).heuristicValue
+			heap.Push(&aStar.frontier, pq.NewItem(p, sucNode))
 		}
 	}
 

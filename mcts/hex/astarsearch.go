@@ -72,3 +72,7 @@ func (s searchState) GetSuccessorStates() []astarsearch.State {
 	}
 	return successors
 }
+
+func (s searchState) String() string {
+	return fmt.Sprintf("x: %d, y: %d, c: %s, state:\n%s", s.x, s.y, s.c, s.gameState.String())
+}
