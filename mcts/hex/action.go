@@ -18,6 +18,6 @@ func NewAction(x, y byte, c color) *Action {
 	return &Action{x, y, c}
 }
 
-func (a Action) String() string {
+func (a *Action) String() string {
 	return fmt.Sprintf("%s: (%d, %d)", a.c, a.x, a.y)
 }

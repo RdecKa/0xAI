@@ -74,11 +74,11 @@ func NewTree(root *Node) *Tree {
 	return &Tree{root}
 }
 
-func (t Tree) String() string {
+func (t *Tree) String() string {
 	return t.root.stringWithChildren(0)
 }
 
 // GetRoot returns root node of the tree
-func (t Tree) GetRoot() *Node {
+func (t *Tree) GetRoot() *Node {
 	return t.root
 }

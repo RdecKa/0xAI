@@ -21,7 +21,7 @@ type mctsNodeValue struct {
 	q     float64    // estimated value of State state
 }
 
-func (mnv mctsNodeValue) String() string {
+func (mnv *mctsNodeValue) String() string {
 	return fmt.Sprintf("%s (N: %d, Q: %f)", mnv.state, mnv.n, mnv.q)
 }
 

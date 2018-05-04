@@ -97,7 +97,7 @@ func (s *State) IsCellEmpty(x, y byte) bool {
 
 // GetSuccessorState returns a state after Action a is performed
 func (s State) GetSuccessorState(action game.Action) game.State {
-	a := action.(Action)
+	a := action.(*Action)
 	newState := s.clone().(State)
 	if a.c == s.lastPlayer {
 		panic(fmt.Sprintf("Player cannot do two moves in a row! (last player: %s, current action: %s)", s.lastPlayer, a.c))
@@ -115,7 +115,7 @@ func (s State) GetPossibleActions() []game.Action {
 		for colIndex := byte(0); colIndex < s.size; colIndex++ {
 			bits := row & 3 // Get last two bits of a row
 			if getColorFromBits(bits) == None {
-				actions = append(actions, Action{colIndex, rowIndex, s.lastPlayer.opponent()})
+				actions = append(actions, &Action{colIndex, rowIndex, s.lastPlayer.opponent()})
 			}
 			row = row >> 2
 		}
