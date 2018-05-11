@@ -95,6 +95,15 @@ func (s *State) IsCellEmpty(x, y byte) bool {
 	return s.getColorOn(x, y) == None
 }
 
+// IsEndingCell returns true if a cell (x, y) is beyond player c's opposite edge
+// - for red: below the board
+// - for blue: to the right of the board
+// Note: This is used to check whether a cell (x, y) is virtually connected to
+// the opposite edge
+func (s *State) IsEndingCell(x, y int, c color) bool {
+	return (c == Red && y >= int(s.size) && x >= 0) || (c == Blue && x >= int(s.size) && y >= 0)
+}
+
 // GetSuccessorState returns a state after Action a is performed
 func (s State) GetSuccessorState(action game.Action) game.State {
 	a := action.(*Action)
