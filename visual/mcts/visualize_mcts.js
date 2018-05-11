@@ -42,6 +42,9 @@ Vue.component('item', {
 	computed: {
 		isGoal: function () {
 			return !this.model.children || !this.model.children.length
+		},
+		size: function () {
+			return this.model.value.state.grid.length;
 		}
 	},
 	methods: {
@@ -49,6 +52,30 @@ Vue.component('item', {
 			if (!this.isGoal) {
 				this.open = !this.open
 			}
+		},
+		drawLine: function (line, index) {
+			let r = "";
+			for (let i = 0; i < index; i++) {
+				r += "-";
+			}
+			for (let i = 0; i < this.size; i++) {
+				let c = line & 3;
+				switch (c) {
+					case 0:
+						r += ". ";
+						break;
+					case 1:
+						r += "r ";
+						break;
+					case 2:
+						r += "b ";
+						break;
+					default:
+						r += "? ";
+				}
+				line = line >> 2;
+			}
+			return r;
 		}
 	}
 });
