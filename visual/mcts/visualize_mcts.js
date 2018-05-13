@@ -17,8 +17,10 @@ function visualize_mcts() {
 				switch(val) {
 					case "q":
 						sortJSON(this.json, compareByQ);
+						break;
 					case "n":
 						sortJSON(this.json, compareByN);
+						break;
 				}
 			}
 		}
