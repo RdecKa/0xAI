@@ -13,13 +13,15 @@
 			<li>
 				<div class="record"
 					:class="{extendable : !isGoal}"
-					@click="toggle">
+					@click="toggle"
+					@mouseover="showBoard = true"
+					@mouseleave="showBoard = false">
 					<span v-if="!isGoal" class="expand-sign">[{{ open ? '-' : '+' }}]</span>
 					<span v-if="showN" class="info-n">N: {{ model.value.N }},</span>
 					<span v-if="showQ" class="info-q">Q: {{ model.value.Q}},</span>
 					<span v-if="showLastPlayer" class="info-lp">lastPlayer: {{ model.value.state.lastPlayer }},</span>
 					<span v-if="showGrid" class="info-g">grid: {{ model.value.state.grid }}</span>
-					<div class="info-b">
+					<div v-if="showBoard" class="info-b">
 						<div v-for="(line, index) in model.value.state.grid">{{ drawLine(line, index) }}</div>
 					</div>
 				</div>

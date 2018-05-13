@@ -36,7 +36,8 @@ Vue.component('item', {
 	},
 	data: function () {
 		return {
-			open: false
+			open: false,
+			showBoard: false
 		}
 	},
 	computed: {

@@ -25,6 +25,12 @@ body {
 	color: $g-color;
 }
 
+.info-b {
+	position: fixed;
+	right: 50px;
+	top: 50px;
+}
+
 .extendable:hover {
 	opacity: 0.7;
 	cursor: pointer;
