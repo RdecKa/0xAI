@@ -3,7 +3,13 @@ $q-color: #CC3D14;
 $lp-color: #FF990A;
 $g-color: #691ACC;
 
+$blue-cell: #0F2F8C;
+$red-cell: #A60303;
+$empty-cell: #AAA;
+
 $font-general: 'Open Sans', sans-serif;
+
+$cell-size: 20px;
 
 body {
 	font-family: $font-general;
@@ -29,9 +35,39 @@ body {
 	position: fixed;
 	right: 50px;
 	top: 50px;
+
+	.cell {
+		width: $cell-size;
+		height: $cell-size;
+		display: inline-block;
+		border-radius: 50%;
+		margin-right: 5px;
+	}
+
+	.indent {
+		width: $cell-size / 2;
+		height: $cell-size;
+		display: inline-block;
+	}
+
+	.red {
+		background-color: $red-cell;
+	}
+
+	.blue {
+		background-color: $blue-cell;
+	}
+
+	.empty {
+		background-color: $empty-cell;
+	}
+
+	&:hover {
+		opacity: 1;
+	}
 }
 
-.extendable:hover {
+.extendable:hover .info {
 	opacity: 0.7;
 	cursor: pointer;
 }
