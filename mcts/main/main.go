@@ -14,7 +14,7 @@ func main() {
 	boardSize := flag.Int("size", 3, "Board size")
 	numIterations := flag.Int("iter", 10000, "Number of iterations")
 	indentJSON := flag.Bool("indent", false, "Indent JSON output")
-	output := flag.String("output", ".", "Output file")
+	output := flag.String("output", ".", "Output folder")
 	flag.Parse()
 	fmt.Printf("Using boardSize = %d, numIterations = %d\n", *boardSize, *numIterations)
 
@@ -30,8 +30,17 @@ func main() {
 		mc.RunIteration()
 	}
 
-	filePrefix := fmt.Sprintf("out_%02d_%d", *boardSize, *numIterations)
-	err := mcts.WriteToFile(*mc, *output, filePrefix, *indentJSON)
+	// Write input-output pairs for supervised machine learning
+	filePrefix := fmt.Sprintf("sample_%02d_%d", *boardSize, *numIterations)
+	err := mc.GenSamples(*output, filePrefix, 100)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	// Write JSON
+	filePrefix = fmt.Sprintf("out_%02d_%d", *boardSize, *numIterations)
+	err = mcts.WriteToFile(*mc, *output, filePrefix, *indentJSON)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

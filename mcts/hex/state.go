@@ -155,3 +155,25 @@ func (s State) IsGoalState() bool {
 func (s State) EvaluateGoalState() float64 {
 	return 1.0
 }
+
+// GetNumOfStones returns number of red stones, blue stones and empty cells (in
+// that order)
+func (s State) GetNumOfStones() (int, int, int) {
+	red, blue, empty := 0, 0, 0
+	for _, row := range s.grid {
+		r := row
+		for colIndex := byte(0); colIndex < s.size; colIndex++ {
+			c := getColorFromBits(r & 3)
+			switch c {
+			case Red:
+				red++
+			case Blue:
+				blue++
+			default:
+				empty++
+			}
+			r = r >> 2
+		}
+	}
+	return red, blue, empty
+}
