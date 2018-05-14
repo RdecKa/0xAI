@@ -43,7 +43,7 @@ Vue.component('item', {
 			boardHTML: null
 		}
 	},
-	created() {
+	updated() {
 		this.boardHTML = this.drawBoard();
 	},
 	computed: {
