@@ -40,11 +40,7 @@ Vue.component('item', {
 		return {
 			open: false,
 			showBoard: false,
-			boardHTML: null
 		}
-	},
-	updated() {
-		this.boardHTML = this.drawBoard();
 	},
 	computed: {
 		isGoal: function () {
@@ -52,6 +48,9 @@ Vue.component('item', {
 		},
 		size: function () {
 			return this.model.value.state.grid.length;
+		},
+		boardHTML: function () {
+			return this.drawBoard();
 		}
 	},
 	methods: {
