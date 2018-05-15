@@ -54,11 +54,22 @@ func InitMCTS(s game.State, c float64, minN uint) *MCTS {
 	return &MCTS{mctsTree, c, minN}
 }
 
+// ContinueMCTSFromNode continues MCTS from Node node
+func (mcts *MCTS) ContinueMCTSFromNode(node *tree.Node) *MCTS {
+	mctsTree := tree.NewTree(node)
+	return &MCTS{mctsTree, mcts.c, mcts.minN}
+}
+
 // createMCTSNode creates new node with value {state=s, n=0, q=0}
 func createMCTSNode(s game.State) *tree.Node {
 	value := mctsNodeValue{s, 0, 0}
 	node := tree.NewNode(&value)
 	return node
+}
+
+// GetInitialNode returns the node in which the search has began
+func (mcts *MCTS) GetInitialNode() *tree.Node {
+	return mcts.mcTree.GetRoot()
 }
 
 // RunIteration runs one iteration of MCTS
