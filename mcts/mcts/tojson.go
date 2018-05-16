@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"time"
 )
 
 // MarshalJSON implements Marshaler interface
@@ -41,8 +40,7 @@ func (mnv mctsNodeValue) MarshalJSON() ([]byte, error) {
 // WriteToFile saves MCTS in JSON format to the file folder/currentDate
 func WriteToFile(mcts MCTS, folder, filePrefix string, addIndent bool) error {
 	// Create a new file
-	t := time.Now()
-	fileName := folder + filePrefix + "_" + t.Format("20060102T150405") + ".json"
+	fileName := folder + filePrefix + ".json"
 	fmt.Printf("Writing MCTS to file %s ... ", fileName)
 	f, err := os.Create(fileName)
 	if err != nil {

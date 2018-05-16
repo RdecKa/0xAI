@@ -6,7 +6,6 @@ import (
 	"math"
 	"math/rand"
 	"os"
-	"time"
 
 	"github.com/RdecKa/mcts/hex"
 	"github.com/RdecKa/mcts/mcts"
@@ -29,7 +28,7 @@ func main() {
 	pNumWorkers := flag.Int("workers", 2, "Number of goroutines to run in parallel")
 	flag.Parse()
 	boardSize, numIterations, indentJSON, outputFolder, numWorkers := *pBoardSize, *pNumIterations, *pIndentJSON, *pOutputFolder, *pNumWorkers
-	fmt.Printf("Using boardSize = %d, numIterations = %d\n", boardSize, numIterations)
+	fmt.Printf("Using boardSize = %d, numIterations = %d, numWorkers = %d\n", boardSize, numIterations, numWorkers)
 
 	initState := hex.NewState(byte(boardSize))
 	explorationFactor := math.Sqrt(2)
@@ -60,8 +59,7 @@ func main() {
 	// Create a boss
 	go boss(kill)
 
-	t := time.Now()
-	filePrefix := fmt.Sprintf("sample_%02d_%d_%s", boardSize, numIterations, t.Format("20060102T150405"))
+	filePrefix := fmt.Sprintf("sample_%02d_%d", boardSize, numIterations)
 	fileNameNoEnding := fmt.Sprintf("%s%s", outputFolder, filePrefix)
 
 	// Create a log file
@@ -209,6 +207,7 @@ func sampleArrayOfNodes(oldArr []*tree.Node, p float64) []*tree.Node {
 // the search (sends a kill signal)
 func boss(kill chan struct{}) {
 	var input string
+	fmt.Println("Enter 'q' to quit")
 	for {
 		fmt.Scanln(&input)
 		switch input {
