@@ -11,7 +11,7 @@ size=3
 browser=false
 workers=2
 
-now=$(date +"%Y%m%dT%I%M%S")
+now=$(date +"%Y%m%dT%H%M%S")
 output_folder="${output_folder}run-${now}/"
 # Make a new folder for output files
 mkdir "$output_folder"

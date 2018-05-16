@@ -1,10 +1,8 @@
 package mcts
 
 import (
-	"fmt"
 	"os"
 
-	"github.com/RdecKa/mcts/hex"
 	"github.com/RdecKa/mcts/tree"
 )
 
@@ -24,7 +22,7 @@ func genSamples(node *tree.Node, outputFile *os.File, treasholdN uint) []*tree.N
 	mnv := node.GetValue().(*mctsNodeValue)
 	expandCandidates := make([]*tree.Node, 0, 20)
 	if mnv.n >= treasholdN {
-		outputFile.WriteString(mnv.genSample())
+		outputFile.WriteString(mnv.state.GenSample(mnv.q))
 		for _, c := range node.GetChildren() {
 			g := genSamples(c, outputFile, treasholdN)
 			expandCandidates = append(expandCandidates, g...)
@@ -35,11 +33,4 @@ func genSamples(node *tree.Node, outputFile *os.File, treasholdN uint) []*tree.N
 		expandCandidates = append(expandCandidates, node)
 	}
 	return expandCandidates
-}
-
-// genSample returns a string representation of a single sample
-func (mnv *mctsNodeValue) genSample() string {
-	s := mnv.state.(hex.State)
-	red, blue, empty := s.GetNumOfStones()
-	return fmt.Sprintf("%f,%d,%d,%d\n", mnv.q, red, blue, empty)
 }
