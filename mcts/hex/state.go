@@ -132,7 +132,7 @@ func (s State) GetPossibleActions() []game.Action {
 	return actions
 }
 
-// IsGoalState returns true if the game is decided (one player has a
+// IsGoalState returns true if the game is decided (one player has a (virtual)
 // connection) and false otherwise
 func (s State) IsGoalState() bool {
 	players := []color{Red, Blue}

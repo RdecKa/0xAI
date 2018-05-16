@@ -11,5 +11,17 @@ func (s State) GenSample(q float64) string {
 		q = -q
 	}
 	red, blue, empty := s.GetNumOfStones()
-	return fmt.Sprintf("%f,%d,%d,%d\n", q, red, blue, empty)
+
+	result := 0 // 0 if game not finished, 1 if red wins, -1 if blue wins
+	if s.IsGoalState() {
+		if s.lastPlayer == Blue {
+			result = -1
+		} else if s.lastPlayer == Red {
+			result = 1
+		} else {
+			panic(fmt.Sprintf("Unknown color '%s'\n", s.lastPlayer))
+		}
+	}
+
+	return fmt.Sprintf("%f,%d,%d,%d,%d\n", q, result, red, blue, empty)
 }
