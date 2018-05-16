@@ -22,14 +22,16 @@ type workerChan struct {
 }
 
 func main() {
-	boardSize := flag.Int("size", 3, "Board size")
-	numIterations := flag.Int("iter", 10000, "Number of iterations")
-	indentJSON := flag.Bool("indent", false, "Indent JSON output")
-	outputFolder := flag.String("output", ".", "Output folder")
+	pBoardSize := flag.Int("size", 3, "Board size")
+	pNumIterations := flag.Int("iter", 10000, "Number of iterations")
+	pIndentJSON := flag.Bool("indent", false, "Indent JSON output")
+	pOutputFolder := flag.String("output", ".", "Output folder")
+	pNumWorkers := flag.Int("workers", 2, "Number of goroutines to run in parallel")
 	flag.Parse()
-	fmt.Printf("Using boardSize = %d, numIterations = %d\n", *boardSize, *numIterations)
+	boardSize, numIterations, indentJSON, outputFolder, numWorkers := *pBoardSize, *pNumIterations, *pIndentJSON, *pOutputFolder, *pNumWorkers
+	fmt.Printf("Using boardSize = %d, numIterations = %d\n", boardSize, numIterations)
 
-	initState := hex.NewState(byte(*boardSize))
+	initState := hex.NewState(byte(boardSize))
 	explorationFactor := math.Sqrt(2)
 	minBeforeExpand := uint(10)
 	mc := mcts.InitMCTS(*initState, explorationFactor, minBeforeExpand)
@@ -37,8 +39,6 @@ func main() {
 
 	var expCand []*tree.Node // Array of possible candidates for continuing MCTS
 	var err error
-
-	numWorkers := 2 // Number of goroutines to run in parallel
 
 	assign := make(chan *mcts.MCTS, numWorkers)
 	gather := make(chan []*tree.Node, numWorkers)
@@ -61,8 +61,8 @@ func main() {
 	go boss(kill)
 
 	t := time.Now()
-	filePrefix := fmt.Sprintf("sample_%02d_%d_%s", *boardSize, *numIterations, t.Format("20060102T150405"))
-	fileNameNoEnding := fmt.Sprintf("%s%s", *outputFolder, filePrefix)
+	filePrefix := fmt.Sprintf("sample_%02d_%d_%s", boardSize, numIterations, t.Format("20060102T150405"))
+	fileNameNoEnding := fmt.Sprintf("%s%s", outputFolder, filePrefix)
 
 	// Create a log file
 	logFile, err := os.Create(fileNameNoEnding + ".log")
@@ -79,7 +79,7 @@ func main() {
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
-	}
+		}
 		defer f.Close()
 
 		// Create a file for a worker to store details about the search
@@ -91,7 +91,7 @@ func main() {
 		defer fDet.Close()
 
 		// Start a worker process
-		go worker(w, *numIterations, *boardSize, f, fDet, logFile, &wc)
+		go worker(w, numIterations, boardSize, f, fDet, logFile, &wc)
 	}
 
 	finished, quitted := false, false
@@ -104,21 +104,21 @@ func main() {
 		case newCandidates := <-gather:
 			// Get a returned value from a worker
 			tasksFinished++
-			newCandidates = sampleArrayOfNodes(newCandidates, 1/float64((*boardSize)*(*boardSize)))
+			newCandidates = sampleArrayOfNodes(newCandidates, 1/float64(boardSize*boardSize))
 			expCand = append(expCand, newCandidates...)
 
 			if !quitted {
-			// Add as many new tasks as there are free spots in the assign
-			// channel (if there are at least that many tasks)
-			for t := len(assign); t < numWorkers; t++ {
-				if len(expCand) <= 0 {
-					break
+				// Add as many new tasks as there are free spots in the assign
+				// channel (if there are at least that many tasks)
+				for t := len(assign); t < numWorkers; t++ {
+					if len(expCand) <= 0 {
+						break
+					}
+					tasksAssigned++
+					newTask := rand.Intn(len(expCand))
+					assign <- mc.ContinueMCTSFromNode(expCand[newTask])
+					expCand = append(expCand[:newTask], expCand[newTask+1:]...)
 				}
-				tasksAssigned++
-				newTask := rand.Intn(len(expCand))
-				assign <- mc.ContinueMCTSFromNode(expCand[newTask])
-				expCand = append(expCand[:newTask], expCand[newTask+1:]...)
-			}
 			}
 
 			if (len(expCand) == 0 || quitted) && tasksAssigned == tasksFinished {
@@ -140,12 +140,12 @@ func main() {
 	}
 
 	// Write JSON
-	filePrefix = fmt.Sprintf("out_%02d_%d", *boardSize, *numIterations)
-	err = mcts.WriteToFile(*root, *outputFolder, filePrefix, *indentJSON)
+	filePrefix = fmt.Sprintf("out_%02d_%d", boardSize, numIterations)
+	err = mcts.WriteToFile(*root, outputFolder, filePrefix, indentJSON)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
-}
+	}
 }
 
 // worker waits for tasks and executes them in an infinite loop
