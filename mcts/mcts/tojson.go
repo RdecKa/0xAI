@@ -42,7 +42,7 @@ func (mnv mctsNodeValue) MarshalJSON() ([]byte, error) {
 func WriteToFile(mcts MCTS, folder, filePrefix string, addIndent bool) error {
 	// Create a new file
 	t := time.Now()
-	fileName := folder + filePrefix + "_" + t.Format("2006-01-02T15:04:05") + ".json"
+	fileName := folder + filePrefix + "_" + t.Format("20060102T150405") + ".json"
 	fmt.Printf("Writing MCTS to file %s ... ", fileName)
 	f, err := os.Create(fileName)
 	if err != nil {
