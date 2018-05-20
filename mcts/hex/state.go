@@ -132,22 +132,13 @@ func (s State) GetPossibleActions() []game.Action {
 	return actions
 }
 
-// IsGoalState returns true if the game is decided (one player has a (virtual)
-// connection) and false otherwise
+// IsGoalState returns true if the game is decided (the player who has just made
+// a move has a (virtual) connection) and false otherwise
 func (s State) IsGoalState() bool {
-	players := []color{Red, Blue}
-
-	for _, player := range players {
-		initialState := GetInitialState(player, &s)
-		aStarSearch := astarsearch.InitSearch(initialState)
-		solutionExists := aStarSearch.Search()
-
-		if solutionExists {
-			return true
-		}
-	}
-
-	return false
+	initialState := GetInitialState(&s)
+	aStarSearch := astarsearch.InitSearch(initialState)
+	solutionExists := aStarSearch.Search()
+	return solutionExists
 }
 
 // EvaluateGoalState returns 1.0 because the player who makes the last action

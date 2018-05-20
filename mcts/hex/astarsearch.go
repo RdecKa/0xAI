@@ -34,8 +34,8 @@ type searchState struct {
 }
 
 // GetInitialState returns inital state of the search
-func GetInitialState(c color, gameState *State) searchState {
-	return searchState{-1, -1, c, gameState}
+func GetInitialState(gameState *State) searchState {
+	return searchState{-1, -1, gameState.lastPlayer, gameState}
 }
 
 func (s searchState) IsGoalState() bool {
