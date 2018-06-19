@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/RdecKa/mcts/game"
@@ -70,6 +71,24 @@ func createMCTSNode(s game.State) *tree.Node {
 // GetInitialNode returns the node in which the search has began
 func (mcts *MCTS) GetInitialNode() *tree.Node {
 	return mcts.mcTree.GetRoot()
+}
+
+// RunMCTS executes numIterations iterations of MCTS, given initialised MCTS
+func RunMCTS(mc *MCTS, workerID, numIterations, boardSize int, outputFile, logFile *os.File) ([]*tree.Node, error) {
+	for i := 0; i < numIterations; i++ {
+		if i > 0 && i%10000 == 0 {
+			logFile.WriteString(fmt.Sprintf("Worker %d finished iteration %d\n", workerID, i))
+		}
+		mc.RunIteration()
+	}
+
+	// Write input-output pairs for supervised machine learning, generate
+	// new nodes to continue MCTS
+	expCand, err := mc.GenSamples(outputFile, 100)
+	if err != nil {
+		return nil, err
+	}
+	return expCand, nil
 }
 
 // RunIteration runs one iteration of MCTS
