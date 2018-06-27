@@ -100,21 +100,40 @@ func reverseLine(line []string) {
 }
 
 // countPatternInGrid counts how many occurences the given pattern (with given
-// rotation) has in the grid.
-func countPatternInGrid(pat pattern, grid []uint64) (int, int) {
+// rotation) has in the grid. It also counts how many rows and columns each
+// player has occupied.
+func countPatternInGrid(pat pattern, grid []uint64) (int, int, [2][]bool, [2][]bool) {
 	countRed, countBlue := 0, 0
+
+	var occRows [2][]bool
+	var occCols [2][]bool
+	occRows[0] = make([]bool, len(grid))
+	occRows[1] = make([]bool, len(grid))
+	occCols[0] = make([]bool, len(grid))
+	occCols[1] = make([]bool, len(grid))
 
 	for yStart := 0; yStart <= len(grid)-pat.h; yStart++ {
 		for xStart := 0; xStart <= len(grid)-pat.w; xStart++ {
+			found := -1
 			if matches(pat, grid, xStart, yStart, Red) {
 				countRed++
+				found = 0
 			} else if matches(pat, grid, xStart, yStart, Blue) {
 				countBlue++
+				found = 1
+			}
+			if found >= 0 {
+				for x := xStart; x < xStart+pat.w; x++ {
+					occCols[found][x] = true
+				}
+				for y := yStart; y < yStart+pat.h; y++ {
+					occRows[found][y] = true
+				}
 			}
 		}
 	}
 
-	return countRed, countBlue
+	return countRed, countBlue, occRows, occCols
 }
 
 // matches checks whether a subgrid matches the given pattern.
@@ -144,6 +163,8 @@ func matches(pat pattern, grid []uint64, xStart, yStart int, player color) bool 
 // patChecker is a goroutine that searches for patterns in grids, sent via
 // gridChan. Results are sent via resultChan. stopChan is used to end the
 // goroutine.
+// It also checks in how many rows and columns each player has at least one
+// virtual connection
 func patChecker(gridChan chan []uint64, stopChan chan struct{}, resultChan chan [2][]int) error {
 	defer close(gridChan)
 	defer close(stopChan)
@@ -158,15 +179,51 @@ func patChecker(gridChan chan []uint64, stopChan chan struct{}, resultChan chan 
 		select {
 		case grid := <-gridChan:
 			var results [2][]int
-			results[0] = make([]int, len(patterns)) // Counts for red
-			results[1] = make([]int, len(patterns)) // Counts for blue
+			// Last two numbers mean number of rows and columns (respectively) occupied by a player
+			results[0] = make([]int, len(patterns)+2) // Counts for red
+			results[1] = make([]int, len(patterns)+2) // Counts for blue
+
+			var occRows [2][]bool // true indicates that at least one virtual connection is in this row
+			var occCols [2][]bool
+			occRows[0] = make([]bool, len(grid)) // Occupied rows of the red player
+			occRows[1] = make([]bool, len(grid)) // Occupied rows of the blue player
+			occCols[0] = make([]bool, len(grid)) // Occupied columns of the red player
+			occCols[1] = make([]bool, len(grid)) // Occupied columns of the blue player
+
 			for pi, p := range patterns {
 				for _, r := range p {
-					red, blue := countPatternInGrid(*r, grid)
+					red, blue, occR, occC := countPatternInGrid(*r, grid)
 					results[0][pi] += red
 					results[1][pi] += blue
+
+					for x := 0; x < len(occC[0]); x++ {
+						occCols[0][x] = occCols[0][x] || occC[0][x]
+						occCols[1][x] = occCols[1][x] || occC[1][x]
+					}
+					for y := 0; y < len(occR[0]); y++ {
+						occRows[0][y] = occRows[0][y] || occR[0][y]
+						occRows[1][y] = occRows[1][y] || occR[1][y]
+					}
 				}
 			}
+
+			// Last two numbers are for counting rows and columns with at least
+			// one virtual connection
+			for s := 0; s < len(grid); s++ {
+				if occRows[0][s] {
+					results[0][len(patterns)]++
+				}
+				if occRows[1][s] {
+					results[1][len(patterns)]++
+				}
+				if occCols[0][s] {
+					results[0][len(patterns)+1]++
+				}
+				if occCols[1][s] {
+					results[1][len(patterns)+1]++
+				}
+			}
+
 			resultChan <- results
 		case <-stopChan:
 			return nil

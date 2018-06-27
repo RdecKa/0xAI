@@ -12,7 +12,7 @@ func (s State) GenSample(q float64, gridChan chan []uint64, resultChan chan [2][
 		// Always store the Q value for the red player
 		q = -q
 	}
-	red, blue, empty := s.GetNumOfStones()
+	red, blue, _ := s.GetNumOfStones()
 
 	result := 0 // 0 if game not finished, 1 if red wins, -1 if blue wins
 	if s.IsGoalState() {
@@ -25,6 +25,7 @@ func (s State) GenSample(q float64, gridChan chan []uint64, resultChan chan [2][
 		}
 	}
 
+	// Last two numbers in each c are numbers of occupied rows and columns for each player
 	patCount := <-resultChan
 	var patCountS string
 	for _, p := range patCount {
@@ -33,5 +34,5 @@ func (s State) GenSample(q float64, gridChan chan []uint64, resultChan chan [2][
 		}
 	}
 
-	return fmt.Sprintf("%f,%d,%d,%d,%d,%s\n", q, result, red, blue, empty, patCountS)
+	return fmt.Sprintf("%f,%d,%d,%s\n", q, result, red+blue, patCountS)
 }
