@@ -5,7 +5,9 @@ import (
 )
 
 // GenSample returns a string representation of a single learning sample (output, attributes...)
-func (s State) GenSample(q float64) string {
+func (s State) GenSample(q float64, gridChan chan []uint64, resultChan chan [2][]int) string {
+	gridChan <- s.GetCopyGrid()
+
 	if s.lastPlayer == Blue {
 		// Always store the Q value for the red player
 		q = -q
@@ -23,5 +25,13 @@ func (s State) GenSample(q float64) string {
 		}
 	}
 
-	return fmt.Sprintf("%f,%d,%d,%d,%d\n", q, result, red, blue, empty)
+	patCount := <-resultChan
+	var patCountS string
+	for _, p := range patCount {
+		for _, c := range p {
+			patCountS += fmt.Sprintf("%d,", c)
+		}
+	}
+
+	return fmt.Sprintf("%f,%d,%d,%d,%d,%s\n", q, result, red, blue, empty, patCountS)
 }

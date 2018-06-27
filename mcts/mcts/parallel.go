@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"os"
 
+	"github.com/RdecKa/mcts/hex"
 	"github.com/RdecKa/mcts/tree"
 )
 
@@ -128,6 +129,7 @@ func RunMCTSinParallel(numWorkers, boardSize, numIterations int, outputFolder st
 func worker(id, numIterations, boardSize int, outputFile, outputFileDet, logFile *os.File, wc *workerChan) {
 	var mc *MCTS
 	taskID := 0
+	gridChan, stopChan, resultChan := hex.CreatePatChecker()
 	for {
 		logFile.WriteString(fmt.Sprintf("Worker %d waiting for a task\n", id))
 		select {
@@ -135,7 +137,7 @@ func worker(id, numIterations, boardSize int, outputFile, outputFileDet, logFile
 			logFile.WriteString(fmt.Sprintf("Worker %d executing task\n", id))
 			outputFile.WriteString(fmt.Sprintf("# Search ID %d\n", taskID))
 			outputFileDet.WriteString(fmt.Sprintf("# Search ID %d started from:\n%v\n", taskID, mc.GetInitialNode()))
-			expCand, err := RunMCTS(mc, id, numIterations, boardSize, outputFile, logFile)
+			expCand, err := RunMCTS(mc, id, numIterations, boardSize, outputFile, logFile, gridChan, resultChan)
 			if err != nil {
 				wc.e <- err
 			}
@@ -144,6 +146,7 @@ func worker(id, numIterations, boardSize int, outputFile, outputFileDet, logFile
 			taskID++
 		case <-wc.quit:
 			logFile.WriteString(fmt.Sprintf("Worker %d terminated\n", id))
+			stopChan <- struct{}{} // Stop the pattern checker
 			wc.terminated <- struct{}{}
 			return
 		}

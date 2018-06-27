@@ -9,22 +9,22 @@ import (
 // GenSamples traverses the MCTS tree and writes samples (nodes that have been
 // visited at least treasholdN times) to an outputFile. It returns possible
 // candidates for later MCTS
-func (mcts *MCTS) GenSamples(outputFile *os.File, treasholdN uint) ([]*tree.Node, error) {
+func (mcts *MCTS) GenSamples(outputFile *os.File, treasholdN uint, gridChan chan []uint64, resultChan chan [2][]int) ([]*tree.Node, error) {
 	// Write samples to a file
 	root := mcts.mcTree.GetRoot()
-	expandCandidates := genSamples(root, outputFile, treasholdN)
+	expandCandidates := genSamples(root, outputFile, treasholdN, gridChan, resultChan)
 	return expandCandidates, nil
 }
 
 // genSamples traverses the MCTS tree starting from Node node and writes samples
 // to a File file. It returns possible candidates for later MCTS
-func genSamples(node *tree.Node, outputFile *os.File, treasholdN uint) []*tree.Node {
+func genSamples(node *tree.Node, outputFile *os.File, treasholdN uint, gridChan chan []uint64, resultChan chan [2][]int) []*tree.Node {
 	mnv := node.GetValue().(*mctsNodeValue)
 	expandCandidates := make([]*tree.Node, 0, 20)
 	if mnv.n >= treasholdN {
-		outputFile.WriteString(mnv.state.GenSample(mnv.q))
+		outputFile.WriteString(mnv.state.GenSample(mnv.q, gridChan, resultChan))
 		for _, c := range node.GetChildren() {
-			g := genSamples(c, outputFile, treasholdN)
+			g := genSamples(c, outputFile, treasholdN, gridChan, resultChan)
 			expandCandidates = append(expandCandidates, g...)
 		}
 	} else {

@@ -57,6 +57,13 @@ func (s *State) GetSize() int {
 	return int(s.size)
 }
 
+// GetCopyGrid returns a copy of the state's grid
+func (s *State) GetCopyGrid() []uint64 {
+	c := make([]uint64, len(s.grid))
+	copy(c, s.grid)
+	return c
+}
+
 // getColorOn returns the color of the stone in cell (x, y)
 func (s *State) getColorOn(x, y byte) color {
 	row := s.grid[y]
