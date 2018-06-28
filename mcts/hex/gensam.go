@@ -14,7 +14,7 @@ func (s State) GenSample(q float64, gridChan chan []uint64, resultChan chan [2][
 	}
 	red, blue, _ := s.GetNumOfStones()
 
-	result := 0 // 0 if game not finished, 1 if red wins, -1 if blue wins
+	/*result := 0 // 0 if game not finished, 1 if red wins, -1 if blue wins
 	if s.IsGoalState() {
 		if s.lastPlayer == Blue {
 			result = -1
@@ -23,7 +23,7 @@ func (s State) GenSample(q float64, gridChan chan []uint64, resultChan chan [2][
 		} else {
 			panic(fmt.Sprintf("Unknown color '%s'\n", s.lastPlayer))
 		}
-	}
+	}*/
 
 	// Last two numbers in each c are numbers of occupied rows and columns for each player
 	patCount := <-resultChan
@@ -37,14 +37,14 @@ func (s State) GenSample(q float64, gridChan chan []uint64, resultChan chan [2][
 		}
 	}
 
-	st := fmt.Sprintf("%f,%d,%d,%s%s", q, result, red+blue, occCountS, patCountS)
+	st := fmt.Sprintf("%f,%d,%s%s", q, red+blue, occCountS, patCountS)
 	st = st[0 : len(st)-1]
 	return fmt.Sprintf("%s\n", st)
 }
 
 // GetHeaderCSV returns a string consisting attribute names.
 func GetHeaderCSV() string {
-	s := "value,final_result,num_stones,occ_red_rows,occ_red_cols,occ_blue_rows,occ_blue_cols"
+	s := "value,num_stones,occ_red_rows,occ_red_cols,occ_blue_rows,occ_blue_cols"
 	for n := 1; n <= 2; n++ {
 		s += fmt.Sprintf(",red_p%d,blue_p%d", n, n)
 	}
