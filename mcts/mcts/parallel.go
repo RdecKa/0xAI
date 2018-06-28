@@ -130,6 +130,7 @@ func worker(id, numIterations, boardSize int, outputFile, outputFileDet, logFile
 	var mc *MCTS
 	taskID := 0
 	gridChan, stopChan, resultChan := hex.CreatePatChecker()
+	outputFile.WriteString(hex.GetHeaderCSV())
 	for {
 		logFile.WriteString(fmt.Sprintf("Worker %d waiting for a task\n", id))
 		select {
