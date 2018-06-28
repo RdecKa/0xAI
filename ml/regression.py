@@ -9,20 +9,23 @@ from sklearn.model_selection import train_test_split
 
 
 def main(argv):
-	datafile = 'sample_data/sample_06_10000_0.in'
+	datafile = "sample_data/sample_06_10000_0.in"
+	outfolder = "."
 	try:
-		opts, args = getopt.getopt(argv, "d:")
+		opts, args = getopt.getopt(argv, "d:o:")
 	except getopt.GetoptError:
 		print("Error parsing the command line arguments")
 		sys.exit(1)
 	for o, a in opts:
 		if o == "-d":
 			datafile = a
+		if o == "-o":
+			outfolder = a
 
 	# Read data from file
 	print("Reading data from file:", datafile)
-	df = pd.read_csv(datafile, comment="#",
-					dtype={"final_result": np.int8, "num_stones": np.uint8,
+	df = pd.read_csv(datafile, comment = "#",
+					dtype = {"final_result": np.int8, "num_stones": np.uint8,
 							"occ_red_rows": np.uint8, "occ_red_cols": np.uint8,
 							"occ_blue_rows": np.uint8, "occ_blue_cols": np.uint8,
 							"red_p1": np.uint8, "blue_p1": np.uint8,
@@ -38,11 +41,16 @@ def main(argv):
 	X = df.drop(columns = ["value"])
 
 	# Split
-	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 4224)
+	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 200, random_state = 4224)
 
 	# Create Regressors
-	dtrs = [DecisionTreeRegressor(max_depth = 2, min_samples_leaf=5),
-			DecisionTreeRegressor(max_depth = 5, min_samples_leaf=5)]
+	dtrs = [DecisionTreeRegressor(max_depth = 2, min_samples_leaf = 5),
+			DecisionTreeRegressor(max_depth = 5, min_samples_leaf = 5)]
+
+	# Create a plot
+	plt.figure(figsize=(10,6))
+	plt.plot(y_test.tolist(), label = "actual values", linewidth = 0.7)
+	plt.ylim(-1.2, 1.2)
 
 	for dtri in range(len(dtrs)):
 		dtr = dtrs[dtri]
@@ -60,18 +68,18 @@ def main(argv):
 		fi = zip(X.keys(), dtr.feature_importances_)
 		for (k, v) in fi:
 			print("\t" + k + ": " + str(v))
-		tree.export_graphviz(dtr, out_file = "tree" + str(dtri) + ".dot")
+		tree.export_graphviz(dtr, out_file = outfolder + "tree" + str(dtri) + ".dot")
 
 		# Add to plot
-		plt.plot(y1, label="predicted values (max_depth=" + str(dtr.max_depth) + ")")
+		plt.plot(y1, label = "predicted values (max_depth=" + str(dtr.max_depth) + ")",
+				linewidth = 0.7)
 
-	plt.plot(y_test.tolist(), label="actual values")
 	plt.xlabel("Samples")
 	plt.ylabel("Value")
-	plt.legend()
 	plt.title("Comparison of predicted and actual values")
-	plt.ylim(-1.2, 1.2)
-	plt.show()
+	plt.legend(fontsize = "x-small")
+	plt.savefig(outfolder + "plot.pdf")
+	plt.close()
 
 if __name__ == "__main__":
 	main(sys.argv[1:])
