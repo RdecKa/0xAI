@@ -68,7 +68,7 @@ mkdir "$output_folder_ml"
 
 # Create a file to merge all learning samples
 data_file="${output_folder_ml}data.in"
-touch data_file
+touch "$data_file"
 
 # Merge all samples
 head -n 1 ${output_folder_mcts}*_0.in >> $data_file # Copy attribute names
