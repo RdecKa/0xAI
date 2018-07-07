@@ -1,12 +1,14 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
 	"math/rand"
 	"net/http"
 	"regexp"
+	"strconv"
 
 	"github.com/RdecKa/mcts/game"
 	"github.com/RdecKa/mcts/hex"
@@ -50,6 +52,32 @@ func getmoveHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(fmt.Sprintf("%v", s)))
 }
 
+func readCoordinateFromFlag(flag string, r *http.Request) (int, error) {
+	s, ok := r.URL.Query()[flag]
+	if !ok || len(s[0]) < 1 {
+		return -1, errors.New("Coordinate " + flag + " not specified.")
+	}
+	x, err := strconv.Atoi(s[0])
+	if err != nil {
+		return -1, errors.New("Coordinate " + flag + " invalid.")
+	}
+	return x, nil
+}
+
+func sendmoveHandler(w http.ResponseWriter, r *http.Request) {
+	cs := [2]string{"x", "y"}
+	coords := [2]int{}
+	for i, f := range cs {
+		c, err := readCoordinateFromFlag(f, r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		coords[i] = c
+	}
+	w.Write([]byte(fmt.Sprintf("Place a stone on (%d, %d)", coords[0], coords[1])))
+}
+
 // makeMove returns state in a game after action a has been made in state s and
 // a boolean value indicating the end of the game (true if game is finished,
 // false otherwise)
@@ -64,6 +92,7 @@ func makeMove(s hex.State, a game.Action) (hex.State, bool) {
 func main() {
 	http.HandleFunc("/play/", makeHandler(playHandler))
 	http.HandleFunc("/getmove/", makeHandler(getmoveHandler))
+	http.HandleFunc("/sendmove/", makeHandler(sendmoveHandler))
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
