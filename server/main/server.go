@@ -14,7 +14,7 @@ import (
 	"github.com/RdecKa/mcts/hex"
 )
 
-var validPath = regexp.MustCompile("^/(intro|play|sendmove|getmove)/([a-zA-Z0-9]*)$")
+var validPath = regexp.MustCompile("^/((play|sendmove|getmove|static)/([a-zA-Z0-9/.]*))?$")
 
 var templates = template.Must(template.ParseFiles("server/tmpl/play.html"))
 
@@ -90,9 +90,17 @@ func makeMove(s hex.State, a game.Action) (hex.State, bool) {
 }
 
 func main() {
+	// Register handlers
 	http.HandleFunc("/play/", makeHandler(playHandler))
 	http.HandleFunc("/getmove/", makeHandler(getmoveHandler))
 	http.HandleFunc("/sendmove/", makeHandler(sendmoveHandler))
 
+	// TODO: DELETE / CHANGE
+	http.HandleFunc("/", makeHandler(playHandler))
+
+	// Register folder with static content (js, css)
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("server/static"))))
+
+	// Run server
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
