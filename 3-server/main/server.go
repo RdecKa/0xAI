@@ -10,8 +10,8 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/RdecKa/mcts/game"
-	"github.com/RdecKa/mcts/hex"
+	"github.com/RdecKa/common/game"
+	"github.com/RdecKa/common/game/hex"
 )
 
 var validPath = regexp.MustCompile("^/((play|sendmove|getmove|static)/([a-zA-Z0-9/.]*))?$")

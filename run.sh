@@ -29,7 +29,7 @@ while getopts 'bin:o:s:w:' flag; do
 done
 
 # Run the program
-go run mcts/main/main.go -output="$output_folder_mcts" -indent="$indent" -iter="$iter" -size="$size" -workers="$workers"
+go run 1-mcts/main/main.go -output="$output_folder_mcts" -indent="$indent" -iter="$iter" -size="$size" -workers="$workers"
 status=$?
 if [ "$status" -ne 0 ]; then
 	echo "Error occured."
@@ -76,7 +76,7 @@ for filename in ${output_folder_mcts}*.in; do
 	tail -n +2 "$filename" >> "$data_file" # Copy everything except attribute names
 done
 
-python3 ml/regression.py -d "$data_file" -o "$output_folder_ml"
+python3 2-ml/regression.py -d "$data_file" -o "$output_folder_ml"
 
 # Visualize trees
 for filename in ${output_folder_ml}*.dot; do

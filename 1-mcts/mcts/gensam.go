@@ -3,7 +3,7 @@ package mcts
 import (
 	"os"
 
-	"github.com/RdecKa/mcts/tree"
+	"github.com/RdecKa/common/tree"
 )
 
 // GenSamples traverses the MCTS tree and writes samples (nodes that have been

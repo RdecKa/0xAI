@@ -2,6 +2,7 @@ package hex
 
 import (
 	"bufio"
+	"log"
 	"os"
 	"strings"
 )
@@ -31,7 +32,7 @@ func CreatePatChecker() (chan []uint64, chan struct{}, chan [2][]int) {
 // 2D slice of patterns. The first dimension is a pattern, the second dimension
 // are all rotations of that pattern.
 func readPatternsFromFile() ([][]*pattern, error) {
-	f, err := os.Open("mcts/hex/patterns.txt")
+	f, err := os.Open("common/game/hex/patterns.txt")
 	if err != nil {
 		return nil, err
 	}
@@ -165,14 +166,14 @@ func matches(pat pattern, grid []uint64, xStart, yStart int, player color) bool 
 // goroutine.
 // It also checks in how many rows and columns each player has at least one
 // virtual connection
-func patChecker(gridChan chan []uint64, stopChan chan struct{}, resultChan chan [2][]int) error {
+func patChecker(gridChan chan []uint64, stopChan chan struct{}, resultChan chan [2][]int) {
 	defer close(gridChan)
 	defer close(stopChan)
 	defer close(resultChan)
 
 	patterns, err := readPatternsFromFile()
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
 
 	for {
@@ -226,7 +227,7 @@ func patChecker(gridChan chan []uint64, stopChan chan struct{}, resultChan chan 
 
 			resultChan <- results
 		case <-stopChan:
-			return nil
+			return
 		}
 	}
 }

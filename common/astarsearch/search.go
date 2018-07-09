@@ -5,8 +5,8 @@ package astarsearch
 import (
 	"container/heap"
 
-	"github.com/RdecKa/mcts/pq"
-	"github.com/RdecKa/mcts/tree"
+	"github.com/RdecKa/common/pq"
+	"github.com/RdecKa/common/tree"
 )
 
 // -----------------

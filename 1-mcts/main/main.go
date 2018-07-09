@@ -6,8 +6,8 @@ import (
 	"math"
 	"os"
 
-	"github.com/RdecKa/mcts/hex"
-	"github.com/RdecKa/mcts/mcts"
+	"github.com/RdecKa/1-mcts/mcts"
+	"github.com/RdecKa/common/game/hex"
 )
 
 func main() {
