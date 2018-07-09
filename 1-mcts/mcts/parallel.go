@@ -5,8 +5,8 @@ import (
 	"math/rand"
 	"os"
 
-	"github.com/RdecKa/common/game/hex"
-	"github.com/RdecKa/common/tree"
+	"github.com/RdecKa/bachleor-thesis/common/game/hex"
+	"github.com/RdecKa/bachleor-thesis/common/tree"
 )
 
 // workerChan has a list of all chanells that workers use

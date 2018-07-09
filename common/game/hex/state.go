@@ -3,8 +3,8 @@ package hex
 import (
 	"fmt"
 
-	"github.com/RdecKa/common/astarsearch"
-	"github.com/RdecKa/common/game"
+	"github.com/RdecKa/bachleor-thesis/common/astarsearch"
+	"github.com/RdecKa/bachleor-thesis/common/game"
 )
 
 // -----------------

@@ -3,7 +3,7 @@ package hex
 import (
 	"fmt"
 
-	"github.com/RdecKa/common/astarsearch"
+	"github.com/RdecKa/bachleor-thesis/common/astarsearch"
 )
 
 // Cells in a rectangular grid that are neighbours in a hexagonal grid

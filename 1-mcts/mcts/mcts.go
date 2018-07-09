@@ -8,8 +8,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/RdecKa/common/game"
-	"github.com/RdecKa/common/tree"
+	"github.com/RdecKa/bachleor-thesis/common/game"
+	"github.com/RdecKa/bachleor-thesis/common/tree"
 )
 
 // -------------------------
