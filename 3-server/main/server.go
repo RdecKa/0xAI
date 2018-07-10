@@ -10,13 +10,16 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/RdecKa/bachleor-thesis/3-server/hexplayer"
 	"github.com/RdecKa/bachleor-thesis/common/game"
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
 )
 
-var validPath = regexp.MustCompile("^/((play|sendmove|getmove|static)/([a-zA-Z0-9/.]*))?$")
+var validPath = regexp.MustCompile("^/((play|sendmove|getmove|static|ws)/([a-zA-Z0-9/.]*))?$")
 
 var templates = template.Must(template.ParseFiles("3-server/tmpl/play.html"))
+
+const addr = "localhost:8080"
 
 var state hex.State
 
@@ -78,6 +81,10 @@ func sendmoveHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(fmt.Sprintf("Place a stone on (%d, %d)", coords[0], coords[1])))
 }
 
+func wsHandler(w http.ResponseWriter, r *http.Request) {
+	hexplayer.CreateHumanPlayer(w, r)
+}
+
 // makeMove returns state in a game after action a has been made in state s and
 // a boolean value indicating the end of the game (true if game is finished,
 // false otherwise)
@@ -95,6 +102,8 @@ func main() {
 	http.HandleFunc("/getmove/", makeHandler(getmoveHandler))
 	http.HandleFunc("/sendmove/", makeHandler(sendmoveHandler))
 
+	http.HandleFunc("/ws/", makeHandler(wsHandler))
+
 	// TODO: DELETE / CHANGE
 	http.HandleFunc("/", makeHandler(playHandler))
 
@@ -102,6 +111,6 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("3-server/static"))))
 
 	// Run server
-	log.Println("Server running on loclhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Println("Server running on", addr)
+	log.Fatal(http.ListenAndServe(addr, nil))
 }
