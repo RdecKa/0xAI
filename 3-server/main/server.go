@@ -16,7 +16,7 @@ import (
 
 var validPath = regexp.MustCompile("^/((play|sendmove|getmove|static)/([a-zA-Z0-9/.]*))?$")
 
-var templates = template.Must(template.ParseFiles("server/tmpl/play.html"))
+var templates = template.Must(template.ParseFiles("3-server/tmpl/play.html"))
 
 var state hex.State
 
@@ -99,8 +99,9 @@ func main() {
 	http.HandleFunc("/", makeHandler(playHandler))
 
 	// Register folder with static content (js, css)
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("server/static"))))
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("3-server/static"))))
 
 	// Run server
+	log.Println("Server running on loclhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
