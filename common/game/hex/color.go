@@ -4,16 +4,16 @@ package hex
 // |     Color     |
 // -----------------
 
-type color byte
+type Color byte
 
 // enum for players (colors)
 const (
-	None color = 0
-	Red  color = 1
-	Blue color = 2
+	None Color = 0
+	Red  Color = 1
+	Blue Color = 2
 )
 
-func (c color) String() string {
+func (c Color) String() string {
 	switch c {
 	case Red:
 		return "r"
@@ -24,7 +24,7 @@ func (c color) String() string {
 	}
 }
 
-func getColorFromBits(bits uint64) color {
+func getColorFromBits(bits uint64) Color {
 	if bits == 1 {
 		return Red
 	} else if bits == 2 {
@@ -33,7 +33,7 @@ func getColorFromBits(bits uint64) color {
 	return None
 }
 
-func (c color) opponent() color {
+func (c Color) opponent() Color {
 	if c != Red && c != Blue {
 		return None
 	}

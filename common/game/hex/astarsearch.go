@@ -29,7 +29,7 @@ var virtualConnections = [6][]int{
 
 type searchState struct {
 	x, y      int    // Current position; x = -1 means a field left of the grid, y = -1 means a field above the grid
-	c         color  // The color that a solution is searched for
+	c         Color  // The color that a solution is searched for
 	gameState *State // State in a game where solution is searched for
 }
 

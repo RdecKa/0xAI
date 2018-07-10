@@ -138,7 +138,7 @@ func countPatternInGrid(pat pattern, grid []uint64) (int, int, [2][]bool, [2][]b
 }
 
 // matches checks whether a subgrid matches the given pattern.
-func matches(pat pattern, grid []uint64, xStart, yStart int, player color) bool {
+func matches(pat pattern, grid []uint64, xStart, yStart int, player Color) bool {
 	for y := 0; y < pat.h; y++ {
 		rowGrid := grid[yStart+y]
 		rowPat := pat.pat[y]

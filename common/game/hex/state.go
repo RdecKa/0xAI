@@ -28,7 +28,7 @@ import (
 type State struct {
 	size       byte
 	grid       []uint64
-	lastPlayer color
+	lastPlayer Color
 }
 
 // NewState returns new State with a grid of given size
@@ -65,20 +65,20 @@ func (s *State) GetCopyGrid() []uint64 {
 }
 
 // getColorOn returns the color of the stone in cell (x, y)
-func (s *State) getColorOn(x, y byte) color {
+func (s *State) getColorOn(x, y byte) Color {
 	row := s.grid[y]
 	return getCellInRow(row, x)
 }
 
 // setCell puts a stone of color c into cell (x, y)
 // Cell (x, y) must be empty and valid
-func (s *State) setCell(x, y byte, c color) {
+func (s *State) setCell(x, y byte, c Color) {
 	bits := uint64(c) << (x * 2)
 	s.grid[y] |= bits
 }
 
 // getCellInRow returns color of a stone on index index in row row
-func getCellInRow(row uint64, index byte) color {
+func getCellInRow(row uint64, index byte) Color {
 	// Find the two bits that represent column with index index
 	bits := ((3 << (index * 2)) & row) >> (index * 2)
 	return getColorFromBits(bits)
@@ -107,7 +107,7 @@ func (s *State) IsCellEmpty(x, y byte) bool {
 // - for blue: to the right of the board
 // Note: This is used to check whether a cell (x, y) is virtually connected to
 // the opposite edge
-func (s *State) IsEndingCell(x, y int, c color) bool {
+func (s *State) IsEndingCell(x, y int, c Color) bool {
 	return (c == Red && y >= int(s.size) && x >= 0) || (c == Blue && x >= int(s.size) && y >= 0)
 }
 
