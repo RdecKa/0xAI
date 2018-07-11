@@ -3,6 +3,7 @@ package main
 import (
 	"html/template"
 	"log"
+	"math"
 	"net/http"
 	"regexp"
 
@@ -46,10 +47,12 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	for i := 0; i < 2; i++ {
+	/*for i := 0; i < 2; i++ {
 		hp := hexplayer.CreateHumanPlayer(conn, colors[i])
 		pair[i] = hp
-	}
+	}*/
+	pair[0] = hexplayer.CreateHumanPlayer(conn, colors[0])
+	pair[1] = hexplayer.CreateMCTSplayer(colors[1], math.Sqrt(2), 1000, 10)
 
 	go hexgame.Play(pair, 1)
 }
