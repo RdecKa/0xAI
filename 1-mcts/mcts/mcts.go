@@ -223,3 +223,36 @@ func (mcts *MCTS) getUCTValue(node *tree.Node, parentN uint) float64 {
 	return float64(nodeValue.q) +
 		mcts.c*math.Sqrt(math.Log(float64(parentN))/float64(nodeValue.n))
 }
+
+// ContinueMCTSFromChild goes through all grandchildren nodes of the root node
+// in the MC tree and finds the one that contains the given state. It returns
+// MCTS from that node.
+func (mcts *MCTS) ContinueMCTSFromChild(state game.State) *MCTS {
+	nodeChildren := mcts.mcTree.GetRoot().GetChildren()
+	for _, n := range nodeChildren {
+		grandChildren := n.GetChildren()
+		for _, g := range grandChildren {
+			s := g.GetValue().(*mctsNodeValue).state.(game.State)
+			if s.Same(state) {
+				return mcts.ContinueMCTSFromNode(g)
+			}
+		}
+	}
+	// Not possible to continue previously started search, start from scratch.
+	return InitMCTS(state, mcts.c, mcts.minN)
+}
+
+// GetBestRootChildState returns agame.State of the direct descendant of the
+// root node in the MC tree that has the highest UCT value.
+func (mcts *MCTS) GetBestRootChildState() game.State {
+	rootChildren := mcts.mcTree.GetRoot().GetChildren()
+	bestNode := rootChildren[0]
+
+	for _, c := range rootChildren {
+		if c.GetValue().(*mctsNodeValue).q > bestNode.GetValue().(*mctsNodeValue).q {
+			bestNode = c
+		}
+	}
+
+	return bestNode.GetValue().(*mctsNodeValue).state
+}

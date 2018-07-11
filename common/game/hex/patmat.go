@@ -148,11 +148,11 @@ func matches(pat pattern, grid []uint64, xStart, yStart int, player Color) bool 
 
 			switch cellPat {
 			case 0: // Empty cell in the pattern
-				if getColorFromBits(cellGrid) != None {
+				if GetColorFromBits(cellGrid) != None {
 					return false
 				}
 			case 3: // Marked cell in the pattern
-				if getColorFromBits(cellGrid) != player {
+				if GetColorFromBits(cellGrid) != player {
 					return false
 				}
 			}

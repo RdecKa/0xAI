@@ -11,6 +11,7 @@ type State interface {
 	GetSuccessorState(Action) State
 	IsGoalState() bool
 	EvaluateGoalState() float64
+	Same(State) bool
 	GenSample(float64, chan []uint64, chan [2][]int) string // Returns a string representing state attributes for supervised machine learning
 }
 

@@ -24,7 +24,7 @@ func (c Color) String() string {
 	}
 }
 
-func getColorFromBits(bits uint64) Color {
+func GetColorFromBits(bits uint64) Color {
 	if bits == 1 {
 		return Red
 	} else if bits == 2 {

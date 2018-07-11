@@ -81,7 +81,7 @@ func (s *State) setCell(x, y byte, c Color) {
 func getCellInRow(row uint64, index byte) Color {
 	// Find the two bits that represent column with index index
 	bits := ((3 << (index * 2)) & row) >> (index * 2)
-	return getColorFromBits(bits)
+	return GetColorFromBits(bits)
 }
 
 func (s *State) clone() game.State {
@@ -130,7 +130,7 @@ func (s State) GetPossibleActions() []game.Action {
 		row := s.grid[rowIndex]
 		for colIndex := byte(0); colIndex < s.size; colIndex++ {
 			bits := row & 3 // Get last two bits of a row
-			if getColorFromBits(bits) == None {
+			if GetColorFromBits(bits) == None {
 				actions = append(actions, &Action{colIndex, rowIndex, s.lastPlayer.opponent()})
 			}
 			row = row >> 2
@@ -154,6 +154,23 @@ func (s State) EvaluateGoalState() float64 {
 	return 1.0
 }
 
+// Same returns true if states s and s2 represent the same state on the board.
+func (s State) Same(sg game.State) bool {
+	s2 := sg.(*State)
+	if s.size != s2.size {
+		return false
+	}
+	if s.lastPlayer != s2.lastPlayer {
+		return false
+	}
+	for i := byte(0); i < s.size; i++ {
+		if s.grid[i] != s2.grid[i] {
+			return false
+		}
+	}
+	return true
+}
+
 // GetNumOfStones returns number of red stones, blue stones and empty cells (in
 // that order)
 func (s State) GetNumOfStones() (int, int, int) {
@@ -161,7 +178,7 @@ func (s State) GetNumOfStones() (int, int, int) {
 	for _, row := range s.grid {
 		r := row
 		for colIndex := byte(0); colIndex < s.size; colIndex++ {
-			c := getColorFromBits(r & 3)
+			c := GetColorFromBits(r & 3)
 			switch c {
 			case Red:
 				red++
@@ -174,4 +191,21 @@ func (s State) GetNumOfStones() (int, int, int) {
 		}
 	}
 	return red, blue, empty
+}
+
+// GetTransitionAction returns an action that leads from State s to State sg.
+func (s State) GetTransitionAction(sg game.State) game.Action {
+	s2 := sg.(State)
+	for r := 0; r < s.GetSize(); r++ {
+		if s.grid[r] != s2.grid[r] {
+			diff := s2.grid[r] - s.grid[r]
+			c := 0
+			for diff > 3 {
+				c++
+				diff = diff >> 2
+			}
+			return NewAction(byte(c), byte(r), GetColorFromBits(diff))
+		}
+	}
+	return nil
 }
