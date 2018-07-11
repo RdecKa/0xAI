@@ -19,7 +19,7 @@ window.onload = function() {
 		switch (ms[0]) {
 			case "INIT":
 				console.log("Init");
-				let s = ms[1].split(":")
+				let s = ms[1].split(":");
 				grid = creatHexeGrid(parseInt(s[1]));
 
 				let c = ms[2].split(":")
@@ -49,7 +49,8 @@ window.onload = function() {
 				break;
 			case "END":
 				console.log("End");
-				printGrid(grid)
+				receiveMove(grid, m.substring(6));
+				printGrid(grid);
 				myColor = colors.NONE;
 				break;
 			default:
