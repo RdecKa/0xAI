@@ -169,7 +169,7 @@ func (mcts *MCTS) expansion(node *tree.Node) {
 	nodeValue := node.GetValue().(*mctsNodeValue)
 	state := nodeValue.state
 
-	if state.IsGoalState() {
+	if g, _ := state.IsGoalState(false); g {
 		// Do not expand goal states
 		return
 	}
@@ -198,7 +198,7 @@ func (mcts *MCTS) playout(node *tree.Node) float64 {
 // playoutFromState recursively performs a random action from the list of
 // possible actions. After reaching a goal state it returns its value
 func playoutFromState(state game.State) float64 {
-	if state.IsGoalState() {
+	if g, _ := state.IsGoalState(false); g {
 		return state.EvaluateGoalState()
 	}
 	possibleActions := state.GetPossibleActions()

@@ -15,9 +15,10 @@ import (
 
 // State represents a state in A* Search
 type State interface {
-	IsGoalState() bool
+	IsGoalState() (bool, interface{})
 	GetEstimateToReachGoal() int
-	GetSuccessorStates() []State
+	GetSuccessorStates(bool) []State
+	GetClean() State
 	String() string
 }
 
@@ -64,7 +65,7 @@ func InitSearch(initialState State) *AStarSearch {
 
 // Search tries to find a goal state. If a soltuion exists, it returns true,
 // otherwise it returns false
-func (aStar *AStarSearch) Search() bool {
+func (aStar *AStarSearch) Search(veryEnd bool) (bool, interface{}) {
 	for len(aStar.frontier) > 0 {
 		// Pop frontier
 		currentNode := heap.Pop(&aStar.frontier).(*tree.Node)
@@ -73,28 +74,28 @@ func (aStar *AStarSearch) Search() bool {
 		nodeValue := currentNode.GetValue().(*aStarNodeValue)
 		currentState := nodeValue.state
 
-		_, ok := aStar.visitedStates[currentState]
+		_, ok := aStar.visitedStates[currentState.GetClean()]
 		if ok {
 			// State was already expanded, discard ot
 			continue
 		}
 
-		if currentState.IsGoalState() {
+		if cs, s := currentState.IsGoalState(); cs {
 			// Solution found
-			return true
+			return true, s
 		}
 
 		// Add the current state to the list of visited states
-		aStar.visitedStates[currentState] = struct{}{}
+		aStar.visitedStates[currentState.GetClean()] = struct{}{}
 
 		// Get the cost of the path from start to the current node
 		pathFromStart := nodeValue.pathFromStart
 
 		// Loop through all successor states (find all possibilities to continue
 		// the chain)
-		successorStates := currentState.GetSuccessorStates()
+		successorStates := currentState.GetSuccessorStates(veryEnd)
 		for _, sucState := range successorStates {
-			_, ok := aStar.visitedStates[sucState]
+			_, ok := aStar.visitedStates[sucState.GetClean()]
 			if ok {
 				// Successor state was already expanded, discard it
 				continue
@@ -114,17 +115,5 @@ func (aStar *AStarSearch) Search() bool {
 		fmt.Println("End of priority queue")*/
 	}
 
-	return false
-}
-
-// same compares two tree nodes and returns true if they contain the same state
-func same(a, b interface{}) bool {
-	if a == b {
-		return true
-	}
-
-	av := a.(*tree.Node).GetValue().(*aStarNodeValue)
-	bv := b.(*tree.Node).GetValue().(*aStarNodeValue)
-
-	return (av.state.String() == bv.state.String())
+	return false, nil
 }

@@ -21,3 +21,8 @@ func NewAction(x, y byte, c Color) *Action {
 func (a *Action) String() string {
 	return fmt.Sprintf("%s: (%d, %d)", a.c, a.x, a.y)
 }
+
+// GetCoordinates returns X and Y coordinates of an action
+func (a *Action) GetCoordinates() (int, int) {
+	return int(a.x), int(a.y)
+}

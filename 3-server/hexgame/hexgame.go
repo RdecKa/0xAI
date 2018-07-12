@@ -21,7 +21,7 @@ func playOneGame(players [2]hexplayer.HexPlayer) (int, error) {
 	var prevAction *hex.Action
 
 	// Play game
-	for !state.IsGoalState() {
+	for g, _ := state.IsGoalState(true); !g; g, _ = state.IsGoalState(true) {
 		nextAction, err := players[turn].NextAction(prevAction)
 		if err != nil {
 			fmt.Println(err)

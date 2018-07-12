@@ -9,7 +9,6 @@ import (
 
 	"github.com/RdecKa/bachleor-thesis/3-server/hexgame"
 	"github.com/RdecKa/bachleor-thesis/3-server/hexplayer"
-	"github.com/RdecKa/bachleor-thesis/common/game"
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
 )
 
@@ -55,17 +54,6 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	pair[1] = hexplayer.CreateMCTSplayer(colors[1], math.Sqrt(2), 1000, 10)
 
 	go hexgame.Play(pair, 1)
-}
-
-// makeMove returns state in a game after action a has been made in state s and
-// a boolean value indicating the end of the game (true if game is finished,
-// false otherwise)
-func makeMove(s hex.State, a game.Action) (hex.State, bool) {
-	ns := s.GetSuccessorState(a).(hex.State)
-	if ns.IsGoalState() {
-		return ns, true
-	}
-	return ns, false
 }
 
 func main() {

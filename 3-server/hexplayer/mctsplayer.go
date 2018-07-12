@@ -2,6 +2,7 @@ package hexplayer
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/RdecKa/bachleor-thesis/1-mcts/mcts"
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
@@ -16,11 +17,12 @@ type MCTSplayer struct {
 	minBeforeExpand   uint
 	mc                *mcts.MCTS
 	state             *hex.State
+	winPath           [][2]int
 }
 
 // CreateMCTSplayer creates a new player
 func CreateMCTSplayer(c hex.Color, ef float64, ni int, mbe uint) *MCTSplayer {
-	mp := MCTSplayer{c, ef, ni, mbe, nil, nil}
+	mp := MCTSplayer{c, ef, ni, mbe, nil, nil, nil}
 	return &mp
 }
 
@@ -42,6 +44,13 @@ func (mp *MCTSplayer) NextAction(prevAction *hex.Action) (*hex.Action, error) {
 		mp.state = &s
 	}
 
+	if len(mp.winPath) > 0 {
+		fmt.Println("WIN PATH:")
+		fmt.Println(mp.winPath)
+		// TODO
+		//return nil, nil
+	}
+
 	// Run MCTS
 	mp.mc = mp.mc.ContinueMCTSFromChild(mp.state)
 	if mp.mc == nil {
@@ -59,6 +68,12 @@ func (mp *MCTSplayer) NextAction(prevAction *hex.Action) (*hex.Action, error) {
 	// Update mp.state
 	s := bestState.(hex.State)
 	mp.state = &s
+
+	// Check if player has a virtual connection
+	if exists, solution := mp.state.IsGoalState(false); exists {
+		fmt.Println("Player has a virtual connection!")
+		mp.winPath = solution.([][2]int)
+	}
 
 	return bestAction, nil
 }
