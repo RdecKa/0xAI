@@ -17,7 +17,11 @@ type MCTSplayer struct {
 	minBeforeExpand   uint
 	mc                *mcts.MCTS
 	state             *hex.State
-	winPath           [][2]int
+	safeWinCells      [][2]cell
+}
+
+type cell struct {
+	x, y int
 }
 
 // CreateMCTSplayer creates a new player
@@ -44,11 +48,21 @@ func (mp *MCTSplayer) NextAction(prevAction *hex.Action) (*hex.Action, error) {
 		mp.state = &s
 	}
 
-	if len(mp.winPath) > 0 {
-		fmt.Println("WIN PATH:")
-		fmt.Println(mp.winPath)
-		// TODO
-		//return nil, nil
+	if len(mp.safeWinCells) > 0 {
+		var ec cell
+		if bridge, emptyCellIndex := mp.getAttackedBridge(prevAction); bridge > -1 {
+			// Opponent has attacked one of the bridges
+			ec = mp.safeWinCells[bridge][emptyCellIndex]
+			mp.safeWinCells = append(mp.safeWinCells[:bridge], mp.safeWinCells[bridge+1:]...)
+		} else {
+			// Select the first cell in the first bridge (doesn't really matter, which one)
+			ec = mp.safeWinCells[0][0]
+			mp.safeWinCells = mp.safeWinCells[1:]
+		}
+		action := hex.NewAction(byte(ec.x), byte(ec.y), mp.Color)
+		s := mp.state.GetSuccessorState(action).(hex.State)
+		mp.state = &s
+		return hex.NewAction(byte(ec.x), byte(ec.y), mp.Color), nil
 	}
 
 	// Run MCTS
@@ -72,7 +86,8 @@ func (mp *MCTSplayer) NextAction(prevAction *hex.Action) (*hex.Action, error) {
 	// Check if player has a virtual connection
 	if exists, solution := mp.state.IsGoalState(false); exists {
 		fmt.Println("Player has a virtual connection!")
-		mp.winPath = solution.([][2]int)
+		winPath := solution.([][2]int)
+		mp.findSafeCells(winPath)
 	}
 
 	return bestAction, nil
@@ -81,3 +96,103 @@ func (mp *MCTSplayer) NextAction(prevAction *hex.Action) (*hex.Action, error) {
 // EndGame doesn't do anything. The only reason for having it is that MCTSplayer
 // must implement all functions of HexPlayer.
 func (mp MCTSplayer) EndGame(lastAction *hex.Action, won bool) {}
+
+// findSafeCells saves all the bridges on the winning path.
+func (mp *MCTSplayer) findSafeCells(winPath [][2]int) {
+	if mp.Color == hex.Red {
+		if winPath[0][1] < mp.state.GetSize()-1 {
+			// Bridge to the bottom (bottom row does not have a stone yet)
+			x := winPath[0][0]
+			y := winPath[0][1]
+			mp.addTwoSafeCellsBetween(x, y, x-1, y+2)
+		}
+		if winPath[len(winPath)-2][1] > 0 {
+			// Bridge to the top
+			x := winPath[len(winPath)-2][0]
+			y := winPath[len(winPath)-2][1]
+			mp.addTwoSafeCellsBetween(x, y, x+1, y-2)
+		}
+	} else if mp.Color == hex.Blue {
+		if winPath[0][0] < mp.state.GetSize()-1 {
+			// Bridge to the right
+			x := winPath[0][0]
+			y := winPath[0][1]
+			mp.addTwoSafeCellsBetween(x, y, x+2, y-1)
+		}
+		if winPath[len(winPath)-2][0] > 0 {
+			// Bridge to the left
+			x := winPath[len(winPath)-2][0]
+			y := winPath[len(winPath)-2][1]
+			mp.addTwoSafeCellsBetween(x, y, x-2, y+1)
+		}
+	}
+	for i := range winPath[:len(winPath)-2] {
+		if !(directlyConnected(winPath[i], winPath[i+1])) {
+			mp.addTwoSafeCellsBetween(winPath[i][0], winPath[i][1], winPath[i+1][0], winPath[i+1][1])
+		}
+	}
+}
+
+// addTwoSafeCellsBetween adds two cells between (x1, y1) and (x2, y2) to the
+// list of safe cells. (x1, y1) -- (x2, y2) must be a bridge, this function does
+// not check that.
+func (mp *MCTSplayer) addTwoSafeCellsBetween(x1, y1, x2, y2 int) {
+	var nx1, nx2, ny1, ny2 int
+	if (x1-x2)%2 == 0 {
+		nx1 = (x1 + x2) / 2
+		nx2 = nx1
+	} else {
+		nx1 = (x1 + x2) / 2
+		nx2 = nx1 + 1
+	}
+
+	if (y1-y2)%2 == 0 {
+		ny1 = (y1 + y2) / 2
+		ny2 = ny1
+	} else {
+		ny2 = (y1 + y2) / 2
+		ny1 = ny2 + 1
+	}
+
+	mp.safeWinCells = append(mp.safeWinCells, [2]cell{cell{nx1, ny1}, cell{nx2, ny2}})
+}
+
+// directlyConnected checks whether two cells are directly connected (they share
+// one side)
+func directlyConnected(c1, c2 [2]int) bool {
+	x1, y1 := c1[0], c1[1]
+	x2, y2 := c2[0], c2[1]
+	if x1 == x2 && abs(y1-y2) == 1 {
+		return true
+	}
+	if y1 == y2 && abs(x1-x2) == 1 {
+		return true
+	}
+	if abs(x1-x2) == 1 && abs(y1-y2) == 1 && (x1-x2)+(y1-y2) == 0 {
+		return true
+	}
+	return false
+}
+
+func abs(a int) int {
+	if a >= 0 {
+		return a
+	}
+	return -a
+}
+
+// getAttackedBridge returns two integers:
+//	- index of the bridge that was attacked with Action prevAction (-1 if none of the bridges is attacked)
+//	- index of the cell in the attacked bridge that is still empty (-1 if none of the bridges is attacked)
+func (mp *MCTSplayer) getAttackedBridge(prevAction *hex.Action) (int, int) {
+	for i, c := range mp.safeWinCells {
+		x, y := prevAction.GetCoordinates()
+		if x == c[0].x && y == c[0].y {
+			return i, 1
+		}
+		if x == c[1].x && y == c[1].y {
+			return i, 0
+		}
+	}
+	return -1, -1
+}
