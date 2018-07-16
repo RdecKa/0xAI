@@ -11,14 +11,12 @@
 
 <body>
 	<div id="hex-grid">
-		Hex grid goes here!
-		<ul v-for="(row, ri) in grid" :key="ri">
-			<li>
-				<ul v-for="(cell, ci) in row" :key="ci">
-					<li>{{cell}}</li>
-				</ul>
-			</li>
-		</ul>
+		<svg width="500" height="500">
+			<g v-for="(row, ri) in grid" :key="ri">
+				<polygon v-for="(_, ci) in row" :key="ci" :points="getPoints(ci, ri)"></polygon>
+			</g>
+		</svg>
+
 	</div>
 </body>
 

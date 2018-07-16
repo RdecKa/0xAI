@@ -1,3 +1,7 @@
+const hexSide = 20;
+const unitX = 2 * Math.cos(30 * Math.PI / 180) * hexSide;
+const unitY = (1 + Math.sin(30 * Math.PI / 180)) * hexSide;
+
 function hexGrid(socket) {
 	return new Vue({
 		el: '#hex-grid',
@@ -10,11 +14,14 @@ function hexGrid(socket) {
 			initGrid: function (size) {
 				this.size = size;
 				createHexGrid(this, this.size);
+			},
+			getPoints: function (rowIndex, colIndex) {
+				return getPointsForPolygon(rowIndex, colIndex);
 			}
 		},
 		created: function() {
 			initSocket(this, this.socket);
-		}
+		},
 	});
 }
 
@@ -125,4 +132,31 @@ function createHexGrid(self, size) {
 			self.grid[i].push(colors.NONE);
 		}
 	}
+}
+
+/**
+ * Returns an array of two-ary arrays (coordinates) that represent vertices of a
+ * hexagon.
+ * @param rowIndex index of a row that contains the cell
+ * @param colIndex index of a column that contains the cell
+ */
+function getPointsForPolygon(rowIndex, colIndex) {
+	let centerX = (colIndex  + rowIndex / 2) * unitX;
+	let centerY = rowIndex * unitY;
+
+	let points = [
+		[centerX,             centerY - hexSide],     // top
+		[centerX + unitX / 2, centerY - hexSide / 2], // top right
+		[centerX + unitX / 2, centerY + hexSide / 2], // bottom right
+		[centerX,             centerY + hexSide],     // bottom
+		[centerX - unitX / 2, centerY + hexSide / 2], // bottom left
+		[centerX - unitX / 2, centerY - hexSide / 2], // top left
+	];
+
+	let ps = "";
+	for (let p = 0; p < points.length; p++) {
+		// Add margin to all coordinates to avoid negative coordinates
+		ps += (points[p][0] + unitX / 2) + "," + (points[p][1] + hexSide) + " ";
+	}
+	return ps;
 }
