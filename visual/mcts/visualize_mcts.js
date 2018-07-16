@@ -121,7 +121,7 @@ Vue.component('item', {
 });
 
 window.onload = function() {
-	sortJSON(mcst_json.tree.root, compareByN);
+	sortJSON(mcst_json.tree.root, compareByQ);
 	let app = visualize_mcts();
 };
 

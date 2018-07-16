@@ -14,7 +14,7 @@ import (
 
 var validPath = regexp.MustCompile("^/((play|sendmove|getmove|static|ws)/([a-zA-Z0-9/.]*))?$")
 
-var templates = template.Must(template.ParseFiles("3-server/tmpl/play.html"))
+var templates = template.Must(template.New("").Delims("[[", "]]").ParseFiles("3-server/tmpl/play.html"))
 
 const addr = "localhost:8080"
 
@@ -51,7 +51,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		pair[i] = hp
 	}*/
 	pair[0] = hexplayer.CreateHumanPlayer(conn, colors[0])
-	pair[1] = hexplayer.CreateMCTSplayer(colors[1], math.Sqrt(2), 1000, 10)
+	pair[1] = hexplayer.CreateMCTSplayer(colors[1], math.Sqrt(2), 5000, 10)
 
 	go hexgame.Play(pair, 1)
 }
