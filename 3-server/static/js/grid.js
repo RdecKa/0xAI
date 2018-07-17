@@ -14,12 +14,10 @@ function hexGrid(socket) {
 		computed: {
 			boardWidth: function () {
 				let width = Math.floor(1.5 * this.size) * unitX + 2 * margin;
-				console.log(width);
 				return width + "px";
 			},
 			boardHeight: function () {
 				let height = (this.size - 1) * unitY + 2 * hexSide + 2 * margin;
-				console.log(height);
 				return height + "px";
 			}
 		},

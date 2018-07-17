@@ -16,7 +16,7 @@ function nextMove(grid, myColor) {
 	for (let i = 0; i < grid.length; i++) {
 		for (let j = 0; j < grid[0].length; j++) {
 			if (grid[i][j] == colors.NONE) {
-				grid[i][j] = myColor;
+				grid[i].splice(j, 1, myColor)
 				return j.toString() + "," + i.toString();
 			}
 		}
