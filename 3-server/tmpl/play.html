@@ -7,13 +7,18 @@
 	<script src="/static/js/script.js" type="application/javascript"></script>
 	<script src="/static/js/grid.js" type="application/javascript"></script>
 	<script src="https://unpkg.com/vue"></script>
+	<link rel="stylesheet" type="text/css" href="/static/css/style.css">
 </head>
 
 <body>
 	<div id="hex-grid">
-		<svg width="500" height="500">
+		<svg :width="boardWidth" :height="boardHeight">
 			<g v-for="(row, ri) in grid" :key="ri">
-				<polygon v-for="(_, ci) in row" :key="ci" :points="getPoints(ci, ri)"></polygon>
+				<polygon v-for="(_, ci) in row"
+					:key="ci"
+					:points="getPoints(ci, ri)"
+					:class="getClass(ci, ri)">
+				</polygon>
 			</g>
 		</svg>
 

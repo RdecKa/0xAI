@@ -1,6 +1,7 @@
-const hexSide = 20;
+const hexSide = 30;
 const unitX = 2 * Math.cos(30 * Math.PI / 180) * hexSide;
 const unitY = (1 + Math.sin(30 * Math.PI / 180)) * hexSide;
+const margin = hexSide * 0.1;
 
 function hexGrid(socket) {
 	return new Vue({
@@ -10,18 +11,43 @@ function hexGrid(socket) {
 			size: 1,
 			grid: []
 		},
+		computed: {
+			boardWidth: function () {
+				let width = Math.floor(1.5 * this.size) * unitX + 2 * margin;
+				console.log(width);
+				return width + "px";
+			},
+			boardHeight: function () {
+				let height = (this.size - 1) * unitY + 2 * hexSide + 2 * margin;
+				console.log(height);
+				return height + "px";
+			}
+		},
 		methods: {
 			initGrid: function (size) {
 				this.size = size;
 				createHexGrid(this, this.size);
 			},
-			getPoints: function (rowIndex, colIndex) {
+			getPoints: function (colIndex, rowIndex) {
 				return getPointsForPolygon(rowIndex, colIndex);
+			},
+			getClass: function (colIndex, rowIndex) {
+				switch (this.grid[rowIndex][colIndex]) {
+					case "r":
+						return "cell red";
+					case "b":
+						return "cell blue";
+					case ".":
+						return "cell empty";
+				}
+			},
+			getBoardWidth: function () {
+				return this.size * 150;
 			}
 		},
 		created: function() {
 			initSocket(this, this.socket);
-		},
+		}
 	});
 }
 
@@ -156,7 +182,7 @@ function getPointsForPolygon(rowIndex, colIndex) {
 	let ps = "";
 	for (let p = 0; p < points.length; p++) {
 		// Add margin to all coordinates to avoid negative coordinates
-		ps += (points[p][0] + unitX / 2) + "," + (points[p][1] + hexSide) + " ";
+		ps += (points[p][0] + (unitX / 2 + margin)) + "," + (points[p][1] + (hexSide + margin)) + " ";
 	}
 	return ps;
 }

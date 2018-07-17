@@ -1,0 +1,22 @@
+$blue-cell: #0F2F8C;
+$red-cell: #A60303;
+$empty-cell: #AAA;
+
+#hex-grid {
+	.cell {
+		stroke: black;
+		stroke-width: 5;
+	}
+
+	.blue {
+		fill: $blue-cell;
+	}
+
+	.red {
+		fill: $red-cell;
+	}
+
+	.empty {
+		fill: $empty-cell;
+	}
+}
