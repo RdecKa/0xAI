@@ -244,8 +244,12 @@ func (mcts *MCTS) ContinueMCTSFromChild(state game.State) *MCTS {
 
 // GetBestRootChildState returns agame.State of the direct descendant of the
 // root node in the MC tree that has the highest UCT value.
+// It returns nul if no such state exists.
 func (mcts *MCTS) GetBestRootChildState() game.State {
 	rootChildren := mcts.mcTree.GetRoot().GetChildren()
+	if len(rootChildren) == 0 {
+		return nil
+	}
 	bestNode := rootChildren[0]
 
 	for _, c := range rootChildren {

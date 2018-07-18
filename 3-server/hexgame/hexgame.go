@@ -9,7 +9,7 @@ import (
 
 func playOneGame(players [2]hexplayer.HexPlayer) (int, error) {
 	// Init game
-	boardSize := 5
+	boardSize := 7
 	for p := 0; p < 2; p++ {
 		err := players[p].InitGame(boardSize)
 		if err != nil {
@@ -27,10 +27,16 @@ func playOneGame(players [2]hexplayer.HexPlayer) (int, error) {
 			fmt.Println(err)
 			return -1, err
 		}
+		if nextAction == nil {
+			// Player has resigned
+			fmt.Printf("Player %d resigned!\n", turn+1)
+			break
+		}
 		s := state.GetSuccessorState(nextAction).(hex.State)
 		state = &s
 		prevAction = nextAction
 		turn = 1 - turn
+		fmt.Printf("%v", state)
 	}
 
 	// Game results
@@ -55,6 +61,9 @@ func playNGames(players [2]hexplayer.HexPlayer, numGames int) [2]int {
 			continue
 		}
 		wins[winner]++
+		fmt.Printf("Results after %d games:\n", g)
+		fmt.Printf("\tPlayer one: %d\n", wins[0])
+		fmt.Printf("\tPlayer two: %d\n", wins[1])
 	}
 	return wins
 }
@@ -63,7 +72,7 @@ func playNGames(players [2]hexplayer.HexPlayer, numGames int) [2]int {
 // runs numGames games of Hex between the given players.
 func Play(players [2]hexplayer.HexPlayer, numGames int) {
 	results := playNGames(players, numGames)
-	fmt.Println("Results:")
+	fmt.Printf("Final results:\n")
 	fmt.Printf("\tPlayer one: %d\n", results[0])
 	fmt.Printf("\tPlayer two: %d\n", results[1])
 }

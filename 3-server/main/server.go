@@ -53,7 +53,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	pair[0] = hexplayer.CreateHumanPlayer(conn, colors[0])
 	pair[1] = hexplayer.CreateMCTSplayer(colors[1], math.Sqrt(2), 5000, 10)
 
-	go hexgame.Play(pair, 1)
+	go hexgame.Play(pair, 3)
 }
 
 func main() {

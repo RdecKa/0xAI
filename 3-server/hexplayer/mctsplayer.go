@@ -40,7 +40,7 @@ func (mp *MCTSplayer) InitGame(boardSize int) error {
 }
 
 // NextAction accepts opponent's last action and returns an action to be
-// performed now.
+// performed now. It returns nil when it decides to resign.
 func (mp *MCTSplayer) NextAction(prevAction *hex.Action) (*hex.Action, error) {
 	// Update the state according to opponent's last move
 	if prevAction != nil {
@@ -77,6 +77,10 @@ func (mp *MCTSplayer) NextAction(prevAction *hex.Action) (*hex.Action, error) {
 
 	// Get the best action
 	bestState := mp.mc.GetBestRootChildState()
+	if bestState == nil {
+		// Game lost, resign
+		return nil, nil
+	}
 	bestAction := mp.state.GetTransitionAction(bestState).(*hex.Action)
 
 	// Update mp.state
