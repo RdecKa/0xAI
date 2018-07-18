@@ -4,9 +4,10 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Play Hex</title>
+	<script src="https://unpkg.com/vue"></script>
 	<script src="/static/js/script.js" type="application/javascript"></script>
 	<script src="/static/js/grid.js" type="application/javascript"></script>
-	<script src="https://unpkg.com/vue"></script>
+	<script src="/static/js/cell.js" type="application/javascript"></script>
 	<link rel="stylesheet" type="text/css" href="/static/css/style.css">
 </head>
 
@@ -14,11 +15,12 @@
 	<div id="hex-grid">
 		<svg :width="boardWidth" :height="boardHeight">
 			<g v-for="(row, ri) in grid" :key="ri">
-				<polygon v-for="(_, ci) in row"
+				<hex-cell v-for="(cell, ci) in row"
 					:key="ci"
-					:points="getPoints(ci, ri)"
-					:class="getClass(ci, ri)">
-				</polygon>
+					v-bind:x="ci"
+					v-bind:y="ri"
+					v-bind:color="cell"
+				></hex-cell>
 			</g>
 		</svg>
 
