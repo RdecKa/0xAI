@@ -1,5 +1,4 @@
 const colors = Object.freeze({NONE: ".", RED: "r", BLUE: "b"});
-let myColor = colors.NONE;
 
 window.onload = function() {
 	const socket = new WebSocket("ws://localhost:8080/ws/");
@@ -46,5 +45,21 @@ function printGrid(grid) {
 			}
 		}
 		console.log(line);
+	}
+}
+
+/**
+ * Returns the string representation of a color, used for setting class of
+ * cells.
+ * @param color color to be represented as a string
+ */
+function getCellColorName(color) {
+	switch (color) {
+		case colors.RED:
+			return "red";
+		case colors.BLUE:
+			return "blue";
+		default:
+			return "empty";
 	}
 }

@@ -9,7 +9,8 @@ function hexGrid(socket) {
 		data: {
 			socket: socket,
 			size: 1,
-			grid: []
+			grid: [],
+			myColor: colors.NONE
 		},
 		computed: {
 			boardWidth: function () {
@@ -69,15 +70,15 @@ function respondToMessage(obj, msg) {
 			let c = ms[2].split(":")
 			switch (c[1]) {
 				case "r":
-					myColor = colors.RED;
+					obj.myColor = colors.RED;
 					break;
 				case "b":
-					myColor = colors.BLUE;
+					obj.myColor = colors.BLUE;
 					break;
 				default:
-					myColor = colors.NONE;
+					obj.myColor = colors.NONE;
 			}
-			if (myColor == colors.RED || myColor == colors.BLUE) {
+			if (obj.myColor == colors.RED || obj.myColor == colors.BLUE) {
 				return "READY";
 			} else {
 				return "ERROR";
@@ -88,12 +89,12 @@ function respondToMessage(obj, msg) {
 				receiveMove(obj, msg.substring(5))
 			}
 			printGrid(obj.grid);
-			return nextMove(obj.grid, myColor);
+			return nextMove(obj.grid, obj.myColor);
 		case "END":
 			console.log("End");
 			receiveMove(obj, msg.substring(6));
 			printGrid(obj.grid);
-			myColor = colors.NONE;
+			obj.myColor = colors.NONE;
 			return
 		default:
 			console.log("Unknown message: '" + msg + "'");

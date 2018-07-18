@@ -11,6 +11,10 @@ $empty-cell: #AAA;
 		stroke-width: 5;
 	}
 
+	.cell.active {
+		cursor: pointer;
+	}
+
 	.blue {
 		fill: $blue-cell;
 	}

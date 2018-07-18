@@ -1,20 +1,36 @@
 Vue.component("hex-cell", {
-	props: ["x", "y", "color"],
-	template: "<polygon	:points='points' :class='cellClass'></polygon>",
+	template: `<polygon	:points='points'
+		class='cell'
+		:class='[cellColor, cellActive]'
+		@mouseover='mouseChange()'
+		@mouseleave='mouseChange()'
+		></polygon>`,
+	props: ["x", "y", "color", "playercolor"],
+	data: function () {
+		return {
+			active: false
+		}
+	},
 	computed: {
 		points: function () {
 			return getPointsForPolygon(this.y, this.x);
 		},
-		cellClass: function () {
-			let c = "cell ";
-			switch (this.color) {
-				case colors.RED:
-					return c + "red";
-				case colors.BLUE:
-					return c + "blue";
-				default:
-					return c + "empty";
+		cellColor: function () {
+			if (this.color == colors.NONE && this.active) {
+				// Cell is hovered, color it with player's color
+				return getCellColorName(this.playercolor);
 			}
+			return getCellColorName(this.color);
+		},
+		cellActive: function () {
+			if (this.active && this.color == colors.NONE && this.playercolor != colors.NONE) {
+				return "active";
+			};
+		}
+	},
+	methods: {
+		mouseChange: function () {
+			this.active = !this.active;
 		}
 	}
 })
