@@ -16,7 +16,7 @@ function nextMove(grid, myColor) {
 		for (let j = 0; j < grid[0].length; j++) {
 			if (grid[i][j] == colors.NONE) {
 				grid[i].splice(j, 1, myColor)
-				return j.toString() + "," + i.toString();
+				return encodeMove({x: j, y: i});
 			}
 		}
 	}
@@ -62,4 +62,34 @@ function getCellColorName(color) {
 		default:
 			return "empty";
 	}
+}
+
+/**
+ * Formats the given objects in a way that can be sent to server.
+ * @param moveObj move object to be encoded and sent
+ */
+function encodeMove(moveObj) {
+	return moveObj.x.toString() + "," + moveObj.y.toString();
+}
+
+/**
+ * Reads coordinates and color from the string representing a move (received
+ * from server). Example of a string received: 'r: (2, 3)'.
+ * @param moveString
+ */
+function decodeMove(moveString) {
+	let color;
+	switch (moveString.charAt(0)) {
+		case 'r':
+			color = colors.RED;
+			break;
+		case 'b':
+			color = colors.BLUE;
+			break;
+		default:
+			console.log("INVALID COLOR '" + moveString.charAt(0) + "'");
+			color = colors.NONE;
+	}
+	let coords = moveString.substring(4, moveString.length - 1).split(", ");
+	return {x: parseInt(coords[0]), y: parseInt(coords[1]), c: color};
 }

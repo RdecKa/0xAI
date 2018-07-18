@@ -4,8 +4,9 @@ Vue.component("hex-cell", {
 		:class='[cellColor, cellActive]'
 		@mouseover='mouseChange()'
 		@mouseleave='mouseChange()'
+		@click='clickHandler'
 		></polygon>`,
-	props: ["x", "y", "color", "playercolor"],
+	props: ["x", "y", "color", "playercolor", "playersturn"],
 	data: function () {
 		return {
 			active: false
@@ -15,15 +16,19 @@ Vue.component("hex-cell", {
 		points: function () {
 			return getPointsForPolygon(this.y, this.x);
 		},
+		canBeClicked: function () {
+			return this.active && this.playersturn &&
+				this.color == colors.NONE && this.playercolor != colors.NONE;
+		},
 		cellColor: function () {
-			if (this.color == colors.NONE && this.active) {
+			if (this.canBeClicked) {
 				// Cell is hovered, color it with player's color
 				return getCellColorName(this.playercolor);
 			}
 			return getCellColorName(this.color);
 		},
 		cellActive: function () {
-			if (this.active && this.color == colors.NONE && this.playercolor != colors.NONE) {
+			if (this.canBeClicked) {
 				return "active";
 			};
 		}
@@ -31,6 +36,11 @@ Vue.component("hex-cell", {
 	methods: {
 		mouseChange: function () {
 			this.active = !this.active;
+		},
+		clickHandler: function () {
+			if (this.playersturn) {
+				this.$emit('clickreceived', {x: this.x, y: this.y});
+			}
 		}
 	}
 })

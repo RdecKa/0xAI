@@ -17,14 +17,15 @@
 			<g v-for="(row, ri) in grid" :key="ri">
 				<hex-cell v-for="(cell, ci) in row"
 					:key="ci"
-					v-bind:x="ci"
-					v-bind:y="ri"
-					v-bind:color="cell"
-					v-bind:playercolor="myColor"
+					:x="ci"
+					:y="ri"
+					:color="cell"
+					:playercolor="myColor"
+					:playersturn="playersTurn"
+					@clickreceived="onClickReceived"
 				></hex-cell>
 			</g>
 		</svg>
-
 	</div>
 </body>
 

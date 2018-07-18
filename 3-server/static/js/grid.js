@@ -10,7 +10,8 @@ function hexGrid(socket) {
 			socket: socket,
 			size: 1,
 			grid: [],
-			myColor: colors.NONE
+			myColor: colors.NONE,
+			playersTurn: false
 		},
 		computed: {
 			boardWidth: function () {
@@ -26,6 +27,12 @@ function hexGrid(socket) {
 			initGrid: function (size) {
 				this.size = size;
 				createHexGrid(this, this.size);
+			},
+			onClickReceived: function (click) {
+				sendMove(this, {x: click.x, y: click.y, c: this.myColor});
+			},
+			setIsMyTurn: function (isMyTurn) {
+				this.playersTurn = isMyTurn;
 			}
 		},
 		created: function() {
@@ -55,7 +62,7 @@ function initSocket(obj, socket) {
 }
 
 /**
- * Reads the message and returns a response.
+ * Reads the message and returns a response when needed.
  * @param obj Vue instance
  * @param msg string message to be parsed
  */
@@ -71,9 +78,11 @@ function respondToMessage(obj, msg) {
 			switch (c[1]) {
 				case "r":
 					obj.myColor = colors.RED;
+					obj.setIsMyTurn(true);
 					break;
 				case "b":
 					obj.myColor = colors.BLUE;
+					obj.setIsMyTurn(false);
 					break;
 				default:
 					obj.myColor = colors.NONE;
@@ -86,46 +95,41 @@ function respondToMessage(obj, msg) {
 		case "MOVE":
 			console.log("Move");
 			if (ms[1] !== "<nil>") {
-				receiveMove(obj, msg.substring(5))
+				receiveMove(obj, decodeMove(msg.substring(5)));
 			}
 			printGrid(obj.grid);
-			return nextMove(obj.grid, obj.myColor);
+			obj.setIsMyTurn(true);
+			return;
 		case "END":
 			console.log("End");
-			receiveMove(obj, msg.substring(6));
+			receiveMove(obj, decodeMove(msg.substring(6)));
 			printGrid(obj.grid);
 			obj.myColor = colors.NONE;
-			return
+			return;
 		default:
 			console.log("Unknown message: '" + msg + "'");
-			return
+			return;
 	}
 }
 
 /**
  * Decodes a move, changes the grid accordingly.
- * @param obj  Vue instance
- * @param move string representing a move; example: 'r: (2, 3)'
+ * @param obj     Vue instance
+ * @param moveObj object representing a move
  */
-function receiveMove(obj, move) {
-	let color;
-	switch (move.charAt(0)) {
-		case 'r':
-			color = colors.RED;
-			break;
-		case 'b':
-			color = colors.BLUE;
-			break;
-		default:
-			console.log("INVALID COLOR '" + move.charAt(0) + "'");
-			color = colors.NONE;
-	}
+function receiveMove(obj, moveObj) {
+	obj.grid[moveObj.y].splice(moveObj.x, 1, moveObj.c);
+}
 
-	let coords = move.substring(4, move.length - 1).split(", ");
-
-	let x = parseInt(coords[0]);
-	let y = parseInt(coords[1]);
-	obj.grid[y].splice(x, 1, color);
+/**
+ * Updates obj's state and sends selected move via obj's socket.
+ * @param obj     Vue instance
+ * @param moveObj move to be sent to server
+ */
+function sendMove(obj, moveObj) {
+	receiveMove(obj, moveObj);
+	obj.setIsMyTurn(false);
+	obj.socket.send(encodeMove(moveObj));
 }
 
 /**
