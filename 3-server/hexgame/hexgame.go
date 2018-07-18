@@ -7,17 +7,17 @@ import (
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
 )
 
-func playOneGame(players [2]hexplayer.HexPlayer) (int, error) {
+func playOneGame(players [2]hexplayer.HexPlayer, startingPlayer int) error {
 	// Init game
 	boardSize := 7
 	for p := 0; p < 2; p++ {
 		err := players[p].InitGame(boardSize)
 		if err != nil {
-			return -1, err
+			return err
 		}
 	}
 	state := hex.NewState(byte(boardSize))
-	turn := 0
+	turn := startingPlayer
 	var prevAction *hex.Action
 
 	// Play game
@@ -25,7 +25,7 @@ func playOneGame(players [2]hexplayer.HexPlayer) (int, error) {
 		nextAction, err := players[turn].NextAction(prevAction)
 		if err != nil {
 			fmt.Println(err)
-			return -1, err
+			return err
 		}
 		if nextAction == nil {
 			// Player has resigned
@@ -49,23 +49,28 @@ func playOneGame(players [2]hexplayer.HexPlayer) (int, error) {
 	}
 
 	fmt.Printf("%v", state)
-	return 1 - turn, nil
+	return nil
 }
 
 func playNGames(players [2]hexplayer.HexPlayer, numGames int) [2]int {
-	wins := [2]int{0, 0}
+	startingPlayer := 0
 	for g := 0; g < numGames; g++ {
-		winner, err := playOneGame(players)
+		err := playOneGame(players, startingPlayer)
 		if err != nil {
 			fmt.Println("Game canceled: " + err.Error())
 			continue
 		}
-		wins[winner]++
+
 		fmt.Printf("Results after %d games:\n", g)
-		fmt.Printf("\tPlayer one: %d\n", wins[0])
-		fmt.Printf("\tPlayer two: %d\n", wins[1])
+		fmt.Printf("\tPlayer one: %d\n", players[0].GetNumberOfWins())
+		fmt.Printf("\tPlayer two: %d\n", players[1].GetNumberOfWins())
+
+		// Switch roles
+		players[0].SwitchColor()
+		players[1].SwitchColor()
+		startingPlayer = 1 - startingPlayer
 	}
-	return wins
+	return [2]int{players[0].GetNumberOfWins(), players[1].GetNumberOfWins()}
 }
 
 // Play accepts an array of two players and number of games to be played. It

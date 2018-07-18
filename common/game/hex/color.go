@@ -24,6 +24,7 @@ func (c Color) String() string {
 	}
 }
 
+// GetColorFromBits reads the color from two bits
 func GetColorFromBits(bits uint64) Color {
 	if bits == 1 {
 		return Red
@@ -33,7 +34,8 @@ func GetColorFromBits(bits uint64) Color {
 	return None
 }
 
-func (c Color) opponent() Color {
+// Opponent returns the opponent of the given color
+func (c Color) Opponent() Color {
 	if c != Red && c != Blue {
 		return None
 	}

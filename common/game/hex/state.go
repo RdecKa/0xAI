@@ -131,7 +131,7 @@ func (s State) GetPossibleActions() []game.Action {
 		for colIndex := byte(0); colIndex < s.size; colIndex++ {
 			bits := row & 3 // Get last two bits of a row
 			if GetColorFromBits(bits) == None {
-				actions = append(actions, &Action{colIndex, rowIndex, s.lastPlayer.opponent()})
+				actions = append(actions, &Action{colIndex, rowIndex, s.lastPlayer.Opponent()})
 			}
 			row = row >> 2
 		}

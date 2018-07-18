@@ -18,6 +18,7 @@ type MCTSplayer struct {
 	mc                *mcts.MCTS
 	state             *hex.State
 	safeWinCells      [][2]cell
+	numWin            int
 }
 
 type cell struct {
@@ -26,7 +27,7 @@ type cell struct {
 
 // CreateMCTSplayer creates a new player
 func CreateMCTSplayer(c hex.Color, ef float64, ni int, mbe uint) *MCTSplayer {
-	mp := MCTSplayer{c, ef, ni, mbe, nil, nil, nil}
+	mp := MCTSplayer{c, ef, ni, mbe, nil, nil, nil, 0}
 	return &mp
 }
 
@@ -97,9 +98,12 @@ func (mp *MCTSplayer) NextAction(prevAction *hex.Action) (*hex.Action, error) {
 	return bestAction, nil
 }
 
-// EndGame doesn't do anything. The only reason for having it is that MCTSplayer
-// must implement all functions of HexPlayer.
-func (mp MCTSplayer) EndGame(lastAction *hex.Action, won bool) {}
+// EndGame accepts the result of the game
+func (mp *MCTSplayer) EndGame(lastAction *hex.Action, won bool) {
+	if won {
+		mp.numWin++
+	}
+}
 
 // findSafeCells saves all the bridges on the winning path.
 func (mp *MCTSplayer) findSafeCells(winPath [][2]int) {
@@ -199,4 +203,14 @@ func (mp *MCTSplayer) getAttackedBridge(prevAction *hex.Action) (int, int) {
 		}
 	}
 	return -1, -1
+}
+
+// SwitchColor switches the color of the player
+func (mp *MCTSplayer) SwitchColor() {
+	mp.Color = mp.Color.Opponent()
+}
+
+// GetNumberOfWins returns the number of wins for this player
+func (mp MCTSplayer) GetNumberOfWins() int {
+	return mp.numWin
 }
