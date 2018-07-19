@@ -22,7 +22,7 @@ func main() {
 	fmt.Printf("Using boardSize = %d, numIterations = %d, numWorkers = %d\n", boardSize, numIterations, numWorkers)
 
 	// Init the algorithm
-	initState := hex.NewState(byte(boardSize))
+	initState := hex.NewState(byte(boardSize), hex.Red)
 	explorationFactor := math.Sqrt(2)
 	minBeforeExpand := uint(10)
 	mc := mcts.InitMCTS(*initState, explorationFactor, minBeforeExpand)

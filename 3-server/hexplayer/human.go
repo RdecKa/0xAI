@@ -37,7 +37,7 @@ func CreateHumanPlayer(conn *websocket.Conn, color hex.Color) *HumanPlayer {
 
 // InitGame initializes the game. It sends board size and player's color to the
 // client and waits for replay.
-func (hp HumanPlayer) InitGame(boardSize int) error {
+func (hp HumanPlayer) InitGame(boardSize int, firstPlayer hex.Color) error {
 	m := []byte(fmt.Sprintf("INIT SIZE:%v COLOR:%v", boardSize, hp.Color))
 	fmt.Printf("Sending message: %s ...\n", m)
 	hp.Webso.WriteMessage(websocket.TextMessage, m)
@@ -107,7 +107,12 @@ func (hp *HumanPlayer) SwitchColor() {
 	hp.Color = hp.Color.Opponent()
 }
 
-// GetNumberOfWins returns the number of wins for this player
+// GetColor returns the color of the player
+func (hp HumanPlayer) GetColor() hex.Color {
+	return hp.Color
+}
+
+// GetNumberOfWins returns the number of wins for the player
 func (hp HumanPlayer) GetNumberOfWins() int {
 	return hp.numWin
 }

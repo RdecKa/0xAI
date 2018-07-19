@@ -32,9 +32,9 @@ type State struct {
 }
 
 // NewState returns new State with a grid of given size
-func NewState(size byte) *State {
+func NewState(size byte, firstPlayer Color) *State {
 	grid := make([]uint64, size)
-	return &State{size, grid, Blue} // Blue is set as last player, so Red always starts
+	return &State{size, grid, firstPlayer.Opponent()} // Opponent is set as last player, so firstPlayer starts
 }
 
 func (s State) String() string {

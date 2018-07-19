@@ -32,8 +32,8 @@ func CreateMCTSplayer(c hex.Color, ef float64, ni int, mbe uint) *MCTSplayer {
 }
 
 // InitGame initializes the game
-func (mp *MCTSplayer) InitGame(boardSize int) error {
-	initState := hex.NewState(byte(boardSize))
+func (mp *MCTSplayer) InitGame(boardSize int, firstPlayer hex.Color) error {
+	initState := hex.NewState(byte(boardSize), firstPlayer)
 	s := mcts.InitMCTS(*initState, mp.explorationFactor, mp.minBeforeExpand)
 	mp.mc = s
 	mp.state = initState
@@ -208,6 +208,11 @@ func (mp *MCTSplayer) getAttackedBridge(prevAction *hex.Action) (int, int) {
 // SwitchColor switches the color of the player
 func (mp *MCTSplayer) SwitchColor() {
 	mp.Color = mp.Color.Opponent()
+}
+
+// GetColor returns the color of the player
+func (mp MCTSplayer) GetColor() hex.Color {
+	return mp.Color
 }
 
 // GetNumberOfWins returns the number of wins for this player
