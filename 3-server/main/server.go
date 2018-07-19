@@ -13,9 +13,11 @@ import (
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
 )
 
-var validPath = regexp.MustCompile("^/((play|sendmove|getmove|static|ws)/([a-zA-Z0-9/.]*))?$")
+var validPath = regexp.MustCompile("^/((play|select|static|ws)/([a-zA-Z0-9/.]*))?$")
 
-var templates = template.Must(template.New("").Delims("[[", "]]").ParseFiles("3-server/tmpl/play.html"))
+var templates = template.Must(template.New("").Delims("[[", "]]").ParseFiles(
+	"3-server/tmpl/play.html",
+	"3-server/tmpl/select.html"))
 
 const addr = "localhost:8080"
 
@@ -32,6 +34,14 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request)) http.HandlerFunc {
 
 func playHandler(w http.ResponseWriter, r *http.Request) {
 	err := templates.ExecuteTemplate(w, "play.html", nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func selectHandler(w http.ResponseWriter, r *http.Request) {
+	err := templates.ExecuteTemplate(w, "select.html", nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -60,6 +70,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	// Register handlers
 	http.HandleFunc("/play/", makeHandler(playHandler))
+	http.HandleFunc("/select/", makeHandler(selectHandler))
 
 	http.HandleFunc("/ws/", makeHandler(wsHandler))
 

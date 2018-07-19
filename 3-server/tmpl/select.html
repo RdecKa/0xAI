@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>Select players</title>
+	<script src="https://unpkg.com/vue"></script>
+	<script src="/static/js/select.js" type="application/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="/static/css/style.css">
+</head>
+
+<body>
+	<div id="select-player-wrap">
+		<h1>Select players</h1>
+		<select-player :color="'Red'"  @selection-change="onSelectionChange"></select-player>
+		<select-player :color="'Blue'" @selection-change="onSelectionChange"></select-player>
+		<button @click="clickPlayHandler" :disabled="!buttonActive">Play!</button>
+		<div><span>{{ message }}</span></div>
+	</div>
+</body>
+
+</html>
