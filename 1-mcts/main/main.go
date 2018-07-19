@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"time"
 
 	"github.com/RdecKa/bachleor-thesis/1-mcts/mcts"
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
@@ -13,13 +14,13 @@ import (
 func main() {
 	// Read flags
 	pBoardSize := flag.Int("size", 3, "Board size")
-	pNumIterations := flag.Int("iter", 10000, "Number of iterations")
+	pSecondsToRun := flag.Int("time", 10000, "Time to run")
 	pIndentJSON := flag.Bool("indent", false, "Indent JSON output")
 	pOutputFolder := flag.String("output", ".", "Output folder")
 	pNumWorkers := flag.Int("workers", 2, "Number of goroutines to run in parallel")
 	flag.Parse()
-	boardSize, numIterations, indentJSON, outputFolder, numWorkers := *pBoardSize, *pNumIterations, *pIndentJSON, *pOutputFolder, *pNumWorkers
-	fmt.Printf("Using boardSize = %d, numIterations = %d, numWorkers = %d\n", boardSize, numIterations, numWorkers)
+	boardSize, secondsToRun, indentJSON, outputFolder, numWorkers := *pBoardSize, *pSecondsToRun, *pIndentJSON, *pOutputFolder, *pNumWorkers
+	fmt.Printf("Using boardSize = %d, secondsToRun = %d, numWorkers = %d\n", boardSize, secondsToRun, numWorkers)
 
 	// Init the algorithm
 	initState := hex.NewState(byte(boardSize), hex.Red)
@@ -29,10 +30,10 @@ func main() {
 	root := mc
 
 	// Run the algorithm
-	mcts.RunMCTSinParallel(numWorkers, boardSize, numIterations, outputFolder, mc)
+	mcts.RunMCTSinParallel(numWorkers, boardSize, time.Duration(secondsToRun)*time.Second, outputFolder, mc)
 
 	// Write JSON
-	filePrefix := fmt.Sprintf("out_%02d_%d", boardSize, numIterations)
+	filePrefix := fmt.Sprintf("out_%02d_%d", boardSize, secondsToRun)
 	err := mcts.WriteToFile(*root, outputFolder, filePrefix, indentJSON)
 	if err != nil {
 		fmt.Println(err)

@@ -3,6 +3,7 @@ package hexplayer
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/RdecKa/bachleor-thesis/1-mcts/mcts"
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
@@ -13,7 +14,7 @@ import (
 type MCTSplayer struct {
 	Color             hex.Color
 	explorationFactor float64
-	numIterations     int
+	timeToRun         time.Duration
 	minBeforeExpand   uint
 	mc                *mcts.MCTS
 	state             *hex.State
@@ -26,8 +27,8 @@ type cell struct {
 }
 
 // CreateMCTSplayer creates a new player
-func CreateMCTSplayer(c hex.Color, ef float64, ni int, mbe uint) *MCTSplayer {
-	mp := MCTSplayer{c, ef, ni, mbe, nil, nil, nil, 0}
+func CreateMCTSplayer(c hex.Color, ef float64, t time.Duration, mbe uint) *MCTSplayer {
+	mp := MCTSplayer{c, ef, t, mbe, nil, nil, nil, 0}
 	return &mp
 }
 
@@ -72,8 +73,15 @@ func (mp *MCTSplayer) NextAction(prevAction *hex.Action) (*hex.Action, error) {
 		return nil, errors.New("Cannot continue MCTS")
 	}
 
-	for i := 0; i < mp.numIterations; i++ {
-		mp.mc.RunIteration()
+	timer := time.NewTimer(mp.timeToRun)
+
+	for timeOut := false; !timeOut; {
+		select {
+		case <-timer.C:
+			timeOut = true
+		default:
+			mp.mc.RunIteration()
+		}
 	}
 
 	// Get the best action

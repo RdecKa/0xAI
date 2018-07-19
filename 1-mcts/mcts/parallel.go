@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"time"
 
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
 	"github.com/RdecKa/bachleor-thesis/common/tree"
@@ -20,9 +21,9 @@ type workerChan struct {
 
 // RunMCTSinParallel takes care of running MCTS in parallel. It creates
 // numWorkers workers - each of them runs one instance of MCTS at once.
-// numIterations of MCTS are run on board of size boardSize. mc is the
-// initialised search that is completed first.
-func RunMCTSinParallel(numWorkers, boardSize, numIterations int, outputFolder string, mc *MCTS) {
+// Iterations of MCTS are run on board of size boardSize for timeToRun. mc is
+// the initialised search that is completed first.
+func RunMCTSinParallel(numWorkers, boardSize int, timeToRun time.Duration, outputFolder string, mc *MCTS) {
 	var expCand []*tree.Node // Array of possible candidates for continuing MCTS
 	var err error
 
@@ -46,7 +47,7 @@ func RunMCTSinParallel(numWorkers, boardSize, numIterations int, outputFolder st
 	// Create a boss
 	go boss(kill)
 
-	filePrefix := fmt.Sprintf("sample_%02d_%d", boardSize, numIterations)
+	filePrefix := fmt.Sprintf("sample_%02d_%d", boardSize, int(timeToRun.Seconds()))
 	fileNameNoEnding := fmt.Sprintf("%s%s", outputFolder, filePrefix)
 
 	// Create a log file
@@ -76,7 +77,7 @@ func RunMCTSinParallel(numWorkers, boardSize, numIterations int, outputFolder st
 		defer fDet.Close()
 
 		// Start a worker process
-		go worker(w, numIterations, boardSize, f, fDet, logFile, &wc)
+		go worker(w, timeToRun, boardSize, f, fDet, logFile, &wc)
 	}
 
 	finished, quitted := false, false
@@ -126,7 +127,7 @@ func RunMCTSinParallel(numWorkers, boardSize, numIterations int, outputFolder st
 }
 
 // worker waits for tasks and executes them in an infinite loop
-func worker(id, numIterations, boardSize int, outputFile, outputFileDet, logFile *os.File, wc *workerChan) {
+func worker(id int, timeToRun time.Duration, boardSize int, outputFile, outputFileDet, logFile *os.File, wc *workerChan) {
 	var mc *MCTS
 	taskID := 0
 	gridChan, stopChan, resultChan := hex.CreatePatChecker()
@@ -138,7 +139,7 @@ func worker(id, numIterations, boardSize int, outputFile, outputFileDet, logFile
 			logFile.WriteString(fmt.Sprintf("Worker %d executing task\n", id))
 			outputFile.WriteString(fmt.Sprintf("# Search ID %d\n", taskID))
 			outputFileDet.WriteString(fmt.Sprintf("# Search ID %d started from:\n%v\n", taskID, mc.GetInitialNode()))
-			expCand, err := RunMCTS(mc, id, numIterations, boardSize, outputFile, logFile, gridChan, resultChan)
+			expCand, err := RunMCTS(mc, id, timeToRun, boardSize, outputFile, logFile, gridChan, resultChan)
 			if err != nil {
 				wc.e <- err
 			}

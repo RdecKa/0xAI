@@ -73,13 +73,23 @@ func (mcts *MCTS) GetInitialNode() *tree.Node {
 	return mcts.mcTree.GetRoot()
 }
 
-// RunMCTS executes numIterations iterations of MCTS, given initialised MCTS
-func RunMCTS(mc *MCTS, workerID, numIterations, boardSize int, outputFile, logFile *os.File, gridChan chan []uint64, resultChan chan [2][]int) ([]*tree.Node, error) {
-	for i := 0; i < numIterations; i++ {
-		if i > 0 && i%10000 == 0 {
-			logFile.WriteString(fmt.Sprintf("Worker %d finished iteration %d\n", workerID, i))
+// RunMCTS executes iterations of MCTS for timeToRun, given initialised MCTS
+func RunMCTS(mc *MCTS, workerID int, timeToRun time.Duration, boardSize int, outputFile, logFile *os.File, gridChan chan []uint64, resultChan chan [2][]int) ([]*tree.Node, error) {
+	timer := time.NewTimer(timeToRun)
+
+	timeOut := false
+	for iterCount := 0; !timeOut; iterCount++ {
+		select {
+		case <-timer.C:
+			fmt.Println("TIME OUT")
+			timeOut = true
+		default:
+			if iterCount > 0 && iterCount%10000 == 0 {
+				logFile.WriteString(fmt.Sprintf("Worker %d finished iteration %d\n", workerID, iterCount))
+			}
+			mc.RunIteration()
+			break
 		}
-		mc.RunIteration()
 	}
 
 	// Write input-output pairs for supervised machine learning, generate

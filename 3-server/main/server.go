@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/http"
 	"regexp"
+	"time"
 
 	"github.com/RdecKa/bachleor-thesis/3-server/hexgame"
 	"github.com/RdecKa/bachleor-thesis/3-server/hexplayer"
@@ -51,7 +52,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		pair[i] = hp
 	}*/
 	pair[0] = hexplayer.CreateHumanPlayer(conn, colors[0])
-	pair[1] = hexplayer.CreateMCTSplayer(colors[1], math.Sqrt(2), 5000, 10)
+	pair[1] = hexplayer.CreateMCTSplayer(colors[1], math.Sqrt(2), time.Duration(2)*time.Second, 10)
 
 	go hexgame.Play(pair, 3)
 }
