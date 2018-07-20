@@ -12,7 +12,7 @@ function selectPlayers() {
 		},
 		methods: {
 			clickPlayHandler: function () {
-				console.log("Click");
+				window.location.href = "http://localhost:8080/play/?red=" + this.selection["Red"] + "&blue=" + this.selection["Blue"];
 			},
 			onSelectionChange: function (event) {
 				this.selection[event.color] = event.selection;

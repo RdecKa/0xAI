@@ -51,6 +51,10 @@ function initSocket(obj, socket) {
 		console.log("Connection established.");
 	});
 
+	socket.addEventListener("close", function (event) {
+		console.log("Connection closed.");
+	});
+
 	socket.addEventListener("message", function (event) {
 		let m = event.data;
 		console.log("Message from server:", m);

@@ -1,7 +1,14 @@
 const colors = Object.freeze({NONE: ".", RED: "r", BLUE: "b"});
 
 window.onload = function() {
-	const socket = new WebSocket("ws://localhost:8080/ws/");
+	let query = parseUrlQuery(window.location.search.substring(1));
+	let args = "";
+	if (query["red"] == undefined || query["blue"] == undefined) {
+		console.log("Wrong query, using default values.");
+	} else {
+		args = "?red=" + query["red"] + "&blue=" + query["blue"];
+	}
+	const socket = new WebSocket("ws://localhost:8080/ws/" + args);
 	let hexgrid = hexGrid(socket);
 };
 
@@ -92,4 +99,18 @@ function decodeMove(moveString) {
 	}
 	let coords = moveString.substring(4, moveString.length - 1).split(", ");
 	return {x: parseInt(coords[0]), y: parseInt(coords[1]), c: color};
+}
+
+/**
+ * Parses data from URL query
+ * @param query string containing a URL query, without the leading '?' sign
+ */
+function parseUrlQuery(query) {
+	let args = {};
+	let q = query.split("&");
+	for (let i = 0; i < q.length; i++) {
+		let t = q[i].split("=");
+		args[t[0]] = t[1];
+	}
+	return args;
 }
