@@ -30,7 +30,9 @@ Vue.component("hex-cell", {
 		cellActive: function () {
 			if (this.canBeClicked) {
 				return "active";
-			};
+			} else {
+				return "";
+			}
 		}
 	},
 	methods: {
@@ -38,7 +40,7 @@ Vue.component("hex-cell", {
 			this.active = !this.active;
 		},
 		clickHandler: function () {
-			if (this.playersturn) {
+			if (this.canBeClicked) {
 				this.$emit('clickreceived', {x: this.x, y: this.y});
 			}
 		}
