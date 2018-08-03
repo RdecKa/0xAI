@@ -27,3 +27,16 @@ $empty-cell: #AAA;
 		fill: $empty-cell;
 	}
 }
+
+
+.col {
+	float: left;
+
+	&.col-1 {
+		width: 100%;
+	}
+
+	&.col-2 {
+		width: 50%;
+	}
+}

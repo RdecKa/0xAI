@@ -53,6 +53,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	args := r.URL.Query()
 	red, okRed := args["red"]
 	blue, okBlue := args["blue"]
+	watch, okWatch := args["watch"]
 	pair := [2]hexplayer.HexPlayer{} // 0 - red, 1 - blue
 
 	conn, err := hexplayer.OpenConn(w, r)
@@ -85,7 +86,12 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		pair[1] = bFunc(hex.Blue, conn)
 	}
 
-	go hexgame.Play(pair, 10, conn)
+	c := conn
+	if okWatch && watch[0] == "false" {
+		c = nil
+	}
+
+	go hexgame.Play(pair, 2, c)
 }
 
 func createHumanPlayer(color hex.Color, conn *websocket.Conn) hexplayer.HexPlayer {

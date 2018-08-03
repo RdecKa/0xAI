@@ -8,11 +8,15 @@ function selectPlayers() {
 		data: {
 			buttonActive: false,
 			message: "Select both players, please.",
-			selection: {"Red": null, "Blue": null}
+			selection: {"Red": null, "Blue": null},
+			watchInBrowser: true,
+			watchInBrowserDisabled: false
 		},
 		methods: {
 			clickPlayHandler: function () {
-				window.location.href = "http://localhost:8080/play/?red=" + this.selection["Red"] + "&blue=" + this.selection["Blue"];
+				window.location.href = "http://localhost:8080/play/?red=" + this.selection["Red"]
+					+ "&blue=" + this.selection["Blue"]
+					+ "&watch=" + this.watchInBrowser;
 			},
 			onSelectionChange: function (event) {
 				this.selection[event.color] = event.selection;
@@ -26,13 +30,20 @@ function selectPlayers() {
 					this.buttonActive = true;
 					this.message = "Let's play!";
 				}
+
+				if (this.selection["Red"] == "human" || this.selection["Blue"] == "human") {
+					this.watchInBrowser = true;
+					this.watchInBrowserDisabled = true;
+				} else {
+					this.watchInBrowserDisabled = false;
+				}
 			}
 		}
 	});
 }
 
 Vue.component("select-player", {
-	template: `<div class="col-2">
+	template: `<div class="col col-2">
 			<h2>{{ color }} player</h2>
 			<form>
 				<input type="radio" :id="'human-' + color" :name="color" value="human" v-model="player" @change="selectionChange" />

@@ -86,7 +86,7 @@ func playNGames(players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlaye
 // runs numGames games of Hex between the given players.
 func Play(players [2]hexplayer.HexPlayer, numGames int, conn *websocket.Conn) {
 	var passiveClient hexplayer.HexPlayer
-	if players[0].GetType() != hexplayer.HumanType && players[1].GetType() != hexplayer.HumanType {
+	if conn != nil && players[0].GetType() != hexplayer.HumanType && players[1].GetType() != hexplayer.HumanType {
 		// Create a passive player to show the game in browser
 		passiveClient = hexplayer.CreateHumanPlayer(conn, hex.None)
 	}
