@@ -58,6 +58,9 @@ func playOneGame(players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlay
 		}
 		players[p].EndGame(prevAction, w)
 	}
+	if passiveClient != nil {
+		passiveClient.EndGame(prevAction, false)
+	}
 
 	fmt.Printf("%v", state)
 	return nil

@@ -102,6 +102,14 @@ func (hp *HumanPlayer) EndGame(lastAction *hex.Action, won bool) {
 	m := []byte(fmt.Sprintf("END %d %s", r, lastAction))
 	fmt.Printf("Sending message: %s ...\n", m)
 	hp.Webso.WriteMessage(websocket.TextMessage, m)
+
+	// Wait for the human to stop analysing the game
+	_, m, err := hp.Webso.ReadMessage()
+	if err != nil {
+		hp.Webso.WriteMessage(websocket.TextMessage, []byte("ERROR "+err.Error()))
+		return
+	}
+	fmt.Printf("Received message: %s\n", m)
 }
 
 // SwitchColor switches the color of the player

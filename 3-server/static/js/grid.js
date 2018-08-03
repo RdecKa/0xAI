@@ -116,6 +116,7 @@ function respondToMessage(obj, msg) {
 			receiveMove(obj, decodeMove(msg.substring(6)));
 			printGrid(obj.grid);
 			obj.myColor = colors.NONE;
+			setTimeout(function() { obj.socket.send("DONE"); }, 2000);
 			return;
 		default:
 			console.log("Unknown message: '" + msg + "'");
