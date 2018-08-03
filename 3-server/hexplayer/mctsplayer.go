@@ -12,14 +12,15 @@ import (
 // MCTSplayer represents a computer player that uses only MCTS for selecting
 // moves
 type MCTSplayer struct {
-	Color             hex.Color
-	explorationFactor float64
-	timeToRun         time.Duration
-	minBeforeExpand   uint
-	mc                *mcts.MCTS
-	state             *hex.State
-	safeWinCells      [][2]cell
-	numWin            int
+	Color              hex.Color
+	explorationFactor  float64
+	timeToRun          time.Duration
+	minBeforeExpand    uint
+	mc                 *mcts.MCTS
+	state              *hex.State
+	safeWinCells       [][2]cell
+	numWin             int
+	lastOpponentAction *hex.Action
 }
 
 type cell struct {
@@ -28,7 +29,7 @@ type cell struct {
 
 // CreateMCTSplayer creates a new player
 func CreateMCTSplayer(c hex.Color, ef float64, t time.Duration, mbe uint) *MCTSplayer {
-	mp := MCTSplayer{c, ef, t, mbe, nil, nil, nil, 0}
+	mp := MCTSplayer{c, ef, t, mbe, nil, nil, nil, 0, nil}
 	return &mp
 }
 
@@ -41,18 +42,22 @@ func (mp *MCTSplayer) InitGame(boardSize int, firstPlayer hex.Color) error {
 	return nil
 }
 
-// NextAction accepts opponent's last action and returns an action to be
-// performed now. It returns nil when it decides to resign.
-func (mp *MCTSplayer) NextAction(prevAction *hex.Action) (*hex.Action, error) {
+// PrevAction accepts opponent's last action
+func (mp *MCTSplayer) PrevAction(prevAction *hex.Action) {
 	// Update the state according to opponent's last move
 	if prevAction != nil {
 		s := mp.state.GetSuccessorState(prevAction).(hex.State)
 		mp.state = &s
+		mp.lastOpponentAction = prevAction
 	}
+}
 
+// NextAction returns an action to be performed. It returns nil when it decides
+// to resign.
+func (mp *MCTSplayer) NextAction() (*hex.Action, error) {
 	if len(mp.safeWinCells) > 0 {
 		var ec cell
-		if bridge, emptyCellIndex := mp.getAttackedBridge(prevAction); bridge > -1 {
+		if bridge, emptyCellIndex := mp.getAttackedBridge(mp.lastOpponentAction); bridge > -1 {
 			// Opponent has attacked one of the bridges
 			ec = mp.safeWinCells[bridge][emptyCellIndex]
 			mp.safeWinCells = append(mp.safeWinCells[:bridge], mp.safeWinCells[bridge+1:]...)
@@ -226,4 +231,9 @@ func (mp MCTSplayer) GetColor() hex.Color {
 // GetNumberOfWins returns the number of wins for this player
 func (mp MCTSplayer) GetNumberOfWins() int {
 	return mp.numWin
+}
+
+// GetType returns the type of the player
+func (mp MCTSplayer) GetType() PlayerType {
+	return MctsType
 }

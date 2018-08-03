@@ -11,7 +11,8 @@ function hexGrid(socket) {
 			size: 1,
 			grid: [],
 			myColor: colors.NONE,
-			playersTurn: false
+			playersTurn: false,
+			passivePlayer: false
 		},
 		computed: {
 			boardWidth: function () {
@@ -92,7 +93,11 @@ function respondToMessage(obj, msg) {
 					obj.myColor = colors.NONE;
 			}
 			if (obj.myColor == colors.RED || obj.myColor == colors.BLUE) {
+				obj.passivePlayer = false;
 				return "READY";
+			} else if (obj.myColor == colors.NONE) {
+				obj.passivePlayer = true;
+				return "READY PASSIVE";
 			} else {
 				return "ERROR";
 			}
@@ -102,7 +107,9 @@ function respondToMessage(obj, msg) {
 				receiveMove(obj, decodeMove(msg.substring(5)));
 			}
 			printGrid(obj.grid);
-			obj.setIsMyTurn(true);
+			if (!obj.passivePlayer) {
+				obj.setIsMyTurn(true);
+			}
 			return;
 		case "END":
 			console.log("End");

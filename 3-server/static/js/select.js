@@ -19,7 +19,7 @@ function selectPlayers() {
 				if (this.selection["Red"] == null || this.selection["Blue"] == null) {
 					this.buttonActive = false;
 					this.message = "Select both players, please.";
-				} else if (this.selection["Red"] == this.selection["Blue"]) {
+				} else if (this.selection["Red"] == "human" && this.selection["Blue"] == "human") {
 					this.buttonActive = false;
 					this.message = "Sorry, this combination is not supported.";
 				} else {

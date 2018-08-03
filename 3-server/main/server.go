@@ -11,6 +11,7 @@ import (
 	"github.com/RdecKa/bachleor-thesis/3-server/hexgame"
 	"github.com/RdecKa/bachleor-thesis/3-server/hexplayer"
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
+	"github.com/gorilla/websocket"
 )
 
 var validPath = regexp.MustCompile("^/((play|select|static|ws)/([a-zA-Z0-9/.]*))?$")
@@ -54,7 +55,14 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	blue, okBlue := args["blue"]
 	pair := [2]hexplayer.HexPlayer{} // 0 - red, 1 - blue
 
-	var rFunc, bFunc func(w http.ResponseWriter, r *http.Request, color hex.Color) hexplayer.HexPlayer
+	conn, err := hexplayer.OpenConn(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println(err)
+		return
+	}
+
+	var rFunc, bFunc func(hex.Color, *websocket.Conn) hexplayer.HexPlayer
 
 	if okRed && red[0] == "human" {
 		rFunc = createHumanPlayer
@@ -64,33 +72,27 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	if okBlue && blue[0] == "human" && red[0] != "human" {
 		bFunc = createHumanPlayer
-	} else if okBlue && blue[0] == "mcts" && red[0] != "mcts" {
+	} else if okBlue && blue[0] == "mcts" {
 		bFunc = createMCTSplayer
 	}
 
 	if rFunc == nil || bFunc == nil {
 		log.Println("Wrong or missing arguments for players. Using default.")
-		pair[0] = createHumanPlayer(w, r, hex.Red)
-		pair[1] = createMCTSplayer(w, r, hex.Blue)
+		pair[0] = createHumanPlayer(hex.Red, conn)
+		pair[1] = createMCTSplayer(hex.Blue, conn)
 	} else {
-		pair[0] = rFunc(w, r, hex.Red)
-		pair[1] = bFunc(w, r, hex.Blue)
+		pair[0] = rFunc(hex.Red, conn)
+		pair[1] = bFunc(hex.Blue, conn)
 	}
 
-	go hexgame.Play(pair, 10)
+	go hexgame.Play(pair, 10, conn)
 }
 
-func createHumanPlayer(w http.ResponseWriter, r *http.Request, color hex.Color) hexplayer.HexPlayer {
-	conn, err := hexplayer.OpenConn(w, r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Println(err)
-		return nil
-	}
+func createHumanPlayer(color hex.Color, conn *websocket.Conn) hexplayer.HexPlayer {
 	return hexplayer.CreateHumanPlayer(conn, color)
 }
 
-func createMCTSplayer(w http.ResponseWriter, r *http.Request, color hex.Color) hexplayer.HexPlayer {
+func createMCTSplayer(color hex.Color, conn *websocket.Conn) hexplayer.HexPlayer {
 	return hexplayer.CreateMCTSplayer(color, math.Sqrt(2), time.Duration(2)*time.Second, 10)
 }
 

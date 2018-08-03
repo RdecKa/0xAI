@@ -46,20 +46,22 @@ func (hp HumanPlayer) InitGame(boardSize int, firstPlayer hex.Color) error {
 	if err != nil {
 		return err
 	}
-	if string(m) != "READY" {
+	if string(m) != "READY" && string(m) != "READY PASSIVE" {
 		return errors.New("Invalid response: expected 'READY', got '" + string(m) + "'")
 	}
 	return nil
 }
 
-// NextAction accepts the last action of the opponent and returns an action to
-// be performed now.
-func (hp HumanPlayer) NextAction(prevAction *hex.Action) (*hex.Action, error) {
+// PrevAction accepts last opponent's action
+func (hp HumanPlayer) PrevAction(prevAction *hex.Action) {
 	m := []byte(fmt.Sprintf("MOVE %v", prevAction))
 	fmt.Printf("Sending message: %s ...\n", m)
 	hp.Webso.WriteMessage(websocket.TextMessage, m)
 	fmt.Println("Message sent.")
+}
 
+// NextAction returns an action to be performed.
+func (hp HumanPlayer) NextAction() (*hex.Action, error) {
 	_, m, err := hp.Webso.ReadMessage()
 	if err != nil {
 		hp.Webso.WriteMessage(websocket.TextMessage, []byte("ERROR "+err.Error()))
@@ -115,4 +117,9 @@ func (hp HumanPlayer) GetColor() hex.Color {
 // GetNumberOfWins returns the number of wins for the player
 func (hp HumanPlayer) GetNumberOfWins() int {
 	return hp.numWin
+}
+
+// GetType returns the type of the player
+func (hp HumanPlayer) GetType() PlayerType {
+	return HumanType
 }
