@@ -54,6 +54,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	red, okRed := args["red"]
 	blue, okBlue := args["blue"]
 	watch, okWatch := args["watch"]
+	wa := okWatch && watch[0] == "false"
 	pair := [2]hexplayer.HexPlayer{} // 0 - red, 1 - blue
 
 	conn, err := hexplayer.OpenConn(w, r)
@@ -63,7 +64,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var rFunc, bFunc func(hex.Color, *websocket.Conn) hexplayer.HexPlayer
+	var rFunc, bFunc func(hex.Color, *websocket.Conn, bool) hexplayer.HexPlayer
 
 	if okRed && red[0] == "human" {
 		rFunc = createHumanPlayer
@@ -79,27 +80,27 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	if rFunc == nil || bFunc == nil {
 		log.Println("Wrong or missing arguments for players. Using default.")
-		pair[0] = createHumanPlayer(hex.Red, conn)
-		pair[1] = createMCTSplayer(hex.Blue, conn)
+		pair[0] = createHumanPlayer(hex.Red, conn, wa)
+		pair[1] = createMCTSplayer(hex.Blue, conn, wa)
 	} else {
-		pair[0] = rFunc(hex.Red, conn)
-		pair[1] = bFunc(hex.Blue, conn)
+		pair[0] = rFunc(hex.Red, conn, wa)
+		pair[1] = bFunc(hex.Blue, conn, wa)
 	}
 
 	c := conn
-	if okWatch && watch[0] == "false" {
+	if wa {
 		c = nil
 	}
 
-	go hexgame.Play(pair, 2, c)
+	go hexgame.Play(pair, 15, c)
 }
 
-func createHumanPlayer(color hex.Color, conn *websocket.Conn) hexplayer.HexPlayer {
+func createHumanPlayer(color hex.Color, conn *websocket.Conn, allowResignation bool) hexplayer.HexPlayer {
 	return hexplayer.CreateHumanPlayer(conn, color)
 }
 
-func createMCTSplayer(color hex.Color, conn *websocket.Conn) hexplayer.HexPlayer {
-	return hexplayer.CreateMCTSplayer(color, math.Sqrt(2), time.Duration(2)*time.Second, 10)
+func createMCTSplayer(color hex.Color, conn *websocket.Conn, allowResignation bool) hexplayer.HexPlayer {
+	return hexplayer.CreateMCTSplayer(color, math.Sqrt(2), time.Duration(1)*time.Second, 10, allowResignation)
 }
 
 func main() {

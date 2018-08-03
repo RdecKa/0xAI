@@ -21,6 +21,7 @@ type MCTSplayer struct {
 	safeWinCells       [][2]cell
 	numWin             int
 	lastOpponentAction *hex.Action
+	allowResignation   bool
 }
 
 type cell struct {
@@ -28,8 +29,8 @@ type cell struct {
 }
 
 // CreateMCTSplayer creates a new player
-func CreateMCTSplayer(c hex.Color, ef float64, t time.Duration, mbe uint) *MCTSplayer {
-	mp := MCTSplayer{c, ef, t, mbe, nil, nil, nil, 0, nil}
+func CreateMCTSplayer(c hex.Color, ef float64, t time.Duration, mbe uint, ar bool) *MCTSplayer {
+	mp := MCTSplayer{c, ef, t, mbe, nil, nil, nil, 0, nil, ar}
 	return &mp
 }
 
@@ -92,7 +93,26 @@ func (mp *MCTSplayer) NextAction() (*hex.Action, error) {
 	// Get the best action
 	bestState := mp.mc.GetBestRootChildState()
 	if bestState == nil {
-		// Game lost, resign
+		// Game lost
+		if !mp.allowResignation {
+			// Continue playing and hope for opponent's mistake
+			exists, solution := mp.state.IsGoalState(false)
+			if !exists {
+				return nil, errors.New("Game lost but solution does not exist")
+			}
+			winPath := solution.([][2]int)
+
+			// Find opponent's safe cells, attack one
+			safeCells := findSafeCells(winPath, mp.state.GetSize(), mp.Color.Opponent())
+			a := hex.NewAction(byte(safeCells[0][0].x), byte(safeCells[0][0].y), mp.Color)
+
+			// Update state
+			s := mp.state.GetSuccessorState(a).(hex.State)
+			mp.state = &s
+
+			return a, nil
+		}
+		// Resign
 		return nil, nil
 	}
 	bestAction := mp.state.GetTransitionAction(bestState).(*hex.Action)
@@ -105,7 +125,7 @@ func (mp *MCTSplayer) NextAction() (*hex.Action, error) {
 	if exists, solution := mp.state.IsGoalState(false); exists {
 		fmt.Println("Player has a virtual connection!")
 		winPath := solution.([][2]int)
-		mp.findSafeCells(winPath)
+		mp.safeWinCells = findSafeCells(winPath, mp.state.GetSize(), mp.Color)
 	}
 
 	return bestAction, nil
@@ -118,46 +138,47 @@ func (mp *MCTSplayer) EndGame(lastAction *hex.Action, won bool) {
 	}
 }
 
-// findSafeCells saves all the bridges on the winning path.
-func (mp *MCTSplayer) findSafeCells(winPath [][2]int) {
-	if mp.Color == hex.Red {
-		if winPath[0][1] < mp.state.GetSize()-1 {
+// findSafeCells returns all the bridges on the winning path.
+func findSafeCells(winPath [][2]int, boardSize int, playerColor hex.Color) [][2]cell {
+	safeCells := make([][2]cell, 0)
+	if playerColor == hex.Red {
+		if winPath[0][1] < boardSize-1 {
 			// Bridge to the bottom (bottom row does not have a stone yet)
 			x := winPath[0][0]
 			y := winPath[0][1]
-			mp.addTwoSafeCellsBetween(x, y, x-1, y+2)
+			safeCells = append(safeCells, returnTwoSafeCellsBetween(x, y, x-1, y+2))
 		}
 		if winPath[len(winPath)-2][1] > 0 {
 			// Bridge to the top
 			x := winPath[len(winPath)-2][0]
 			y := winPath[len(winPath)-2][1]
-			mp.addTwoSafeCellsBetween(x, y, x+1, y-2)
+			safeCells = append(safeCells, returnTwoSafeCellsBetween(x, y, x+1, y-2))
 		}
-	} else if mp.Color == hex.Blue {
-		if winPath[0][0] < mp.state.GetSize()-1 {
+	} else if playerColor == hex.Blue {
+		if winPath[0][0] < boardSize-1 {
 			// Bridge to the right
 			x := winPath[0][0]
 			y := winPath[0][1]
-			mp.addTwoSafeCellsBetween(x, y, x+2, y-1)
+			safeCells = append(safeCells, returnTwoSafeCellsBetween(x, y, x+2, y-1))
 		}
 		if winPath[len(winPath)-2][0] > 0 {
 			// Bridge to the left
 			x := winPath[len(winPath)-2][0]
 			y := winPath[len(winPath)-2][1]
-			mp.addTwoSafeCellsBetween(x, y, x-2, y+1)
+			safeCells = append(safeCells, returnTwoSafeCellsBetween(x, y, x-2, y+1))
 		}
 	}
 	for i := range winPath[:len(winPath)-2] {
 		if !(directlyConnected(winPath[i], winPath[i+1])) {
-			mp.addTwoSafeCellsBetween(winPath[i][0], winPath[i][1], winPath[i+1][0], winPath[i+1][1])
+			safeCells = append(safeCells, returnTwoSafeCellsBetween(winPath[i][0], winPath[i][1], winPath[i+1][0], winPath[i+1][1]))
 		}
 	}
+	return safeCells
 }
 
-// addTwoSafeCellsBetween adds two cells between (x1, y1) and (x2, y2) to the
-// list of safe cells. (x1, y1) -- (x2, y2) must be a bridge, this function does
-// not check that.
-func (mp *MCTSplayer) addTwoSafeCellsBetween(x1, y1, x2, y2 int) {
+// returnTwoSafeCellsBetween returns two cells between (x1, y1) and (x2, y2).
+// (x1, y1) -- (x2, y2) must be a bridge, this function does not check that.
+func returnTwoSafeCellsBetween(x1, y1, x2, y2 int) [2]cell {
 	var nx1, nx2, ny1, ny2 int
 	if (x1-x2)%2 == 0 {
 		nx1 = (x1 + x2) / 2
@@ -175,7 +196,7 @@ func (mp *MCTSplayer) addTwoSafeCellsBetween(x1, y1, x2, y2 int) {
 		ny1 = ny2 + 1
 	}
 
-	mp.safeWinCells = append(mp.safeWinCells, [2]cell{cell{nx1, ny1}, cell{nx2, ny2}})
+	return [2]cell{cell{nx1, ny1}, cell{nx2, ny2}}
 }
 
 // directlyConnected checks whether two cells are directly connected (they share

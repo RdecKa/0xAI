@@ -116,7 +116,7 @@ func (s State) GetSuccessorState(action game.Action) game.State {
 	a := action.(*Action)
 	newState := s.clone().(State)
 	if a.c == s.lastPlayer {
-		panic(fmt.Sprintf("Player cannot do two moves in a row! (last player: %s, current action: %s)", s.lastPlayer, a.c))
+		panic(fmt.Sprintf("Player cannot do two moves in a row! (last player: %s, current action: %s)", s.lastPlayer, a))
 	}
 	newState.lastPlayer = a.c
 	newState.setCell(a.x, a.y, a.c)
