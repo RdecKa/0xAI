@@ -1,1 +1,5 @@
 data/*
+*.css
+*.css.map
+
+.vs
