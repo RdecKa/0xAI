@@ -41,40 +41,41 @@ def main(argv):
 		if o == "-o":
 			outfolder = a
 
+	# Read data from file
+	print("Reading data from file:", datafile)
+	df = pd.read_csv(datafile, comment = "#",
+					dtype = {"value": np.float64, "num_stones": np.uint8,
+							"occ_red_rows": np.uint8, "occ_red_cols": np.uint8,
+							"occ_blue_rows": np.uint8, "occ_blue_cols": np.uint8,
+							"red_p1": np.uint8, "blue_p1": np.uint8,
+							"red_p2": np.uint8, "blue_p2": np.uint8})
+
+	#print(df)
+	#print("KEYS", df.keys())
+	#print("COLUMNS", df.columns)
+	#print("SHAPE:", df.shape)
+	#print("TYPES", df.dtypes)
+
+	y = df["value"]
+	X = df.drop(columns = ["value"])
+
+	feature_names = X.columns
+
+	# Split
+	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state = 4224)
+
+	# Create Regressors
+	dtrs = [DecisionTreeRegressor(max_depth =  2, min_samples_leaf = 5),
+			DecisionTreeRegressor(max_depth =  5, min_samples_leaf = 5),
+			DecisionTreeRegressor(max_depth = 10, min_samples_leaf = 5)]
+
+	# Create a plot
+	plt.figure(figsize=(10,6))
+	plt.plot(y_test.tolist(), label = "actual values", linewidth = 0.7)
+	plt.ylim(-1.2, 1.2)
+
 	# Create file for statistics
 	with open(outfolder + "stats.txt", "w") as stats_file:
-
-		# Read data from file
-		print("Reading data from file:", datafile)
-		df = pd.read_csv(datafile, comment = "#",
-						dtype = {"value": np.float64, "num_stones": np.uint8,
-								"occ_red_rows": np.uint8, "occ_red_cols": np.uint8,
-								"occ_blue_rows": np.uint8, "occ_blue_cols": np.uint8,
-								"red_p1": np.uint8, "blue_p1": np.uint8,
-								"red_p2": np.uint8, "blue_p2": np.uint8})
-
-		#print(df)
-		#print("KEYS", df.keys())
-		#print("COLUMNS", df.columns)
-		#print("SHAPE:", df.shape)
-		#print("TYPES", df.dtypes)
-
-		y = df["value"]
-		X = df.drop(columns = ["value"])
-
-		# Split
-		X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state = 4224)
-
-		# Create Regressors
-		dtrs = [DecisionTreeRegressor(max_depth =  2, min_samples_leaf = 5),
-				DecisionTreeRegressor(max_depth =  5, min_samples_leaf = 5),
-				DecisionTreeRegressor(max_depth = 10, min_samples_leaf = 5)]
-
-		# Create a plot
-		plt.figure(figsize=(10,6))
-		plt.plot(y_test.tolist(), label = "actual values", linewidth = 0.7)
-		plt.ylim(-1.2, 1.2)
-
 		for dtri in range(len(dtrs)):
 			dtr = dtrs[dtri]
 
@@ -94,7 +95,6 @@ def main(argv):
 			sc = dtr.score(X_test, y_test)
 			stats_file.write("SCORE: " + str(sc) + "\n")
 
-			feature_names = X.columns
 			tree.export_graphviz(dtr, out_file = outfolder + "tree" + str(dtri) + ".dot",
 								feature_names = feature_names)
 
@@ -104,6 +104,15 @@ def main(argv):
 
 			# Output Go code
 			tree_to_go_code(dtr.tree_, feature_names, 0, dtri, outfolder)
+
+	# Create file for Go sample struct
+	with open(outfolder + "sample.go", "w") as sample_file:
+		sample_file.write("type sample struct {\n\t")
+		sample_file.write(feature_names[0])
+		for f in feature_names[1:]:
+			sample_file.write(", " + f)
+		sample_file.write(" int\n")
+		sample_file.write("}")
 
 	plt.xlabel("Samples")
 	plt.ylabel("Value")
