@@ -81,7 +81,6 @@ func RunMCTS(mc *MCTS, workerID int, timeToRun time.Duration, boardSize int, out
 	for iterCount := 0; !timeOut; iterCount++ {
 		select {
 		case <-timer.C:
-			fmt.Println("TIME OUT")
 			timeOut = true
 		default:
 			if iterCount > 0 && iterCount%10000 == 0 {

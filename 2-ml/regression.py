@@ -29,7 +29,7 @@ def main(argv):
 		# Read data from file
 		print("Reading data from file:", datafile)
 		df = pd.read_csv(datafile, comment = "#",
-						dtype = {"final_result": np.int8, "num_stones": np.uint8,
+						dtype = {"value": np.float64, "num_stones": np.uint8,
 								"occ_red_rows": np.uint8, "occ_red_cols": np.uint8,
 								"occ_blue_rows": np.uint8, "occ_blue_cols": np.uint8,
 								"red_p1": np.uint8, "blue_p1": np.uint8,
@@ -75,7 +75,9 @@ def main(argv):
 				stats_file.write("\t" + k + ": " + str(v) + "\n")
 			sc = dtr.score(X_test, y_test)
 			stats_file.write("SCORE: " + str(sc) + "\n")
-			tree.export_graphviz(dtr, out_file = outfolder + "tree" + str(dtri) + ".dot")
+			tree.export_graphviz(dtr, out_file = outfolder + "tree" + str(dtri) + ".dot",
+								feature_names = X.columns)
+			print(X.columns)
 
 			# Add to plot
 			plt.plot(y1, label = "predicted values (max_depth=" + str(dtr.max_depth) + ")",
