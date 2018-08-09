@@ -239,11 +239,6 @@ func (mp *MCTSplayer) getAttackedBridge(prevAction *hex.Action) (int, int) {
 	return -1, -1
 }
 
-// SwitchColor switches the color of the player
-func (mp *MCTSplayer) SwitchColor() {
-	mp.Color = mp.Color.Opponent()
-}
-
 // GetColor returns the color of the player
 func (mp MCTSplayer) GetColor() hex.Color {
 	return mp.Color

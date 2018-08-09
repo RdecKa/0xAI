@@ -112,11 +112,6 @@ func (hp *HumanPlayer) EndGame(lastAction *hex.Action, won bool) {
 	fmt.Printf("Received message: %s\n", m)
 }
 
-// SwitchColor switches the color of the player
-func (hp *HumanPlayer) SwitchColor() {
-	hp.Color = hp.Color.Opponent()
-}
-
 // GetColor returns the color of the player
 func (hp HumanPlayer) GetColor() hex.Color {
 	return hp.Color

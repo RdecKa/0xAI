@@ -82,3 +82,8 @@ python3 2-ml/regression.py -d "$data_file" -o "$output_folder_ml"
 for filename in ${output_folder_ml}*.dot; do
 	dot -Tps "$filename" -o "${filename%.*}.ps"
 done
+
+# Move .goo files to ab package
+for filename in ${output_folder_ml}*.go; do
+	mv "$filename" "3-ab/ab"
+done
