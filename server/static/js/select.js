@@ -51,6 +51,9 @@ Vue.component("select-player", {
 				<br>
 				<input type="radio" :id="'mcts-'  + color" :name="color" value="mcts"  v-model="player" @change="selectionChange" />
 				<label :for="'mcts-'  + color">Computer (MCTS)</label>
+				<br>
+				<input type="radio" :id="'ab-'  + color" :name="color" value="ab"      v-model="player" @change="selectionChange" />
+				<label :for="'ab-'  + color">Computer (AB)</label>
 			</form>
 		</div>`,
 	props: ["color"],

@@ -70,16 +70,21 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		rFunc = createHumanPlayer
 	} else if okRed && red[0] == "mcts" {
 		rFunc = createMCTSplayer
+	} else if okRed && red[0] == "ab" {
+		rFunc = createAbPlayer
 	}
 
 	if okBlue && blue[0] == "human" && red[0] != "human" {
 		bFunc = createHumanPlayer
 	} else if okBlue && blue[0] == "mcts" {
 		bFunc = createMCTSplayer
+	} else if okBlue && blue[0] == "ab" {
+		bFunc = createAbPlayer
 	}
 
 	if rFunc == nil || bFunc == nil {
 		log.Println("Wrong or missing arguments for players. Using default.")
+		wa = false
 		pair[0] = createHumanPlayer(hex.Red, conn, wa)
 		pair[1] = createMCTSplayer(hex.Blue, conn, wa)
 	} else {
@@ -101,6 +106,10 @@ func createHumanPlayer(color hex.Color, conn *websocket.Conn, allowResignation b
 
 func createMCTSplayer(color hex.Color, conn *websocket.Conn, allowResignation bool) hexplayer.HexPlayer {
 	return hexplayer.CreateMCTSplayer(color, math.Sqrt(2), time.Duration(1)*time.Second, 10, allowResignation)
+}
+
+func createAbPlayer(color hex.Color, conn *websocket.Conn, allowResignation bool) hexplayer.HexPlayer {
+	return hexplayer.CreateAbPlayer(color)
 }
 
 func main() {
