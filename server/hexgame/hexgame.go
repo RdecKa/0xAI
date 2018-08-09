@@ -3,8 +3,8 @@ package hexgame
 import (
 	"fmt"
 
-	"github.com/RdecKa/bachleor-thesis/3-server/hexplayer"
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
+	"github.com/RdecKa/bachleor-thesis/server/hexplayer"
 	"github.com/gorilla/websocket"
 )
 

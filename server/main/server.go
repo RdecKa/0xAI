@@ -8,17 +8,17 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/RdecKa/bachleor-thesis/3-server/hexgame"
-	"github.com/RdecKa/bachleor-thesis/3-server/hexplayer"
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
+	"github.com/RdecKa/bachleor-thesis/server/hexgame"
+	"github.com/RdecKa/bachleor-thesis/server/hexplayer"
 	"github.com/gorilla/websocket"
 )
 
 var validPath = regexp.MustCompile("^/((play|select|static|ws)/([a-zA-Z0-9/.]*))?$")
 
 var templates = template.Must(template.New("").Delims("[[", "]]").ParseFiles(
-	"3-server/tmpl/play.html",
-	"3-server/tmpl/select.html"))
+	"server/tmpl/play.html",
+	"server/tmpl/select.html"))
 
 const addr = "localhost:8080"
 
@@ -114,7 +114,7 @@ func main() {
 	http.HandleFunc("/", makeHandler(playHandler))
 
 	// Register folder with static content (js, css)
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("3-server/static"))))
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("server/static"))))
 
 	// Run server
 	log.Println("Server running on", addr)
