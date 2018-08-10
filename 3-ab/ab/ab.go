@@ -7,20 +7,20 @@ import (
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
 )
 
-const bigNumber = 10000.0
+const maxValue = 10000.0
+const abInit = 1000.0
+const won = 500.0
 
 // AlphaBeta runs search with AB pruning to select the next action to be taken
 func AlphaBeta(state *hex.State) *hex.Action {
 	gridChan, stopChan, resultChan := hex.CreatePatChecker()
 	defer func() { stopChan <- struct{}{} }()
 
-	val, a, err := alphaBeta(4, state, -bigNumber, bigNumber, gridChan, resultChan)
+	_, a, err := alphaBeta(3, state, -abInit, abInit, gridChan, resultChan)
 
 	if err != nil {
 		log.Println(err)
 	}
-
-	fmt.Printf("Selected action %s with value %f.\n", a, val)
 
 	if a == nil {
 		// "Random" - TODO
@@ -32,18 +32,20 @@ func AlphaBeta(state *hex.State) *hex.Action {
 }
 
 func alphaBeta(depth int, state *hex.State, alpha, beta float64, gridChan chan []uint64, resultChan chan [2][]int) (float64, *hex.Action, error) {
-	goal, _ := state.IsGoalState(false)
-	if goal || depth <= 0 {
+	if goal, _ := state.IsGoalState(false); goal {
+		// Tha game has ended - the player who's turn it is has lost
+		return -won, nil, nil
+	}
+	if depth <= 0 {
 		val, err := eval(state, gridChan, resultChan)
 		if err != nil {
 			return 0, nil, err
 		}
-		fmt.Printf("Investigated (depth %d), value %f:\n", depth, val)
-		fmt.Printf("%s", state)
 		return val, nil, nil
 	}
-	bestValue := -bigNumber
-	var bestState hex.State
+
+	bestValue := -maxValue
+	var bestState *hex.State
 
 	possibleActions := state.GetPossibleActions()
 	for _, a := range possibleActions {
@@ -56,22 +58,23 @@ func alphaBeta(depth int, state *hex.State, alpha, beta float64, gridChan chan [
 
 		if value > bestValue {
 			bestValue = value
-			bestState = successor
+			bestState = &successor
 		}
 
 		if bestValue > alpha {
 			alpha = bestValue
 			if alpha >= beta {
-				fmt.Printf("Prune because %f >= %f\n", alpha, beta)
+				// Prune
 				break
 			}
 		}
 	}
 
-	fmt.Printf("Investigated (depth %d), value %f:\n", depth, bestValue)
-	fmt.Printf("%s", state)
-
-	return bestValue, state.GetTransitionAction(bestState).(*hex.Action), nil
+	var retAction *hex.Action
+	if bestState != nil {
+		retAction = state.GetTransitionAction(*bestState).(*hex.Action)
+	}
+	return bestValue, retAction, nil
 }
 
 func eval(state *hex.State, gridChan chan []uint64, resultChan chan [2][]int) (float64, error) {
