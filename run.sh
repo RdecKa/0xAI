@@ -6,6 +6,7 @@ visual_data_json_file="${visual_data_folder}data.js"
 visual_html_index="${visual_data_folder}index.html"
 
 indent=false
+json=false
 time=5
 size=3
 browser=false
@@ -16,10 +17,11 @@ output_folder_mcts="${output_folder_mcts}run-${now}/"
 # Make a new folder for output files
 mkdir "$output_folder_mcts"
 
-while getopts 'bit:o:s:w:' flag; do
+while getopts 'bijt:o:s:w:' flag; do
 	case "${flag}" in
 		b) browser=true ;;
 		i) indent='true' ;;
+		j) json='true' ;;
 		t) time="${OPTARG}" ;;
 		o) output_folder_mcts="${OPTARG}" ;;
 		s) size="${OPTARG}" ;;
@@ -29,7 +31,7 @@ while getopts 'bit:o:s:w:' flag; do
 done
 
 # Run the program
-go run 1-mcts/main/main.go -output="$output_folder_mcts" -indent="$indent" -time="$time" -size="$size" -workers="$workers"
+go run 1-mcts/main/main.go -output="$output_folder_mcts" -json="$json" -indent="$indent" -time="$time" -size="$size" -workers="$workers"
 status=$?
 if [ "$status" -ne 0 ]; then
 	echo "Error occured."
