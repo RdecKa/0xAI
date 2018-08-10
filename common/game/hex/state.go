@@ -64,6 +64,11 @@ func (s *State) GetCopyGrid() []uint64 {
 	return c
 }
 
+// GetLastPlayer returns the player who made the last move
+func (s State) GetLastPlayer() Color {
+	return s.lastPlayer
+}
+
 // getColorOn returns the color of the stone in cell (x, y)
 func (s *State) getColorOn(x, y byte) Color {
 	row := s.grid[y]
