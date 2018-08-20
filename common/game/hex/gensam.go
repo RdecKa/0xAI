@@ -28,11 +28,11 @@ func (s State) GenSample(q float64, gridChan chan []uint64, resultChan chan [2][
 	// Last two numbers in each c are numbers of occupied rows and columns for each player
 	patCount := <-resultChan
 	var patCountS, occCountS string
-	for _, pl := range patCount {
-		for _, c := range pl[:len(pl)-2] {
+	for _, player := range patCount {
+		for _, c := range player[:len(player)-2] {
 			patCountS += fmt.Sprintf("%d,", c)
 		}
-		for _, c := range pl[len(pl)-2:] {
+		for _, c := range player[len(player)-2:] {
 			occCountS += fmt.Sprintf("%d,", c)
 		}
 	}
@@ -45,8 +45,11 @@ func (s State) GenSample(q float64, gridChan chan []uint64, resultChan chan [2][
 // GetHeaderCSV returns a string consisting attribute names.
 func GetHeaderCSV() string {
 	s := "value,num_stones,occ_red_rows,occ_red_cols,occ_blue_rows,occ_blue_cols"
-	for n := 1; n <= 2; n++ {
-		s += fmt.Sprintf(",red_p%d,blue_p%d", n, n)
+	for n := 0; n <= 2; n++ {
+		s += fmt.Sprintf(",red_p%d", n)
+	}
+	for n := 0; n <= 2; n++ {
+		s += fmt.Sprintf(",blue_p%d", n)
 	}
 	return fmt.Sprintf("%s\n", s)
 }

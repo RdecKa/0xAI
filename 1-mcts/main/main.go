@@ -21,7 +21,9 @@ func main() {
 	pNumWorkers := flag.Int("workers", 2, "Number of goroutines to run in parallel")
 	pPatternsFile := flag.String("patterns", ".", "File with hex patterns")
 	flag.Parse()
-	boardSize, secondsToRun, writeJSON, indentJSON, outputFolder, numWorkers, patternsFile := *pBoardSize, *pSecondsToRun, *pWriteJSON, *pIndentJSON, *pOutputFolder, *pNumWorkers, *pPatternsFile
+	boardSize, secondsToRun, numWorkers, patternsFile := *pBoardSize, *pSecondsToRun, *pNumWorkers, *pPatternsFile
+	writeJSON, indentJSON, outputFolder := *pWriteJSON, *pIndentJSON, *pOutputFolder
+
 	fmt.Printf("Using boardSize = %d, secondsToRun = %d, numWorkers = %d\n", boardSize, secondsToRun, numWorkers)
 
 	// Init the algorithm
