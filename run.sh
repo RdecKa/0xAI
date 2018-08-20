@@ -11,7 +11,7 @@ json=false
 time=5
 size=3
 browser=false
-workers=2
+workers=3
 
 now=$(date +"%Y%m%dT%H%M%S")
 output_folder_mcts="${output_folder_mcts}run-${now}/"
@@ -32,8 +32,12 @@ while getopts 'bijt:o:p:s:w:' flag; do
 	esac
 done
 
+# Compile the program
+go install 1-mcts/main/main.go
+
 # Run the program
-go run 1-mcts/main/main.go -output="$output_folder_mcts" -json="$json" -indent="$indent" -time="$time" -size="$size" -workers="$workers" -patterns="$patterns_file"
+main -output="$output_folder_mcts" -json="$json" -indent="$indent" -time="$time" -size="$size" -workers="$workers" -patterns="$patterns_file"
+
 status=$?
 if [ "$status" -ne 0 ]; then
 	echo "Error occured."

@@ -14,17 +14,18 @@ import (
 func main() {
 	// Read flags
 	pBoardSize := flag.Int("size", 3, "Board size")
-	pSecondsToRun := flag.Int("time", 10000, "Time to run")
+	pSecondsToRun := flag.Int("time", 5, "Seconds to run")
 	pWriteJSON := flag.Bool("json", false, "Output JSON file")
 	pIndentJSON := flag.Bool("indent", false, "Indent JSON output")
-	pOutputFolder := flag.String("output", ".", "Output folder")
-	pNumWorkers := flag.Int("workers", 2, "Number of goroutines to run in parallel")
-	pPatternsFile := flag.String("patterns", ".", "File with hex patterns")
+	pOutputFolder := flag.String("output", "./", "Output folder")
+	pNumWorkers := flag.Int("workers", 3, "Number of goroutines to run in parallel")
+	pPatternsFile := flag.String("patterns", "patterns.txt", "File with hex patterns")
 	flag.Parse()
 	boardSize, secondsToRun, numWorkers, patternsFile := *pBoardSize, *pSecondsToRun, *pNumWorkers, *pPatternsFile
 	writeJSON, indentJSON, outputFolder := *pWriteJSON, *pIndentJSON, *pOutputFolder
 
-	fmt.Printf("Using boardSize = %d, secondsToRun = %d, numWorkers = %d\n", boardSize, secondsToRun, numWorkers)
+	fmt.Printf("Using boardSize = %d, secondsToRun = %d, numWorkers = %d, patternsFile = %s, writeJSON = %t, indentJSON = %t, outputFolder = %s\n",
+		boardSize, secondsToRun, numWorkers, patternsFile, writeJSON, indentJSON, outputFolder)
 
 	// Init the algorithm
 	initState := hex.NewState(byte(boardSize), hex.Red)
