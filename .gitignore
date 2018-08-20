@@ -2,4 +2,9 @@ data/*
 *.css
 *.css.map
 
+# Generated code
+3-ab/ab/sample.go
+3-ab/ab/tree*code.go
+
+# VS Code
 .vs
