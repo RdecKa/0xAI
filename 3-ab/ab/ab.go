@@ -16,7 +16,9 @@ func AlphaBeta(state *hex.State, patFileName string) *hex.Action {
 	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
 	defer func() { stopChan <- struct{}{} }()
 
-	_, a, err := alphaBeta(3, state, -abInit, abInit, gridChan, resultChan)
+	transpositionTable := make(map[string]float64)
+
+	_, a, err := alphaBeta(6, state, nil, -abInit, abInit, gridChan, resultChan, transpositionTable)
 
 	if err != nil {
 		log.Println(err)
@@ -24,6 +26,7 @@ func AlphaBeta(state *hex.State, patFileName string) *hex.Action {
 
 	if a == nil {
 		// "Random" - TODO
+		fmt.Println("Choosing 'randomly'")
 		possibleActions := state.GetPossibleActions()
 		return possibleActions[0].(*hex.Action)
 	}
@@ -31,17 +34,26 @@ func AlphaBeta(state *hex.State, patFileName string) *hex.Action {
 	return a
 }
 
-func alphaBeta(depth int, state *hex.State, alpha, beta float64, gridChan chan []uint64, resultChan chan [2][]int) (float64, *hex.Action, error) {
+func alphaBeta(depth int, state *hex.State, lastAction *hex.Action,
+	alpha, beta float64, gridChan chan []uint64, resultChan chan [2][]int,
+	transpositionTable map[string]float64) (float64, *hex.Action, error) {
+
+	if val, ok := transpositionTable[state.GetMapKey()]; ok {
+		// Current state was already investigated
+		return val, lastAction, nil
+	}
 	if goal, _ := state.IsGoalState(false); goal {
-		// Tha game has ended - the player who's turn it is has lost
-		return -won, nil, nil
+		// The game has ended - the player who's turn it is has lost
+		transpositionTable[state.GetMapKey()] = -won
+		return -won, lastAction, nil
 	}
 	if depth <= 0 {
 		val, err := eval(state, gridChan, resultChan)
 		if err != nil {
 			return 0, nil, err
 		}
-		return val, nil, nil
+		transpositionTable[state.GetMapKey()] = val
+		return val, lastAction, nil
 	}
 
 	bestValue := -maxValue
@@ -50,7 +62,7 @@ func alphaBeta(depth int, state *hex.State, alpha, beta float64, gridChan chan [
 	possibleActions := state.GetPossibleActions()
 	for _, a := range possibleActions {
 		successor := state.GetSuccessorState(a).(hex.State)
-		value, _, err := alphaBeta(depth-1, &successor, -beta, -alpha, gridChan, resultChan)
+		value, _, err := alphaBeta(depth-1, &successor, a.(*hex.Action), -beta, -alpha, gridChan, resultChan, transpositionTable)
 		if err != nil {
 			return 0, nil, err
 		}
@@ -74,6 +86,7 @@ func alphaBeta(depth int, state *hex.State, alpha, beta float64, gridChan chan [
 	if bestState != nil {
 		retAction = state.GetTransitionAction(*bestState).(*hex.Action)
 	}
+	transpositionTable[state.GetMapKey()] = bestValue
 	return bestValue, retAction, nil
 }
 
