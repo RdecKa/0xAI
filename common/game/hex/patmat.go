@@ -18,12 +18,12 @@ type pattern struct {
 
 // CreatePatChecker creates a go routine that will serach for patterns in grids.
 // It returns channels for communicatin with this goroutine.
-func CreatePatChecker() (chan []uint64, chan struct{}, chan [2][]int) {
+func CreatePatChecker(fileName string) (chan []uint64, chan struct{}, chan [2][]int) {
 	gridChan := make(chan []uint64, 1)
 	stopChan := make(chan struct{}, 1)
 	resultChan := make(chan [2][]int, 1)
 
-	go patChecker(gridChan, stopChan, resultChan)
+	go patChecker(fileName, gridChan, stopChan, resultChan)
 
 	return gridChan, stopChan, resultChan
 }
@@ -31,8 +31,8 @@ func CreatePatChecker() (chan []uint64, chan struct{}, chan [2][]int) {
 // readPatternsFromFile reads all patterns from a specified file and returns a
 // 2D slice of patterns. The first dimension is a pattern, the second dimension
 // are all rotations of that pattern.
-func readPatternsFromFile() ([][]*pattern, error) {
-	f, err := os.Open("common/game/hex/patterns.txt")
+func readPatternsFromFile(fileName string) ([][]*pattern, error) {
+	f, err := os.Open(fileName)
 	if err != nil {
 		return nil, err
 	}
@@ -166,12 +166,12 @@ func matches(pat pattern, grid []uint64, xStart, yStart int, player Color) bool 
 // goroutine.
 // It also checks in how many rows and columns each player has at least one
 // virtual connection
-func patChecker(gridChan chan []uint64, stopChan chan struct{}, resultChan chan [2][]int) {
+func patChecker(filename string, gridChan chan []uint64, stopChan chan struct{}, resultChan chan [2][]int) {
 	defer close(gridChan)
 	defer close(stopChan)
 	defer close(resultChan)
 
-	patterns, err := readPatternsFromFile()
+	patterns, err := readPatternsFromFile(filename)
 	if err != nil {
 		log.Fatal(err)
 	}

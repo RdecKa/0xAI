@@ -4,6 +4,7 @@ output_folder_mcts="data/mcts/"
 visual_data_folder="visual/mcts/"
 visual_data_json_file="${visual_data_folder}data.js"
 visual_html_index="${visual_data_folder}index.html"
+patterns_file="common/game/hex/patterns.txt"
 
 indent=false
 json=false
@@ -17,13 +18,14 @@ output_folder_mcts="${output_folder_mcts}run-${now}/"
 # Make a new folder for output files
 mkdir "$output_folder_mcts"
 
-while getopts 'bijt:o:s:w:' flag; do
+while getopts 'bijt:o:p:s:w:' flag; do
 	case "${flag}" in
 		b) browser=true ;;
 		i) indent='true' ;;
 		j) json='true' ;;
 		t) time="${OPTARG}" ;;
 		o) output_folder_mcts="${OPTARG}" ;;
+		p) patterns_file="${OPTARG}" ;;
 		s) size="${OPTARG}" ;;
 		w) workers="${OPTARG}" ;;
 		*) echo "Unexpected option ${flag}" ;;
@@ -31,7 +33,7 @@ while getopts 'bijt:o:s:w:' flag; do
 done
 
 # Run the program
-go run 1-mcts/main/main.go -output="$output_folder_mcts" -json="$json" -indent="$indent" -time="$time" -size="$size" -workers="$workers"
+go run 1-mcts/main/main.go -output="$output_folder_mcts" -json="$json" -indent="$indent" -time="$time" -size="$size" -workers="$workers" -patterns="$patterns_file"
 status=$?
 if [ "$status" -ne 0 ]; then
 	echo "Error occured."

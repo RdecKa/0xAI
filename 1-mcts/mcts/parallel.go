@@ -23,7 +23,7 @@ type workerChan struct {
 // numWorkers workers - each of them runs one instance of MCTS at once.
 // Iterations of MCTS are run on board of size boardSize for timeToRun. mc is
 // the initialised search that is completed first.
-func RunMCTSinParallel(numWorkers, boardSize int, timeToRun time.Duration, outputFolder string, mc *MCTS) {
+func RunMCTSinParallel(numWorkers, boardSize int, timeToRun time.Duration, outputFolder, patFileName string, mc *MCTS) {
 	var expCand []*tree.Node // Array of possible candidates for continuing MCTS
 	var err error
 
@@ -77,7 +77,7 @@ func RunMCTSinParallel(numWorkers, boardSize int, timeToRun time.Duration, outpu
 		defer fDet.Close()
 
 		// Start a worker process
-		go worker(w, timeToRun, boardSize, f, fDet, logFile, &wc)
+		go worker(w, timeToRun, boardSize, f, fDet, logFile, patFileName, &wc)
 	}
 
 	finished, quitted := false, false
@@ -127,10 +127,10 @@ func RunMCTSinParallel(numWorkers, boardSize int, timeToRun time.Duration, outpu
 }
 
 // worker waits for tasks and executes them in an infinite loop
-func worker(id int, timeToRun time.Duration, boardSize int, outputFile, outputFileDet, logFile *os.File, wc *workerChan) {
+func worker(id int, timeToRun time.Duration, boardSize int, outputFile, outputFileDet, logFile *os.File, patFileName string, wc *workerChan) {
 	var mc *MCTS
 	taskID := 0
-	gridChan, stopChan, resultChan := hex.CreatePatChecker()
+	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
 	outputFile.WriteString(hex.GetHeaderCSV())
 	for {
 		logFile.WriteString(fmt.Sprintf("Worker %d waiting for a task\n", id))

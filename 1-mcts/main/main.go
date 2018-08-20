@@ -19,8 +19,9 @@ func main() {
 	pIndentJSON := flag.Bool("indent", false, "Indent JSON output")
 	pOutputFolder := flag.String("output", ".", "Output folder")
 	pNumWorkers := flag.Int("workers", 2, "Number of goroutines to run in parallel")
+	pPatternsFile := flag.String("patterns", ".", "File with hex patterns")
 	flag.Parse()
-	boardSize, secondsToRun, writeJSON, indentJSON, outputFolder, numWorkers := *pBoardSize, *pSecondsToRun, *pWriteJSON, *pIndentJSON, *pOutputFolder, *pNumWorkers
+	boardSize, secondsToRun, writeJSON, indentJSON, outputFolder, numWorkers, patternsFile := *pBoardSize, *pSecondsToRun, *pWriteJSON, *pIndentJSON, *pOutputFolder, *pNumWorkers, *pPatternsFile
 	fmt.Printf("Using boardSize = %d, secondsToRun = %d, numWorkers = %d\n", boardSize, secondsToRun, numWorkers)
 
 	// Init the algorithm
@@ -34,7 +35,7 @@ func main() {
 	}
 
 	// Run the algorithm
-	mcts.RunMCTSinParallel(numWorkers, boardSize, time.Duration(secondsToRun)*time.Second, outputFolder, mc)
+	mcts.RunMCTSinParallel(numWorkers, boardSize, time.Duration(secondsToRun)*time.Second, outputFolder, patternsFile, mc)
 
 	if writeJSON {
 		// Write JSON
