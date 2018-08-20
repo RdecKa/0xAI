@@ -12,11 +12,12 @@ type AbPlayer struct {
 	numWin             int         // Number of wins
 	state              *hex.State  // Current state in a game
 	lastOpponentAction *hex.Action // Opponent's last action
+	patFileName        string      // File with patterns
 }
 
 // CreateAbPlayer creates a new player
-func CreateAbPlayer(c hex.Color) *AbPlayer {
-	ap := AbPlayer{c, 0, nil, nil}
+func CreateAbPlayer(c hex.Color, patFileName string) *AbPlayer {
+	ap := AbPlayer{c, 0, nil, nil, patFileName}
 	return &ap
 }
 
@@ -37,7 +38,7 @@ func (ap *AbPlayer) PrevAction(prevAction *hex.Action) {
 
 // NextAction returns an action to be performed
 func (ap *AbPlayer) NextAction() (*hex.Action, error) {
-	chosecAction := ab.AlphaBeta(ap.state)
+	chosecAction := ab.AlphaBeta(ap.state, ap.patFileName)
 	s := ap.state.GetSuccessorState(chosecAction).(hex.State)
 	ap.state = &s
 	return chosecAction, nil

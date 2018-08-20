@@ -12,8 +12,8 @@ const abInit = 1000.0
 const won = 500.0
 
 // AlphaBeta runs search with AB pruning to select the next action to be taken
-func AlphaBeta(state *hex.State) *hex.Action {
-	gridChan, stopChan, resultChan := hex.CreatePatChecker()
+func AlphaBeta(state *hex.State, patFileName string) *hex.Action {
+	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
 	defer func() { stopChan <- struct{}{} }()
 
 	_, a, err := alphaBeta(3, state, -abInit, abInit, gridChan, resultChan)

@@ -20,7 +20,7 @@ mkdir "$output_folder_mcts"
 
 while getopts 'bijt:o:p:s:w:' flag; do
 	case "${flag}" in
-		b) browser=true ;;
+		b) browser='true' ;;
 		i) indent='true' ;;
 		j) json='true' ;;
 		t) time="${OPTARG}" ;;
@@ -93,5 +93,5 @@ done
 
 # Move .goo files to ab package
 for filename in ${output_folder_ml}*.go; do
-	mv "$filename" "3-ab/ab"
+	cp "$filename" "3-ab/ab"
 done
