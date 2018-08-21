@@ -7,10 +7,11 @@ import (
 )
 
 // NodeValue stores a hex state and its estimated value, obtained by negamax
-// algorithm with AB pruning
+// algorithm with AB pruning. comment is used for debugging purposes
 type NodeValue struct {
-	state *hex.State
-	value float64
+	state   *hex.State
+	value   float64
+	comment string
 }
 
 func (anv NodeValue) String() string {
@@ -21,6 +22,6 @@ func (anv NodeValue) String() string {
 
 // CreateAbNodeValue creates a new NodeValue with given state and its estimated
 // value
-func CreateAbNodeValue(state *hex.State, value float64) *NodeValue {
-	return &NodeValue{state, value}
+func CreateAbNodeValue(state *hex.State, value float64, comment string) *NodeValue {
+	return &NodeValue{state, value, comment}
 }

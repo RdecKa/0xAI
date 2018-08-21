@@ -22,8 +22,9 @@ Vue.component('node', {
 				<span class="info">
 					<span v-if="!isLeaf" class="expand-sign">[{{ open ? '-' : '+' }}]</span>
 					<span>value: {{ model.value.val }}, </span>
-					<span>lastPlayer: {{ model.value.state.lastPlayer }} </span>
+					<span>lastPlayer: {{ model.value.state.lastPlayer }}, </span>
 					<!--<span>grid: {{ model.value.state.grid }} </span>-->
+					<span>({{ model.value.comment }})</span>
 				</span>
 				<div v-if="showBoard" v-html="boardHTML" class="simple-board"></div>
 			</div>

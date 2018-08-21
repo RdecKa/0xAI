@@ -41,13 +41,13 @@ func alphaBeta(depth int, state *hex.State, lastAction *hex.Action,
 
 	if val, ok := transpositionTable[state.GetMapKey()]; ok {
 		// Current state was already investigated
-		leaf := tree.NewNode(CreateAbNodeValue(state, val))
+		leaf := tree.NewNode(CreateAbNodeValue(state, val, "transT"))
 		return val, lastAction, leaf, nil
 	}
 	if goal, _ := state.IsGoalState(false); goal {
 		// The game has ended - the player who's turn it is has lost
 		transpositionTable[state.GetMapKey()] = -won
-		leaf := tree.NewNode(CreateAbNodeValue(state, -won))
+		leaf := tree.NewNode(CreateAbNodeValue(state, -won, "goal"))
 		return -won, lastAction, leaf, nil
 	}
 	if depth <= 0 {
@@ -56,7 +56,7 @@ func alphaBeta(depth int, state *hex.State, lastAction *hex.Action,
 			return 0, nil, nil, err
 		}
 		transpositionTable[state.GetMapKey()] = val
-		leaf := tree.NewNode(CreateAbNodeValue(state, val))
+		leaf := tree.NewNode(CreateAbNodeValue(state, val, "depth"))
 		return val, lastAction, leaf, nil
 	}
 
@@ -94,7 +94,7 @@ func alphaBeta(depth int, state *hex.State, lastAction *hex.Action,
 		retAction = state.GetTransitionAction(*bestState).(*hex.Action)
 	}
 	transpositionTable[state.GetMapKey()] = bestValue
-	node := tree.NewNode(CreateAbNodeValue(state, bestValue))
+	node := tree.NewNode(CreateAbNodeValue(state, bestValue, ""))
 	node.SetChildren(nodeChildren)
 	return bestValue, retAction, node, nil
 }

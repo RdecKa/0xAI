@@ -120,7 +120,7 @@ function respondToMessage(obj, msg) {
 			setTimeout(function() { obj.socket.send("DONE"); }, 2000);
 			return;
 		case "ABJSON":
-			console.log("GOT JSON!");
+			console.log("Got JSON");
 			obj.abSearchTree.setJSON(JSON.parse(msg.substring(7)));
 			return;
 		default:
