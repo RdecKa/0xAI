@@ -9,25 +9,11 @@ window.onload = function() {
 		args = "?red=" + query["red"] + "&blue=" + query["blue"] + "&watch=" + query["watch"];
 	}
 	const socket = new WebSocket("ws://localhost:8080/ws/" + args);
-	let hexgrid = hexGrid(socket);
-};
 
-/**
- * Returns an action to be performed.
- * @param grid    current game board
- * @param myColor color of the player
- */
-function nextMove(grid, myColor) {
-	// TODO: random for now
-	for (let i = 0; i < grid.length; i++) {
-		for (let j = 0; j < grid[0].length; j++) {
-			if (grid[i][j] == colors.NONE) {
-				grid[i].splice(j, 1, myColor)
-				return encodeMove({x: j, y: i});
-			}
-		}
-	}
-}
+	let abTree = abSearchTree();
+
+	let hexgrid = hexGrid(socket, abTree);
+};
 
 /**
  * Prints the given 2D grid.

@@ -3,7 +3,7 @@ const unitX = 2 * Math.cos(30 * Math.PI / 180) * hexSide;
 const unitY = (1 + Math.sin(30 * Math.PI / 180)) * hexSide;
 const margin = hexSide * 0.1;
 
-function hexGrid(socket) {
+function hexGrid(socket, abSearchTree) {
 	return new Vue({
 		el: '#hex-grid',
 		data: {
@@ -12,7 +12,8 @@ function hexGrid(socket) {
 			grid: [],
 			myColor: colors.NONE,
 			playersTurn: false,
-			passivePlayer: false
+			passivePlayer: false,
+			abSearchTree: abSearchTree,
 		},
 		computed: {
 			boardWidth: function () {
@@ -58,7 +59,7 @@ function initSocket(obj, socket) {
 
 	socket.addEventListener("message", function (event) {
 		let m = event.data;
-		console.log("Message from server:", m);
+		//console.log("Message from server:", m);
 		let response = respondToMessage(obj, m);
 		if (response !== undefined) {
 			socket.send(response);
@@ -120,6 +121,7 @@ function respondToMessage(obj, msg) {
 			return;
 		case "ABJSON":
 			console.log("GOT JSON!");
+			obj.abSearchTree.setJSON(JSON.parse(msg.substring(7)));
 			return;
 		default:
 			console.log("Unknown message: '" + msg + "'");

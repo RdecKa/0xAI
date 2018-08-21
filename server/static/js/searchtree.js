@@ -1,49 +1,52 @@
-function visualize_mcts() {
+function abSearchTree() {
 	return new Vue({
-		el: '#mcts',
+		el: '#absearch',
 		data: {
-			json: mcst_json.tree.root,
-			showN: true,
-			showQ: true,
-			showGrid: true,
-			showLastPlayer: true,
-			sortBy: "n"
+			model: null,
 		},
-		props: {
-			model: Object
-		},
-		watch: {
-			sortBy: function(val) {
-				switch(val) {
-					case "q":
-						sortJSON(this.json, compareByQ);
-						break;
-					case "n":
-						sortJSON(this.json, compareByN);
-						break;
-				}
+		methods: {
+			setJSON: function (dataJSON) {
+				this.model = dataJSON;
 			}
 		}
 	});
 }
 
-Vue.component('item', {
-	template: '#item-template',
+Vue.component('node', {
+	template: `<li>
+			<div class="node"
+			:class="{extendable : !isLeaf}"
+			@click="toggle"
+			@mouseover="showBoard = true"
+			@mouseleave="showBoard = false">
+				<span class="info">
+					<span v-if="!isLeaf" class="expand-sign">[{{ open ? '-' : '+' }}]</span>
+					<span>value: {{ model.value.val }}, </span>
+					<span>lastPlayer: {{ model.value.state.lastPlayer }} </span>
+					<!--<span>grid: {{ model.value.state.grid }} </span>-->
+				</span>
+				<div v-if="showBoard" v-html="boardHTML" class="simple-board"></div>
+			</div>
+
+			<ul v-show="open" v-if="!isLeaf">
+				<node
+				v-for="(model, index) in model.children"
+				:key="index"
+				:model="model"
+				></node>
+			</ul>
+		</li>`,
 	props: {
 		model: Object,
-		showN: Boolean,
-		showQ: Boolean,
-		showGrid: Boolean,
-		showLastPlayer: Boolean,
 	},
 	data: function () {
 		return {
-			open: false,
+			open: true,
 			showBoard: false,
 		}
 	},
 	computed: {
-		isGoal: function () {
+		isLeaf: function () {
 			return !this.model.children || !this.model.children.length;
 		},
 		size: function () {
@@ -55,7 +58,7 @@ Vue.component('item', {
 	},
 	methods: {
 		toggle: function () {
-			if (!this.isGoal) {
+			if (!this.isLeaf) {
 				this.open = !this.open;
 			}
 		},
@@ -118,28 +121,4 @@ Vue.component('item', {
 			return r;
 		}
 	}
-});
-
-window.onload = function() {
-	sortJSON(mcst_json.tree.root, compareByQ);
-	let app = visualize_mcts();
-};
-
-function sortJSON(json, sortBy) {
-	sortChildren(json.children, sortBy);
-	for (let c in json.children) {
-		sortJSON(json.children[c], sortBy);
-	}
-}
-
-function sortChildren(children, sortBy) {
-	children.sort(sortBy);
-}
-
-function compareByN(a, b) {
-	return b.value.N - a.value.N;
-}
-
-function compareByQ(a, b) {
-	return b.value.Q - a.value.Q;
-}
+})

@@ -8,11 +8,12 @@
 	<script src="/static/js/script.js" type="application/javascript"></script>
 	<script src="/static/js/grid.js" type="application/javascript"></script>
 	<script src="/static/js/cell.js" type="application/javascript"></script>
+	<script src="/static/js/searchtree.js" type="application/javascript"></script>
 	<link rel="stylesheet" type="text/css" href="/static/css/style.css">
 </head>
 
 <body>
-	<div id="hex-grid">
+	<div id="hex-grid" class="col col-2">
 		<svg :width="boardWidth" :height="boardHeight">
 			<g v-for="(row, ri) in grid" :key="ri">
 				<hex-cell v-for="(cell, ci) in row"
@@ -26,6 +27,13 @@
 				></hex-cell>
 			</g>
 		</svg>
+	</div>
+	<div id="absearch" class="col col-2">
+		<ul v-if="model">
+			<node
+			:model="model.root"
+			></node>
+		</ul>
 	</div>
 </body>
 

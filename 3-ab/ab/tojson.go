@@ -14,7 +14,7 @@ func (anv AbNodeValue) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	buffer.WriteString(fmt.Sprintf("\"tree\":%s, \"val\":%f", jsonValue, anv.value))
+	buffer.WriteString(fmt.Sprintf("\"state\":%s, \"val\":%f", jsonValue, anv.value))
 	buffer.WriteString("}")
 	return buffer.Bytes(), nil
 }
