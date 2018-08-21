@@ -118,6 +118,9 @@ function respondToMessage(obj, msg) {
 			obj.myColor = colors.NONE;
 			setTimeout(function() { obj.socket.send("DONE"); }, 2000);
 			return;
+		case "ABJSON":
+			console.log("GOT JSON!");
+			return;
 		default:
 			console.log("Unknown message: '" + msg + "'");
 			return;

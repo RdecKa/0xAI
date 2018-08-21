@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
+	"github.com/RdecKa/bachleor-thesis/common/tree"
 )
 
 const maxValue = 10000.0
@@ -12,13 +13,13 @@ const abInit = 1000.0
 const won = 500.0
 
 // AlphaBeta runs search with AB pruning to select the next action to be taken
-func AlphaBeta(state *hex.State, patFileName string) *hex.Action {
+func AlphaBeta(state *hex.State, patFileName string) (*hex.Action, *tree.Tree) {
 	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
 	defer func() { stopChan <- struct{}{} }()
 
 	transpositionTable := make(map[string]float64)
 
-	_, a, err := alphaBeta(6, state, nil, -abInit, abInit, gridChan, resultChan, transpositionTable)
+	_, a, rootNode, err := alphaBeta(2, state, nil, -abInit, abInit, gridChan, resultChan, transpositionTable)
 
 	if err != nil {
 		log.Println(err)
@@ -28,43 +29,47 @@ func AlphaBeta(state *hex.State, patFileName string) *hex.Action {
 		// "Random" - TODO
 		fmt.Println("Choosing 'randomly'")
 		possibleActions := state.GetPossibleActions()
-		return possibleActions[0].(*hex.Action)
+		return possibleActions[0].(*hex.Action), nil
 	}
 
-	return a
+	return a, tree.NewTree(rootNode)
 }
 
 func alphaBeta(depth int, state *hex.State, lastAction *hex.Action,
 	alpha, beta float64, gridChan chan []uint64, resultChan chan [2][]int,
-	transpositionTable map[string]float64) (float64, *hex.Action, error) {
+	transpositionTable map[string]float64) (float64, *hex.Action, *tree.Node, error) {
 
 	if val, ok := transpositionTable[state.GetMapKey()]; ok {
 		// Current state was already investigated
-		return val, lastAction, nil
+		leaf := tree.NewNode(CreateAbNodeValue(state, val))
+		return val, lastAction, leaf, nil
 	}
 	if goal, _ := state.IsGoalState(false); goal {
 		// The game has ended - the player who's turn it is has lost
 		transpositionTable[state.GetMapKey()] = -won
-		return -won, lastAction, nil
+		leaf := tree.NewNode(CreateAbNodeValue(state, -won))
+		return -won, lastAction, leaf, nil
 	}
 	if depth <= 0 {
 		val, err := eval(state, gridChan, resultChan)
 		if err != nil {
-			return 0, nil, err
+			return 0, nil, nil, err
 		}
 		transpositionTable[state.GetMapKey()] = val
-		return val, lastAction, nil
+		leaf := tree.NewNode(CreateAbNodeValue(state, val))
+		return val, lastAction, leaf, nil
 	}
 
 	bestValue := -maxValue
 	var bestState *hex.State
 
 	possibleActions := state.GetPossibleActions()
+	nodeChildren := make([]*tree.Node, 0, len(possibleActions))
 	for _, a := range possibleActions {
 		successor := state.GetSuccessorState(a).(hex.State)
-		value, _, err := alphaBeta(depth-1, &successor, a.(*hex.Action), -beta, -alpha, gridChan, resultChan, transpositionTable)
+		value, _, childNode, err := alphaBeta(depth-1, &successor, a.(*hex.Action), -beta, -alpha, gridChan, resultChan, transpositionTable)
 		if err != nil {
-			return 0, nil, err
+			return 0, nil, nil, err
 		}
 		value = -value
 
@@ -72,6 +77,8 @@ func alphaBeta(depth int, state *hex.State, lastAction *hex.Action,
 			bestValue = value
 			bestState = &successor
 		}
+
+		nodeChildren = append(nodeChildren, childNode)
 
 		if bestValue > alpha {
 			alpha = bestValue
@@ -87,7 +94,9 @@ func alphaBeta(depth int, state *hex.State, lastAction *hex.Action,
 		retAction = state.GetTransitionAction(*bestState).(*hex.Action)
 	}
 	transpositionTable[state.GetMapKey()] = bestValue
-	return bestValue, retAction, nil
+	node := tree.NewNode(CreateAbNodeValue(state, bestValue))
+	node.SetChildren(nodeChildren)
+	return bestValue, retAction, node, nil
 }
 
 func eval(state *hex.State, gridChan chan []uint64, resultChan chan [2][]int) (float64, error) {

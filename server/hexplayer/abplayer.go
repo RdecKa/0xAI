@@ -1,23 +1,28 @@
 package hexplayer
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/RdecKa/bachleor-thesis/3-ab/ab"
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
+	"github.com/gorilla/websocket"
 )
 
 // AbPlayer represents a computer player that uses alpha-beta pruning for
 // selecting moves
 type AbPlayer struct {
-	Color              hex.Color   // Player's color
-	numWin             int         // Number of wins
-	state              *hex.State  // Current state in a game
-	lastOpponentAction *hex.Action // Opponent's last action
-	patFileName        string      // File with patterns
+	Color              hex.Color       // Player's color
+	Webso              *websocket.Conn // Websocket connecting server and client
+	numWin             int             // Number of wins
+	state              *hex.State      // Current state in a game
+	lastOpponentAction *hex.Action     // Opponent's last action
+	patFileName        string          // File with patterns
 }
 
 // CreateAbPlayer creates a new player
-func CreateAbPlayer(c hex.Color, patFileName string) *AbPlayer {
-	ap := AbPlayer{c, 0, nil, nil, patFileName}
+func CreateAbPlayer(c hex.Color, webso *websocket.Conn, patFileName string) *AbPlayer {
+	ap := AbPlayer{c, webso, 0, nil, nil, patFileName}
 	return &ap
 }
 
@@ -38,10 +43,16 @@ func (ap *AbPlayer) PrevAction(prevAction *hex.Action) {
 
 // NextAction returns an action to be performed
 func (ap *AbPlayer) NextAction() (*hex.Action, error) {
-	chosecAction := ab.AlphaBeta(ap.state, ap.patFileName)
-	s := ap.state.GetSuccessorState(chosecAction).(hex.State)
+	chosenAction, searchedTree := ab.AlphaBeta(ap.state, ap.patFileName)
+	jsonText, err := json.Marshal(searchedTree)
+	if err != nil {
+		fmt.Print(fmt.Errorf("Error creating JSON of searchedTree"))
+	}
+	message := fmt.Sprintf("ABJSON %s", jsonText)
+	ap.Webso.WriteMessage(websocket.TextMessage, []byte(message))
+	s := ap.state.GetSuccessorState(chosenAction).(hex.State)
 	ap.state = &s
-	return chosecAction, nil
+	return chosenAction, nil
 }
 
 // EndGame accepts the result of the game
