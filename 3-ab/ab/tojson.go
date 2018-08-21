@@ -8,7 +8,7 @@ import (
 
 // MarshalJSON implements Marshaler interface
 // It returns AbNodeValue in JSON format
-func (anv AbNodeValue) MarshalJSON() ([]byte, error) {
+func (anv NodeValue) MarshalJSON() ([]byte, error) {
 	buffer := bytes.NewBufferString("{")
 	jsonValue, err := json.Marshal(anv.state)
 	if err != nil {
