@@ -65,6 +65,7 @@ func alphaBeta(depth int, state *hex.State, lastAction *hex.Action,
 
 	possibleActions := state.GetPossibleActions()
 	nodeChildren := make([]*tree.Node, 0, len(possibleActions))
+	comment := ""
 	for _, a := range possibleActions {
 		successor := state.GetSuccessorState(a).(hex.State)
 		value, _, childNode, err := alphaBeta(depth-1, &successor, a.(*hex.Action), -beta, -alpha, gridChan, resultChan, transpositionTable)
@@ -84,6 +85,7 @@ func alphaBeta(depth int, state *hex.State, lastAction *hex.Action,
 			alpha = bestValue
 			if alpha >= beta {
 				// Prune
+				comment = "P"
 				break
 			}
 		}
@@ -94,7 +96,7 @@ func alphaBeta(depth int, state *hex.State, lastAction *hex.Action,
 		retAction = state.GetTransitionAction(*bestState).(*hex.Action)
 	}
 	transpositionTable[state.GetMapKey()] = bestValue
-	node := tree.NewNode(CreateAbNodeValue(state, bestValue, ""))
+	node := tree.NewNode(CreateAbNodeValue(state, bestValue, comment))
 	node.SetChildren(nodeChildren)
 	return bestValue, retAction, node, nil
 }
