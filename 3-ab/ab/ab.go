@@ -3,6 +3,7 @@ package ab
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
 	"github.com/RdecKa/bachleor-thesis/common/tree"
@@ -17,12 +18,28 @@ func AlphaBeta(state *hex.State, patFileName string) (*hex.Action, *tree.Tree) {
 	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
 	defer func() { stopChan <- struct{}{} }()
 
-	transpositionTable := make(map[string]float64)
+	timer := time.NewTimer(3 * time.Second)
+	timeOut := false
 
-	_, a, rootNode, err := alphaBeta(2, state, nil, -abInit, abInit, gridChan, resultChan, transpositionTable)
+	var a *hex.Action
+	var rootNode *tree.Node
+	var err error
 
-	if err != nil {
-		log.Println(err)
+	for depth := 2; !timeOut; depth += 2 {
+		select {
+		case <-timer.C:
+			timeOut = true
+		default:
+			fmt.Printf("Starting AB on depth %d\n", depth)
+			transpositionTable := make(map[string]float64)
+			_, a, rootNode, err = alphaBeta(depth, state, nil, -abInit, abInit, gridChan, resultChan, transpositionTable)
+
+			fmt.Printf("Selected action: %v\n", a)
+
+			if err != nil {
+				log.Println(err)
+			}
+		}
 	}
 
 	if a == nil {
