@@ -1,5 +1,6 @@
 package main
 
+import _ "net/http/pprof"
 import (
 	"html/template"
 	"log"

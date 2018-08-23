@@ -42,7 +42,7 @@ Vue.component('node', {
 	},
 	data: function () {
 		return {
-			open: true,
+			open: false,
 			showBoard: false,
 		}
 	},

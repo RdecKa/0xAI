@@ -18,7 +18,7 @@ type State interface {
 	IsGoalState() (bool, interface{})
 	GetEstimateToReachGoal() int
 	GetSuccessorStates(bool) []State
-	GetClean() State
+	GetClean() interface{}
 	String() string
 }
 
@@ -38,9 +38,9 @@ type aStarNodeValue struct {
 
 // AStarSearch represents a search tree for A* Search and its frontier
 type AStarSearch struct {
-	tree          *tree.Tree         // Search tree
-	frontier      pq.PriorityQueue   // List of nodes to be expanded
-	visitedStates map[State]struct{} // A list of states that have already been added to the frontier
+	tree          *tree.Tree               // Search tree
+	frontier      pq.PriorityQueue         // List of nodes to be expanded
+	visitedStates map[interface{}]struct{} // A list of states that have already been added to the frontier
 }
 
 func makeAStarNode(state State, pathFromStart int) *tree.Node {
@@ -57,7 +57,7 @@ func InitSearch(initialState State) *AStarSearch {
 	newFrontier := pq.New(50)                        // Create a new frontier
 	heap.Push(newFrontier, pq.NewItem(0, startNode)) // Init frontier with the initial state
 
-	visitedStates := make(map[State]struct{})
+	visitedStates := make(map[interface{}]struct{})
 
 	aStar := &AStarSearch{newTree, *newFrontier, visitedStates}
 	return aStar
@@ -73,8 +73,9 @@ func (aStar *AStarSearch) Search(veryEnd bool) (bool, interface{}) {
 		// Get state from node
 		nodeValue := currentNode.GetValue().(*aStarNodeValue)
 		currentState := nodeValue.state
+		currentStateClean := currentState.GetClean()
 
-		_, ok := aStar.visitedStates[currentState.GetClean()]
+		_, ok := aStar.visitedStates[currentStateClean]
 		if ok {
 			// State was already expanded, discard ot
 			continue
@@ -86,7 +87,7 @@ func (aStar *AStarSearch) Search(veryEnd bool) (bool, interface{}) {
 		}
 
 		// Add the current state to the list of visited states
-		aStar.visitedStates[currentState.GetClean()] = struct{}{}
+		aStar.visitedStates[currentStateClean] = struct{}{}
 
 		// Get the cost of the path from start to the current node
 		pathFromStart := nodeValue.pathFromStart

@@ -39,10 +39,12 @@ func GetInitialState(gameState *State) searchState {
 	return searchState{-1, -1, gameState.lastPlayer, gameState, nil}
 }
 
-// GetClean returns a copy of state s without a pointer to the preceeding state.
+// GetClean returns an array that is unique for each searchState.
+// Assumption: c and gameState are the same in all searchStates that appear in
+// one run of A* search.
 // Can be used as a key in a map.
-func (s searchState) GetClean() astarsearch.State {
-	return searchState{s.x, s.y, s.c, s.gameState, nil}
+func (s searchState) GetClean() interface{} {
+	return [2]int{s.x, s.y}
 }
 
 func (s searchState) IsGoalState() (bool, interface{}) {
