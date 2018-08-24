@@ -2,6 +2,7 @@ package hexgame
 
 import (
 	"fmt"
+	"runtime"
 
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
 	"github.com/RdecKa/bachleor-thesis/server/hexplayer"
@@ -48,6 +49,9 @@ func playOneGame(players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlay
 		prevAction = nextAction
 		turn = 1 - turn
 		fmt.Printf("%v", state)
+
+		// Call garbage collector
+		runtime.GC()
 	}
 
 	// Game results

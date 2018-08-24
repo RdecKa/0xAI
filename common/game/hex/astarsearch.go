@@ -75,7 +75,7 @@ func (s searchState) GetEstimateToReachGoal() int {
 // If veryEnd == true, then the game has actually ended
 // Else if veryEnd == false, then the game has theoretically ended
 func (s searchState) GetSuccessorStates(veryEnd bool) []astarsearch.State {
-	successors := make([]astarsearch.State, 0, 6)
+	successors := make([]astarsearch.State, 0)
 
 	if (s.x == -1 && currentColor == Blue) || (s.y == -1 && currentColor == Red) {
 		// Beginning of the search

@@ -4,6 +4,7 @@ package hex
 // |     Color     |
 // -----------------
 
+// Color represents a player in a game
 type Color byte
 
 // enum for players (colors)

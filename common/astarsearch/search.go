@@ -27,7 +27,7 @@ type State interface {
 // --------------------------
 
 type aStarNodeValue struct {
-	state          State // State in a game
+	state          State // A* Search state
 	pathFromStart  int   // Path cost from initial state
 	heuristicValue int   // pathFromStart plus estimated cost to a goal state
 }
@@ -54,7 +54,7 @@ func InitSearch(initialState State) *AStarSearch {
 	startNode := makeAStarNode(initialState, 0)
 	newTree := tree.NewTree(startNode)
 
-	newFrontier := pq.New(50)                        // Create a new frontier
+	newFrontier := pq.New(4)                         // Create a new frontier
 	heap.Push(newFrontier, pq.NewItem(0, startNode)) // Init frontier with the initial state
 
 	visitedStates := make(map[interface{}]struct{})
