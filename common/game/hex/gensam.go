@@ -5,7 +5,7 @@ import (
 )
 
 // GenSample returns a string representation of a single learning sample (output, attributes...)
-func (s State) GenSample(q float64, gridChan chan []uint64, resultChan chan [2][]int) string {
+func (s State) GenSample(q float64, gridChan chan []uint32, resultChan chan [2][]int) string {
 	gridChan <- s.GetCopyGrid()
 
 	if s.lastPlayer == Blue {

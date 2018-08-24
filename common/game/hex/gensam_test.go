@@ -13,7 +13,7 @@ func test(t *testing.T, size byte, actions []*Action, expected string) {
 	}
 
 	q := 0.5
-	gridChan := make(chan []uint64, 1)
+	gridChan := make(chan []uint32, 1)
 	resultChan := make(chan [2][]int, 1)
 	stopChan := make(chan struct{}, 1)
 

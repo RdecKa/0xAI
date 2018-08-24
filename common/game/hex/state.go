@@ -14,27 +14,27 @@ import (
 
 // State represents a state on a grid in a hex game
 //	size is a length of the grid (size 11 means 11x11 grid)
-//	grid is a list of rows in a grid, each row is represented as uint64. Each
+//	grid is a list of rows in a grid, each row is represented as uint32. Each
 //		cell in a row is stored with two bits:
 //			00 - empty
 //			01 - red
 //			10 - blue
 //			11 - undefined
-//		Lowest two bits represent the cell with index 0. Because of using 64
-//		bits for a row, maximal size of the grid is 32x32.
+//		Lowest two bits represent the cell with index 0. Because of using 32
+//		bits for a row, maximal size of the grid is 16x16.
 //	lastPlayer is the color of the player who made the last action
 //
 // A goal of the red player is to connect top-most and bottom-most row while a
 // goal of the blue player is to connect left-most and right-most column
 type State struct {
 	size       byte
-	grid       []uint64
+	grid       []uint32
 	lastPlayer Color
 }
 
 // NewState returns new State with a grid of given size
 func NewState(size byte, firstPlayer Color) *State {
-	grid := make([]uint64, size)
+	grid := make([]uint32, size)
 	return &State{size, grid, firstPlayer.Opponent()} // Opponent is set as last player, so firstPlayer starts
 }
 
@@ -59,8 +59,8 @@ func (s *State) GetSize() int {
 }
 
 // GetCopyGrid returns a copy of the state's grid
-func (s *State) GetCopyGrid() []uint64 {
-	c := make([]uint64, len(s.grid))
+func (s *State) GetCopyGrid() []uint32 {
+	c := make([]uint32, len(s.grid))
 	copy(c, s.grid)
 	return c
 }
@@ -79,19 +79,19 @@ func (s *State) getColorOn(x, y byte) Color {
 // setCell puts a stone of color c into cell (x, y)
 // Cell (x, y) must be empty and valid
 func (s *State) setCell(x, y byte, c Color) {
-	bits := uint64(c) << (x * 2)
+	bits := uint32(c) << (x * 2)
 	s.grid[y] |= bits
 }
 
 // getCellInRow returns color of a stone on index index in row row
-func getCellInRow(row uint64, index byte) Color {
+func getCellInRow(row uint32, index byte) Color {
 	// Find the two bits that represent column with index index
 	bits := ((3 << (index * 2)) & row) >> (index * 2)
 	return GetColorFromBits(bits)
 }
 
 func (s *State) clone() game.State {
-	newGrid := make([]uint64, len(s.grid))
+	newGrid := make([]uint32, len(s.grid))
 	for i, v := range s.grid {
 		newGrid[i] = v
 	}

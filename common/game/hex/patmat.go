@@ -18,8 +18,8 @@ type pattern struct {
 
 // CreatePatChecker creates a go routine that will serach for patterns in grids.
 // It returns channels for communicatin with this goroutine.
-func CreatePatChecker(fileName string) (chan []uint64, chan struct{}, chan [2][]int) {
-	gridChan := make(chan []uint64, 1)
+func CreatePatChecker(fileName string) (chan []uint32, chan struct{}, chan [2][]int) {
+	gridChan := make(chan []uint32, 1)
 	stopChan := make(chan struct{}, 1)
 	resultChan := make(chan [2][]int, 1)
 
@@ -103,7 +103,7 @@ func reverseLine(line []string) {
 // countPatternInGrid counts how many occurences the given pattern (with given
 // rotation) has in the grid. It also counts how many rows and columns each
 // player has occupied.
-func countPatternInGrid(pat pattern, grid []uint64) (int, int, [2][]bool, [2][]bool) {
+func countPatternInGrid(pat pattern, grid []uint32) (int, int, [2][]bool, [2][]bool) {
 	countRed, countBlue := 0, 0
 
 	var occRows [2][]bool
@@ -138,7 +138,7 @@ func countPatternInGrid(pat pattern, grid []uint64) (int, int, [2][]bool, [2][]b
 }
 
 // matches checks whether a subgrid matches the given pattern.
-func matches(pat pattern, grid []uint64, xStart, yStart int, player Color) bool {
+func matches(pat pattern, grid []uint32, xStart, yStart int, player Color) bool {
 	for y := 0; y < pat.h; y++ {
 		rowGrid := grid[yStart+y]
 		rowPat := pat.pat[y]
@@ -166,7 +166,7 @@ func matches(pat pattern, grid []uint64, xStart, yStart int, player Color) bool 
 // goroutine.
 // It also checks in how many rows and columns each player has at least one
 // virtual connection
-func patChecker(filename string, gridChan chan []uint64, stopChan chan struct{}, resultChan chan [2][]int) {
+func patChecker(filename string, gridChan chan []uint32, stopChan chan struct{}, resultChan chan [2][]int) {
 	defer close(gridChan)
 	defer close(stopChan)
 	defer close(resultChan)

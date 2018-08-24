@@ -74,7 +74,7 @@ func (mcts *MCTS) GetInitialNode() *tree.Node {
 }
 
 // RunMCTS executes iterations of MCTS for timeToRun, given initialised MCTS
-func RunMCTS(mc *MCTS, workerID int, timeToRun time.Duration, boardSize int, outputFile, logFile *os.File, gridChan chan []uint64, resultChan chan [2][]int) ([]*tree.Node, error) {
+func RunMCTS(mc *MCTS, workerID int, timeToRun time.Duration, boardSize int, outputFile, logFile *os.File, gridChan chan []uint32, resultChan chan [2][]int) ([]*tree.Node, error) {
 	timer := time.NewTimer(timeToRun)
 
 	timeOut := false

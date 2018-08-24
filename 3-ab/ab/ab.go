@@ -53,7 +53,7 @@ func AlphaBeta(state *hex.State, patFileName string) (*hex.Action, *tree.Tree) {
 }
 
 func alphaBeta(depth int, state *hex.State, lastAction *hex.Action,
-	alpha, beta float64, gridChan chan []uint64, resultChan chan [2][]int,
+	alpha, beta float64, gridChan chan []uint32, resultChan chan [2][]int,
 	transpositionTable map[string]float64) (float64, *hex.Action, *tree.Node, error) {
 
 	if val, ok := transpositionTable[state.GetMapKey()]; ok {
@@ -118,7 +118,7 @@ func alphaBeta(depth int, state *hex.State, lastAction *hex.Action,
 	return bestValue, retAction, node, nil
 }
 
-func eval(state *hex.State, gridChan chan []uint64, resultChan chan [2][]int) (float64, error) {
+func eval(state *hex.State, gridChan chan []uint32, resultChan chan [2][]int) (float64, error) {
 	gridChan <- state.GetCopyGrid()
 	red, blue, _ := state.GetNumOfStones()
 	patCount := <-resultChan
