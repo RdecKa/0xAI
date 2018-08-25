@@ -2,6 +2,7 @@ package ab
 
 import (
 	"testing"
+	"time"
 
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
 )
@@ -14,7 +15,8 @@ func benchmarkAB(actions []*hex.Action, size byte, b *testing.B) {
 	}
 
 	for n := 0; n < b.N; n++ {
-		AlphaBeta(state, "../../common/game/hex/patterns.txt")
+		// Now when time is added, results cannot really be compared anymore ...
+		AlphaBeta(state, time.Second, "../../common/game/hex/patterns.txt")
 	}
 }
 
