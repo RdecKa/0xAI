@@ -15,7 +15,7 @@ const abInit = 1000.0
 const won = 500.0
 
 // AlphaBeta runs search with AB pruning to select the next action to be taken
-func AlphaBeta(state *hex.State, patFileName string) (*hex.Action, *tree.Tree) {
+func AlphaBeta(state *hex.State, timeToRun time.Duration, patFileName string) (*hex.Action, *tree.Tree) {
 	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
 	defer func() { stopChan <- struct{}{} }()
 
@@ -28,7 +28,7 @@ func AlphaBeta(state *hex.State, patFileName string) (*hex.Action, *tree.Tree) {
 	var selectedAction *hex.Action
 	var rootNode *tree.Node
 
-	timeout := 1 * time.Second
+	timeout := timeToRun
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	var wg sync.WaitGroup
 

@@ -3,6 +3,7 @@ package hexplayer
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/RdecKa/bachleor-thesis/3-ab/ab"
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
@@ -14,6 +15,7 @@ import (
 type AbPlayer struct {
 	Color              hex.Color       // Player's color
 	Webso              *websocket.Conn // Websocket connecting server and client
+	timeToRun          time.Duration   // Time given to select an action
 	numWin             int             // Number of wins
 	state              *hex.State      // Current state in a game
 	lastOpponentAction *hex.Action     // Opponent's last action
@@ -21,8 +23,8 @@ type AbPlayer struct {
 }
 
 // CreateAbPlayer creates a new player
-func CreateAbPlayer(c hex.Color, webso *websocket.Conn, patFileName string) *AbPlayer {
-	ap := AbPlayer{c, webso, 0, nil, nil, patFileName}
+func CreateAbPlayer(c hex.Color, webso *websocket.Conn, t time.Duration, patFileName string) *AbPlayer {
+	ap := AbPlayer{c, webso, t, 0, nil, nil, patFileName}
 	return &ap
 }
 
@@ -43,7 +45,7 @@ func (ap *AbPlayer) PrevAction(prevAction *hex.Action) {
 
 // NextAction returns an action to be performed
 func (ap *AbPlayer) NextAction() (*hex.Action, error) {
-	chosenAction, searchedTree := ab.AlphaBeta(ap.state, ap.patFileName)
+	chosenAction, searchedTree := ab.AlphaBeta(ap.state, ap.timeToRun, ap.patFileName)
 	jsonText, err := json.Marshal(searchedTree)
 	if err != nil {
 		fmt.Print(fmt.Errorf("Error creating JSON of searchedTree"))
