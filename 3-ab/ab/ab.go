@@ -3,7 +3,6 @@ package ab
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
@@ -19,67 +18,39 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, patFileName string) (*
 	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
 	defer func() { stopChan <- struct{}{} }()
 
-	// Make channels for communication with alphaBetaWorker
-	actionChan := make(chan *hex.Action, 1)
-	nodeChan := make(chan *tree.Node, 1)
-	defer close(actionChan)
-	defer close(nodeChan)
-
-	var selectedAction *hex.Action
+	var selectedAction, a *hex.Action
 	var rootNode *tree.Node
+	var err error
 
 	timeout := timeToRun
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	var wg sync.WaitGroup
 
 	boardSize := state.GetSize()
 	for depth := 2; depth < boardSize*boardSize; depth += 2 {
-		// Start a worker
-		wg.Add(1)
-		go alphaBetaWorker(ctx, &wg, state, depth, gridChan, resultChan, actionChan, nodeChan)
+		fmt.Printf("Starting AB on depth %d\n", depth)
 
-		// Wait for worker to send results or for timeout
-		select {
-		case <-ctx.Done(): // Timeout
-			goto endForLoop
-		case selectedAction = <-actionChan: // Results received
-			rootNode = <-nodeChan
-			if selectedAction == nil {
-				// If an action was not found in a shallower search, it will not
-				// be found in a deeper search
-				goto endForLoop
-			}
+		transpositionTable := make(map[string]float64)
+		_, a, rootNode, err = alphaBeta(ctx, depth, state, nil, -abInit, abInit, gridChan, resultChan, transpositionTable)
+
+		if err != nil {
+			fmt.Println(err)
+			break
 		}
+
+		// If an action was not found in a shallower search, it will not
+		// be found in a deeper search
+		if a == nil {
+			break
+		}
+
+		selectedAction = a
+		fmt.Printf("Selected action: %v\n", selectedAction)
 	}
 
-endForLoop:
-	// Cancel the last AB search
+	// Cancel the Context
 	cancel()
-	// Wait till the goroutine with the last AB search is completely cancelled
-	wg.Wait()
 
 	return selectedAction, tree.NewTree(rootNode)
-}
-
-func alphaBetaWorker(ctx context.Context, wg *sync.WaitGroup, state *hex.State, depth int,
-	gridChan chan []uint32, resultChan chan [2][]int, actionChan chan *hex.Action, nodeChan chan *tree.Node) {
-
-	defer wg.Done() // Signal that the search is finished (normally or because it was cancelled)
-
-	fmt.Printf("Starting AB on depth %d\n", depth)
-
-	transpositionTable := make(map[string]float64)
-	_, a, rootNode, err := alphaBeta(ctx, depth, state, nil, -abInit, abInit, gridChan, resultChan, transpositionTable)
-
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Printf("Selected action: %v\n", a)
-
-	// Send results
-	actionChan <- a
-	nodeChan <- rootNode
 }
 
 func alphaBeta(ctx context.Context, depth int, state *hex.State, lastAction *hex.Action,
