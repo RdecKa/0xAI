@@ -19,7 +19,7 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, patFileName string) (*
 	defer func() { stopChan <- struct{}{} }()
 
 	var selectedAction, a *hex.Action
-	var rootNode *tree.Node
+	var rootNode, rn *tree.Node
 	var err error
 
 	timeout := timeToRun
@@ -30,7 +30,7 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, patFileName string) (*
 		fmt.Printf("Starting AB on depth %d\n", depth)
 
 		transpositionTable := make(map[string]float64)
-		_, a, rootNode, err = alphaBeta(ctx, depth, state, nil, -abInit, abInit, gridChan, resultChan, transpositionTable)
+		_, a, rn, err = alphaBeta(ctx, depth, state, nil, -abInit, abInit, gridChan, resultChan, transpositionTable)
 
 		if err != nil {
 			fmt.Println(err)
@@ -44,6 +44,7 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, patFileName string) (*
 		}
 
 		selectedAction = a
+		rootNode = rn
 		fmt.Printf("Selected action: %v\n", selectedAction)
 	}
 
@@ -139,16 +140,20 @@ func eval(state *hex.State, gridChan chan []uint32, resultChan chan [2][]int) (f
 	patCount := <-resultChan
 	sample := Sample{
 		num_stones:    red + blue,
-		occ_red_rows:  patCount[0][len(patCount)-2],
-		occ_red_cols:  patCount[0][len(patCount)-1],
-		occ_blue_rows: patCount[1][len(patCount)-2],
-		occ_blue_cols: patCount[1][len(patCount)-1],
-		red_p1:        patCount[0][0],
-		blue_p1:       patCount[1][0],
-		red_p2:        patCount[0][1],
-		blue_p2:       patCount[1][1],
+		occ_red_rows:  patCount[0][len(patCount[0])-2],
+		occ_red_cols:  patCount[0][len(patCount[0])-1],
+		occ_blue_rows: patCount[1][len(patCount[1])-2],
+		occ_blue_cols: patCount[1][len(patCount[1])-1],
+		red_p0:        patCount[0][0],
+		blue_p0:       patCount[1][0],
+		red_p1:        patCount[0][1],
+		blue_p1:       patCount[1][1],
+		red_p2:        patCount[0][2],
+		blue_p2:       patCount[1][2],
 	}
 	val := sample.getEstimatedValue()
+
+	// val is given from Red player's prospective
 	switch c := state.GetLastPlayer().Opponent(); c {
 	case hex.Red:
 		return val, nil
