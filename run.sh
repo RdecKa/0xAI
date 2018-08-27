@@ -44,11 +44,13 @@ if [ "$status" -ne 0 ]; then
 	exit 1
 fi
 
-# Get the newest file in output directory
-data_file_name=$(ls -t $output_folder_mcts | head -1)
+if [ "$json" = true ]; then
+	# Get the newest file in output directory
+	data_file_name=$(ls -t $output_folder_mcts | head -1)
 
-echo -n "let mcst_json = " > $visual_data_json_file
-cat "${output_folder_mcts}${data_file_name}" >> $visual_data_json_file
+	echo -n "let mcst_json = " > $visual_data_json_file
+	cat "${output_folder_mcts}${data_file_name}" >> $visual_data_json_file
+fi
 
 # Open results in browser
 if [ "$browser" = true ]; then
