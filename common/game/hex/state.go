@@ -120,10 +120,13 @@ func (s *State) IsEndingCell(x, y int, c Color) bool {
 // GetSuccessorState returns a state after Action a is performed
 func (s State) GetSuccessorState(action game.Action) game.State {
 	a := action.(*Action)
-	newState := s.clone().(State)
 	if a.c == s.lastPlayer {
 		panic(fmt.Sprintf("Player cannot do two moves in a row! (last player: %s, current action: %s)", s.lastPlayer, a))
 	}
+	if x, y := a.GetCoordinates(); s.getColorOn(byte(x), byte(y)) != None {
+		panic(fmt.Sprintf("Cell (%d, %d) already occupied!", x, y))
+	}
+	newState := s.clone().(State)
 	newState.lastPlayer = a.c
 	newState.setCell(a.x, a.y, a.c)
 	return newState
