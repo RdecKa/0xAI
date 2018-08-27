@@ -18,43 +18,88 @@ type AbPlayer struct {
 	timeToRun          time.Duration   // Time given to select an action
 	numWin             int             // Number of wins
 	state              *hex.State      // Current state in a game
+	safeWinCells       [][2]cell       // List of cells under the bridges on a winning path
 	lastOpponentAction *hex.Action     // Opponent's last action
 	patFileName        string          // File with patterns
+	allowResignation   bool            // Allow the player to resign if the game is lost
 }
 
 // CreateAbPlayer creates a new player
-func CreateAbPlayer(c hex.Color, webso *websocket.Conn, t time.Duration, patFileName string) *AbPlayer {
-	ap := AbPlayer{c, webso, t, 0, nil, nil, patFileName}
+func CreateAbPlayer(c hex.Color, webso *websocket.Conn, t time.Duration, allowResignation bool, patFileName string) *AbPlayer {
+	ap := AbPlayer{c, webso, t, 0, nil, nil, nil, patFileName, allowResignation}
 	return &ap
 }
 
 // InitGame initializes the game
 func (ap *AbPlayer) InitGame(boardSize int, firstPlayer hex.Color) error {
 	ap.state = hex.NewState(byte(boardSize), firstPlayer)
+	ap.safeWinCells = nil
+	ap.lastOpponentAction = nil
 	return nil
 }
 
 // PrevAction accepts opponent's last action
 func (ap *AbPlayer) PrevAction(prevAction *hex.Action) {
 	if prevAction != nil {
-		s := ap.state.GetSuccessorState(prevAction).(hex.State)
-		ap.state = &s
+		ap.updatePlayerState(prevAction)
 		ap.lastOpponentAction = prevAction
 	}
 }
 
-// NextAction returns an action to be performed
+// NextAction returns an action to be performed. It returns nil when the player
+// decides to resign.
 func (ap *AbPlayer) NextAction() (*hex.Action, error) {
+	// Check if the player has already won (has a virtual connection)
+	if a, swc, ok := getActionIfWinningPathExists(ap.lastOpponentAction, ap.safeWinCells, ap.Color); ok {
+		ap.updatePlayerState(a)
+		ap.safeWinCells = swc
+		return a, nil
+	}
+
+	// Run Minimax with alpha-beta pruning
 	chosenAction, searchedTree := ab.AlphaBeta(ap.state, ap.timeToRun, ap.patFileName)
+
+	if chosenAction == nil {
+		if !ap.allowResignation {
+			a, err := doNotLoseHope(ap.state, ap.Color)
+			if err != nil {
+				return nil, err
+			}
+
+			// Update state
+			ap.updatePlayerState(a)
+
+			return a, nil
+		}
+		return nil, nil
+	}
+
+	// Send JSON to the client for debugging purposes
 	jsonText, err := json.Marshal(searchedTree)
 	if err != nil {
 		fmt.Print(fmt.Errorf("Error creating JSON of searchedTree"))
+	} else {
+		message := fmt.Sprintf("ABJSON %s", jsonText)
+		ap.Webso.WriteMessage(websocket.TextMessage, []byte(message))
 	}
-	message := fmt.Sprintf("ABJSON %s", jsonText)
-	ap.Webso.WriteMessage(websocket.TextMessage, []byte(message))
-	s := ap.state.GetSuccessorState(chosenAction).(hex.State)
-	ap.state = &s
+
+	// Update state
+	ap.updatePlayerState(chosenAction)
+
+	// Check if player has a virtual connection
+	if exists, solution := ap.state.IsGoalState(false); exists {
+		fmt.Println("AB Player has a virtual connection!")
+		winPath := solution.([][2]int)
+		ap.safeWinCells = findSafeCells(winPath, ap.state.GetSize(), ap.Color)
+	}
+
 	return chosenAction, nil
+}
+
+// updatePlayerState updates the game state of the player
+func (ap *AbPlayer) updatePlayerState(a *hex.Action) {
+	s := ap.state.GetSuccessorState(a).(hex.State)
+	ap.state = &s
 }
 
 // EndGame accepts the result of the game

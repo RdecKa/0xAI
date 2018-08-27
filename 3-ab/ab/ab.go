@@ -58,13 +58,6 @@ endForLoop:
 	// Wait till the goroutine with the last AB search is completely cancelled
 	wg.Wait()
 
-	if selectedAction == nil {
-		// "Random" - TODO
-		fmt.Println("Choosing 'randomly'")
-		possibleActions := state.GetPossibleActions()
-		return possibleActions[0].(*hex.Action), nil
-	}
-
 	return selectedAction, tree.NewTree(rootNode)
 }
 
@@ -80,6 +73,7 @@ func alphaBetaWorker(ctx context.Context, wg *sync.WaitGroup, state *hex.State, 
 
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 	fmt.Printf("Selected action: %v\n", a)
 
