@@ -7,8 +7,10 @@ import (
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
 )
 
+const patFileName = "../../common/game/hex/patterns.txt"
+
 func benchmarkAB(actions []*hex.Action, size byte, b *testing.B) {
-	state := hex.NewState(7, hex.Red)
+	state := hex.NewState(size, hex.Red)
 	for _, a := range actions {
 		s := state.GetSuccessorState(a).(hex.State)
 		state = &s
@@ -16,7 +18,7 @@ func benchmarkAB(actions []*hex.Action, size byte, b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		// Now when time is added, results cannot really be compared anymore ...
-		AlphaBeta(state, time.Second, "../../common/game/hex/patterns.txt")
+		AlphaBeta(state, time.Second, patFileName)
 	}
 }
 

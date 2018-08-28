@@ -23,3 +23,13 @@ type State interface {
 type Action interface {
 	String() string
 }
+
+// ---------------------
+// |     Attribute     |
+// ---------------------
+
+// Attribute represents one charasteristic of a game state
+type Attribute interface {
+	GetAttributeName() string
+	GetAttributeValue([]interface{}) int
+}

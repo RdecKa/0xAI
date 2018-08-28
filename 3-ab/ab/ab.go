@@ -136,20 +136,21 @@ func alphaBeta(ctx context.Context, depth int, state *hex.State, lastAction *hex
 
 func eval(state *hex.State, gridChan chan []uint32, resultChan chan [2][]int) (float64, error) {
 	gridChan <- state.GetCopyGrid()
-	red, blue, _ := state.GetNumOfStones()
 	patCount := <-resultChan
+
+	args := []interface{}{*state, patCount}
 	sample := Sample{
-		num_stones:    red + blue,
-		occ_red_rows:  patCount[0][len(patCount[0])-2],
-		occ_red_cols:  patCount[0][len(patCount[0])-1],
-		occ_blue_rows: patCount[1][len(patCount[1])-2],
-		occ_blue_cols: patCount[1][len(patCount[1])-1],
-		red_p0:        patCount[0][0],
-		blue_p0:       patCount[1][0],
-		red_p1:        patCount[0][1],
-		blue_p1:       patCount[1][1],
-		red_p2:        patCount[0][2],
-		blue_p2:       patCount[1][2],
+		num_stones:    hex.AttrNumStones.GetAttributeValue(args),
+		occ_red_rows:  hex.AttrOccRedRows.GetAttributeValue(args),
+		occ_red_cols:  hex.AttrOccRedCols.GetAttributeValue(args),
+		occ_blue_rows: hex.AttrOccBlueRows.GetAttributeValue(args),
+		occ_blue_cols: hex.AttrOccBlueCols.GetAttributeValue(args),
+		red_p0:        hex.AttrPatCountRed0.GetAttributeValue(args),
+		red_p1:        hex.AttrPatCountRed1.GetAttributeValue(args),
+		red_p2:        hex.AttrPatCountRed2.GetAttributeValue(args),
+		blue_p0:       hex.AttrPatCountBlue0.GetAttributeValue(args),
+		blue_p1:       hex.AttrPatCountBlue1.GetAttributeValue(args),
+		blue_p2:       hex.AttrPatCountBlue2.GetAttributeValue(args),
 	}
 	val := sample.getEstimatedValue()
 
