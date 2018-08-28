@@ -15,9 +15,8 @@ workers=3
 
 now=$(date +"%Y%m%dT%H%M%S")
 output_folder_mcts="${output_folder_mcts}run-${now}/"
-# Make a new folder for output files
-mkdir "$output_folder_mcts"
 
+# Read flags
 while getopts 'bijt:o:p:s:w:' flag; do
 	case "${flag}" in
 		b) browser='true' ;;
@@ -34,6 +33,14 @@ done
 
 # Compile the program
 go install 1-mcts/main/main.go
+
+if [ "$?" -ne 0 ]; then
+	echo "Cannot compile."
+	exit 1
+fi
+
+# Make a new folder for output files
+mkdir "$output_folder_mcts"
 
 # Run the program
 main -output="$output_folder_mcts" -json="$json" -indent="$indent" -time="$time" -size="$size" -workers="$workers" -patterns="$patterns_file"
@@ -86,6 +93,7 @@ for filename in ${output_folder_mcts}*.in; do
 	tail -n +2 "$filename" >> "$data_file" # Copy everything except attribute names
 done
 
+# Run the program
 python3 2-ml/regression.py -d "$data_file" -o "$output_folder_ml"
 
 # Visualize trees
@@ -93,7 +101,7 @@ for filename in ${output_folder_ml}*.dot; do
 	dot -Tps "$filename" -o "${filename%.*}.ps"
 done
 
-# Move .goo files to ab package
+# Move .go files to ab package
 for filename in ${output_folder_ml}*.go; do
 	cp "$filename" "3-ab/ab"
 done
