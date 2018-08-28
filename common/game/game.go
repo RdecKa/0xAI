@@ -31,5 +31,5 @@ type Action interface {
 // Attribute represents one charasteristic of a game state
 type Attribute interface {
 	GetAttributeName() string
-	GetAttributeValue([]interface{}) int
+	GetAttributeValue(*[]interface{}) int
 }

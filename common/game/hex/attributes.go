@@ -1,3 +1,18 @@
+// Package hex - in this file all possible attributes that can be used for
+// evaluating a hex board are listed.
+//
+// To add an attribute, do the following:
+// 	- Implement a type implementing game.Attribute
+// 	- Initialize instance(s) of that attribute
+// 	- Add this/these instance(s) to the slice GenSamAttributes
+// 	- In 2-ml/regression.py, select a type of the attribute when reading a CSV
+// 		file (for now only integer values are supported)
+// 	- In 3-ab/ab/ab.go, add a line to initialization of Sample sample for each
+// 		instance of the attribute
+//
+// To remove an attribute, simply delete it from the GenSamAttributes. To
+// completely remove it, undo the steps listed in instructions for adding an
+// attribute.
 package hex
 
 import (
@@ -6,7 +21,7 @@ import (
 	"github.com/RdecKa/bachleor-thesis/common/game"
 )
 
-// All the attributes avaliable
+// Initialization of all available attributes
 var (
 	AttrNumStones     = AttrNumberStones{}
 	AttrOccRedRows    = AttrOccupiedRowsCols{Red, true}
@@ -50,8 +65,8 @@ func (a AttrNumberStones) GetAttributeName() string {
 }
 
 // GetAttributeValue returns the value of an attribute
-func (a AttrNumberStones) GetAttributeValue(args []interface{}) int {
-	s := args[0].(State)
+func (a AttrNumberStones) GetAttributeValue(args *[]interface{}) int {
+	s := (*args)[0].(State)
 	r, b, _ := s.GetNumOfStones()
 	return r + b
 }
@@ -92,8 +107,8 @@ func (a AttrOccupiedRowsCols) GetAttributeName() string {
 }
 
 // GetAttributeValue returns the value of an attribute
-func (a AttrOccupiedRowsCols) GetAttributeValue(args []interface{}) int {
-	patCount := args[1].([2][]int)
+func (a AttrOccupiedRowsCols) GetAttributeValue(args *[]interface{}) int {
+	patCount := (*args)[1].([2][]int)
 	i := -1
 	switch a.color {
 	case Red:
@@ -142,8 +157,8 @@ func (a AttrPatternCount) GetAttributeName() string {
 }
 
 // GetAttributeValue returns the value of an attribute
-func (a AttrPatternCount) GetAttributeValue(args []interface{}) int {
-	patCount := args[1].([2][]int)
+func (a AttrPatternCount) GetAttributeValue(args *[]interface{}) int {
+	patCount := (*args)[1].([2][]int)
 	i := -1
 	switch a.color {
 	case Red:

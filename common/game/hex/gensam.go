@@ -16,9 +16,10 @@ func (s State) GenSample(q float64, gridChan chan []uint32, resultChan chan [2][
 	o := fmt.Sprintf("%f", q)
 
 	patCount := <-resultChan
+	args := &[]interface{}{s, patCount}
 	for _, attr := range GenSamAttributes {
 		o += ","
-		o += fmt.Sprintf("%v", attr.GetAttributeValue([]interface{}{s, patCount}))
+		o += fmt.Sprintf("%v", attr.GetAttributeValue(args))
 	}
 	o += "\n"
 	return o

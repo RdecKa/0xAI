@@ -138,7 +138,7 @@ func eval(state *hex.State, gridChan chan []uint32, resultChan chan [2][]int) (f
 	gridChan <- state.GetCopyGrid()
 	patCount := <-resultChan
 
-	args := []interface{}{*state, patCount}
+	args := &[]interface{}{*state, patCount}
 	sample := Sample{
 		num_stones:    hex.AttrNumStones.GetAttributeValue(args),
 		occ_red_rows:  hex.AttrOccRedRows.GetAttributeValue(args),
