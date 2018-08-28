@@ -22,11 +22,12 @@ type AbPlayer struct {
 	lastOpponentAction *hex.Action     // Opponent's last action
 	patFileName        string          // File with patterns
 	allowResignation   bool            // Allow the player to resign if the game is lost
+	createTree         bool            // If true, create a search tree for debugging purposes
 }
 
 // CreateAbPlayer creates a new player
-func CreateAbPlayer(c hex.Color, webso *websocket.Conn, t time.Duration, allowResignation bool, patFileName string) *AbPlayer {
-	ap := AbPlayer{c, webso, t, 0, nil, nil, nil, patFileName, allowResignation}
+func CreateAbPlayer(c hex.Color, webso *websocket.Conn, t time.Duration, allowResignation bool, patFileName string, createTree bool) *AbPlayer {
+	ap := AbPlayer{c, webso, t, 0, nil, nil, nil, patFileName, allowResignation, createTree}
 	return &ap
 }
 
@@ -57,7 +58,7 @@ func (ap *AbPlayer) NextAction() (*hex.Action, error) {
 	}
 
 	// Run Minimax with alpha-beta pruning
-	chosenAction, searchedTree := ab.AlphaBeta(ap.state, ap.timeToRun, ap.patFileName)
+	chosenAction, searchedTree := ab.AlphaBeta(ap.state, ap.timeToRun, ap.patFileName, ap.createTree)
 
 	if chosenAction == nil {
 		if !ap.allowResignation {
@@ -75,12 +76,14 @@ func (ap *AbPlayer) NextAction() (*hex.Action, error) {
 	}
 
 	// Send JSON to the client for debugging purposes
-	jsonText, err := json.Marshal(searchedTree)
-	if err != nil {
-		fmt.Print(fmt.Errorf("Error creating JSON of searchedTree"))
-	} else {
-		message := fmt.Sprintf("ABJSON %s", jsonText)
-		ap.Webso.WriteMessage(websocket.TextMessage, []byte(message))
+	if ap.createTree {
+		jsonText, err := json.Marshal(searchedTree)
+		if err != nil {
+			fmt.Print(fmt.Errorf("Error creating JSON of searchedTree"))
+		} else {
+			message := fmt.Sprintf("ABJSON %s", jsonText)
+			ap.Webso.WriteMessage(websocket.TextMessage, []byte(message))
+		}
 	}
 
 	// Update state
