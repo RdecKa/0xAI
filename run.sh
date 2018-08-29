@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# $1 - prompt
+function read_boolean_answer {
+	ans=""
+	while [[ "$ans" != "y" ]] && [ "$ans" != "n" ]; do
+		read -p "$1 [y/n] " ans
+	done
+	echo "$ans"
+}
+
 output_folder_mcts="data/mcts/"
 visual_data_folder="visual/mcts/"
 visual_data_json_file="${visual_data_folder}data.js"
@@ -69,10 +78,7 @@ echo
 echo "MCTS phase completed."
 
 # Ask user whether to continue with the next phase
-answer=""
-while [[ "$answer" != "y" ]] && [ "$answer" != "n" ]; do
-	read -p "Do you want to continue with ML? [y/n] " answer
-done
+answer=$(read_boolean_answer "Do you want to continue with ML?")
 
 if [ "$answer" = "n" ]; then
 	echo "Bye!"
@@ -127,3 +133,23 @@ if [ -f "$selected_file_path" ]; then
 else
 	echo "Selected ${selected_file_path} does not exist, so nothing will be copied. You can do it manually."
 fi
+echo
+
+# Ask the user whether to run the server
+answer=$(read_boolean_answer "Shall I run the server for you?")
+
+if [ "$answer" = "n" ]; then
+	echo "Bye!"
+	exit 0
+fi
+
+# Compile the server
+go install server/main/server.go
+
+if [ "$?" -ne 0 ]; then
+	echo "Cannot compile."
+	exit 1
+fi
+
+# Start the server
+server
