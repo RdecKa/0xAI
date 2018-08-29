@@ -5,6 +5,7 @@ visual_data_folder="visual/mcts/"
 visual_data_json_file="${visual_data_folder}data.js"
 visual_html_index="${visual_data_folder}index.html"
 patterns_file="common/game/hex/patterns.txt"
+ab_folder="3-ab/ab/"
 
 indent=false
 json=false
@@ -64,6 +65,7 @@ if [ "$browser" = true ]; then
 	xdg-open $visual_html_index
 fi
 
+echo
 echo "MCTS phase completed."
 
 # Ask user whether to continue with the next phase
@@ -77,6 +79,7 @@ if [ "$answer" = "n" ]; then
 	exit 0
 fi
 
+echo
 echo "OK, let's continue!"
 
 # Create a new folder for ML outputs
@@ -101,7 +104,26 @@ for filename in ${output_folder_ml}*.dot; do
 	dot -Tps "$filename" -o "${filename%.*}.ps"
 done
 
-# Move .go files to ab package
-for filename in ${output_folder_ml}*.go; do
-	cp "$filename" "3-ab/ab"
+# Get number of generated tree*code.go files (files with decision trees)
+num_tree_files=$(ls ${output_folder_ml}tree*code.go | wc -l)
+
+# Ask the user whether to copy the tree to ab package
+echo
+echo -n "Number of generated tree*code.go files: ${num_tree_files}. Which one should be used for evaluating a state in a game? "
+echo -n "[0"
+for i in $(seq 1 $(( $num_tree_files - 1 ))); do
+	echo -n "/${i}"
 done
+echo "]"
+echo "(See ${output_folder_ml}stats.txt for more information about the trees.)"
+read -p "Your selection (enter invalid number to not copy anything): " answer
+selected_file="tree${answer}code.go"
+selected_file_path="${output_folder_ml}${selected_file}"
+
+# Copy selected .go file to ab package (if the file exists)
+if [ -f "$selected_file_path" ]; then
+	echo "Selected ${selected_file_path} will be copied to ${ab_folder}treecode.go."
+	cp -f "${selected_file_path}" "${ab_folder}treecode.go"
+else
+	echo "Selected ${selected_file_path} does not exist, so nothing will be copied. You can do it manually."
+fi
