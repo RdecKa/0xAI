@@ -20,6 +20,7 @@ PYTHON_COMMAND = python3
 # ---> Common variables <---
 START_TIME := $(shell date +"%Y%m%dT%H%M%S")
 PATTERNS_FILE = common/game/hex/patterns.txt
+OPEN_IN_BROWSER = xdg-open
 
 # ---> MCTS variables <---
 MCTS_DIR = 1-mcts/
@@ -70,26 +71,27 @@ clean:
 
 # ---> MCTS targets <---
 mctscomp: $(MCTS_FILES)
-	# Compile the MCTS program
+	# --> Compile the MCTS program <--
 	$(GO_INSTALL) $(MCTS_MAIN)
 
 mctsrun:
-	# Make a new folder for output files
+# Make a new folder for output files
 	mkdir "$(MCTS_OUT_DIR)"
 
-	# Run the program
+	# --> Run MCTS program <--
 	main -output=$(MCTS_OUT_DIR) -json=$(JSON) -indent=$(INDENT) -time=$(TIME) -size=$(SIZE) -workers=$(WORKERS) -patterns=$(PATTERNS_FILE)
 
 mctsjson: DATA_FILE = "$(shell ls $(MCTS_OUT_DIR)*.json)"
 mctsjson:
-	# File to be used for MCTS visualisation: $(VISUAL_DATA_JSON_FILE)
+	# --> Create JSON <--
+# File to be used for MCTS visualisation: $(VISUAL_DATA_JSON_FILE)
 	echo -n "let mcst_json = " > $(VISUAL_DATA_JSON_FILE)
-	# Find the JSON file in output directory, copy its content: $(DATA_FILE)
+# Find the JSON file in output directory, copy its content: $(DATA_FILE)
 	cat $(DATA_FILE) >> $(VISUAL_DATA_JSON_FILE)
 
 mctsvisual:
-	# Open results in browser
-	xdg-open $(VISUAL_HTML_INDEX)
+	# --> Open results in browser <--
+	$(OPEN_IN_BROWSER) $(VISUAL_HTML_INDEX)
 
 mcts: mctscomp mctsrun
 
@@ -99,28 +101,27 @@ mctsall: mctscomp mctsrun mctsjson mctsvisual
 
 # ---> ML targets <---
 mlcreatedir:
-# Create a folder for ML output
 	mkdir $(ML_OUT_DIR)
 
 mlmerge:
-	# Create a file to merge all learning samples: $(ML_MERGE_DATA_FILE)
-	# Copy attribute names
-	echo $(ML_INPUT_FILES)
-	echo $(MCTS_OUT_DIR)
+	# --> Create a file to merge all learning samples: $(ML_MERGE_DATA_FILE) <--
+# Copy attribute names
 	head -n 1 $(word 1, $(ML_INPUT_FILES)) > $(ML_MERGE_DATA_FILE)
-	# Copy data
+# Copy data
 	tail -n +2 $(ML_INPUT_FILES) >> $(ML_MERGE_DATA_FILE)
-	# Remove redundant lines
+# Remove redundant lines
 	sed -i '/==>\|^$$/d' $(ML_MERGE_DATA_FILE)
 
 mlrun: mlcreatedir mlmerge
+	# --> Run ML program <--
 	$(PYTHON_COMMAND) $(ML_MAIN) -d $(ML_MERGE_DATA_FILE) -o $(ML_OUT_DIR)
 
 mltrees:
-	# Visualize trees
+	# --> Visualize trees <--
 	$(foreach FILE, $(ML_DOT_FILES), $(shell dot -Tps $(FILE) -o $(FILE:.dot=.ps)))
 
 mlcopycode:
+	# --> Copy generated Go files to AB directory <--
 	cp -f "$(ML_SELECT_TREE_FILE)" "$(AB_GEN_TREE_FILE)"
 	cp -f "$(ML_GEN_SAMPLE_FILE)" "$(AB_GEN_SAMP_FILE)"
 
@@ -131,9 +132,10 @@ mlall: mlrun mltrees mlcopycode
 
 # ---> Server targets <---
 servcomp:
+	# --> Compile server <--
 	$(GO_INSTALL) $(SERV_MAIN)
 
 servrun:
-	# Start server by typing '$(SERV_BIN_NAME)'
+	# --> Start server by typing '$(SERV_BIN_NAME)' <--
 
 serv: servcomp servrun
