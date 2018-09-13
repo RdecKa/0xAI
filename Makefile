@@ -3,6 +3,16 @@ SHELL = /bin/sh
 # ---> Go variables <---
 GO_COMMAND = go
 GO_INSTALL = $(GO_COMMAND) install
+GO_CLEAN = $(GO_COMMAND) clean -i
+GO_CLEAN_FILES = github.com/RdecKa/bachleor-thesis/1-mcts/mcts \
+	github.com/RdecKa/bachleor-thesis/3-ab/ab \
+	github.com/RdecKa/bachleor-thesis/common/astarsearch \
+	github.com/RdecKa/bachleor-thesis/common/game \
+	github.com/RdecKa/bachleor-thesis/common/pq \
+	github.com/RdecKa/bachleor-thesis/common/tree \
+	github.com/RdecKa/bachleor-thesis/common/game/hex \
+	github.com/RdecKa/bachleor-thesis/server/hexgame \
+	github.com/RdecKa/bachleor-thesis/server/hexplayer
 
 # ---> Python variables <---
 PYTHON_COMMAND = python3
@@ -42,6 +52,7 @@ ML_GEN_SAMPLE_FILE = $(ML_OUT_DIR)sample.go
 
 # ---> AB variables <---
 AB_DIR = 3-ab/ab/
+AB_GEN_SAMP_FILE = $(AB_DIR)sample.go
 AB_GEN_TREE_FILE = $(AB_DIR)treecode.go
 
 # ---> Server variables <---
@@ -52,6 +63,10 @@ SERV_BIN_NAME = server
 ################################################################################
 
 all: mcts mlall serv
+
+clean:
+	$(GO_CLEAN) $(GO_CLEAN_FILES)
+	rm -f $(AB_GEN_TREE_FILE) $(AB_GEN_SAMP_FILE)
 
 # ---> MCTS targets <---
 mctscomp: $(MCTS_FILES)
@@ -107,7 +122,7 @@ mltrees:
 
 mlcopycode:
 	cp -f "$(ML_SELECT_TREE_FILE)" "$(AB_GEN_TREE_FILE)"
-	cp -f "$(ML_GEN_SAMPLE_FILE)" "$(AB_DIR)"
+	cp -f "$(ML_GEN_SAMPLE_FILE)" "$(AB_GEN_SAMP_FILE)"
 
 ml: mlrun mlcopycode
 
