@@ -44,13 +44,22 @@ ML_GEN_SAMPLE_FILE = $(ML_OUT_DIR)sample.go
 AB_DIR = 3-ab/ab/
 AB_GEN_TREE_FILE = $(AB_DIR)treecode.go
 
+# ---> Server variables <---
+SERV_DIR = server/
+SERV_MAIN = $(SERV_DIR)main/server.go
+SERV_BIN_NAME = server
+
+################################################################################
+
+all: mcts mlall serv
+
 # ---> MCTS targets <---
 mctscomp: $(MCTS_FILES)
 	# Compile the MCTS program
 	$(GO_INSTALL) $(MCTS_MAIN)
 
 mctsrun:
-	# Make a new folder for output files: $(MCTS_OUT_DIR)
+	# Make a new folder for output files
 	mkdir "$(MCTS_OUT_DIR)"
 
 	# Run the program
@@ -78,16 +87,18 @@ mlcreatedir:
 # Create a folder for ML output
 	mkdir $(ML_OUT_DIR)
 
-$(ML_MERGE_DATA_FILE): $(ML_INPUT_FILES)
+mlmerge:
 	# Create a file to merge all learning samples: $(ML_MERGE_DATA_FILE)
 	# Copy attribute names
-	head -n 1 $< > $@
+	echo $(ML_INPUT_FILES)
+	echo $(MCTS_OUT_DIR)
+	head -n 1 $(word 1, $(ML_INPUT_FILES)) > $(ML_MERGE_DATA_FILE)
 	# Copy data
-	tail -n +2 $(ML_INPUT_FILES) >> $@
+	tail -n +2 $(ML_INPUT_FILES) >> $(ML_MERGE_DATA_FILE)
 	# Remove redundant lines
 	sed -i '/==>\|^$$/d' $(ML_MERGE_DATA_FILE)
 
-mlrun: mlcreatedir $(ML_MERGE_DATA_FILE)
+mlrun: mlcreatedir mlmerge
 	$(PYTHON_COMMAND) $(ML_MAIN) -d $(ML_MERGE_DATA_FILE) -o $(ML_OUT_DIR)
 
 mltrees:
@@ -101,3 +112,13 @@ mlcopycode:
 ml: mlrun mlcopycode
 
 mlall: mlrun mltrees mlcopycode
+
+
+# ---> Server targets <---
+servcomp:
+	$(GO_INSTALL) $(SERV_MAIN)
+
+servrun:
+	# Start server by typing '$(SERV_BIN_NAME)'
+
+serv: servcomp servrun
