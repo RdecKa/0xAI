@@ -3,7 +3,7 @@
 # $1 - prompt
 function read_boolean_answer {
 	ans=""
-	while [[ "$ans" != "y" ]] && [ "$ans" != "n" ]; do
+	while [[ "$ans" != "y" ]] && [[ "$ans" != "n" ]]; do
 		read -p "$1 [y/n] " ans
 	done
 	echo "$ans"
