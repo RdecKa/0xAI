@@ -17,6 +17,9 @@ GO_CLEAN_FILES = github.com/RdecKa/bachleor-thesis/1-mcts/mcts \
 # ---> Python variables <---
 PYTHON_COMMAND = python3
 
+# ---> CSS variables <---
+CSS_COMPILER = sass
+
 # ---> Common variables <---
 START_TIME := $(shell date +"%Y%m%dT%H%M%S")
 PATTERNS_FILE = common/game/hex/patterns.txt
@@ -68,6 +71,11 @@ all: mcts mlall serv
 clean:
 	$(GO_CLEAN) $(GO_CLEAN_FILES)
 	rm -f $(AB_GEN_TREE_FILE) $(AB_GEN_SAMP_FILE)
+	rm -f $(VISUAL_DATA_DIR)style.css*
+	rm -f $(SERV_DIR)static/css/style.css*
+
+%.css: %.scss
+	$(CSS_COMPILER) $< $@
 
 # ---> MCTS targets <---
 mctscomp: $(MCTS_FILES)
@@ -89,7 +97,7 @@ mctsjson:
 # Find the JSON file in output directory, copy its content: $(DATA_FILE)
 	cat $(DATA_FILE) >> $(VISUAL_DATA_JSON_FILE)
 
-mctsvisual:
+mctsvisual: $(VISUAL_DATA_DIR)style.css
 	# --> Open results in browser <--
 	$(OPEN_IN_BROWSER) $(VISUAL_HTML_INDEX)
 
@@ -131,7 +139,7 @@ mlall: mlrun mltrees mlcopycode
 
 
 # ---> Server targets <---
-servcomp:
+servcomp: $(SERV_DIR)static/css/style.css
 	# --> Compile server <--
 	$(GO_INSTALL) $(SERV_MAIN)
 
