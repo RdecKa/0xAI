@@ -74,7 +74,7 @@ func (mcts *MCTS) GetInitialNode() *tree.Node {
 }
 
 // RunMCTS executes iterations of MCTS for timeToRun, given initialised MCTS
-func RunMCTS(mc *MCTS, workerID int, timeToRun time.Duration, boardSize int, outputFile, logFile *os.File, gridChan chan []uint32, resultChan chan [2][]int) ([]*tree.Node, error) {
+func RunMCTS(mc *MCTS, workerID int, timeToRun time.Duration, boardSize int, treasholdN uint, outputFile, logFile *os.File, gridChan chan []uint32, resultChan chan [2][]int) ([]*tree.Node, error) {
 	timer := time.NewTimer(timeToRun)
 
 	timeOut := false
@@ -93,7 +93,7 @@ func RunMCTS(mc *MCTS, workerID int, timeToRun time.Duration, boardSize int, out
 
 	// Write input-output pairs for supervised machine learning, generate
 	// new nodes to continue MCTS
-	expCand, err := mc.GenSamples(outputFile, 100, gridChan, resultChan)
+	expCand, err := mc.GenSamples(outputFile, treasholdN, gridChan, resultChan)
 	if err != nil {
 		return nil, err
 	}

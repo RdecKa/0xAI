@@ -34,6 +34,7 @@ MCTS_OUT_DIR = $(MCTS_OUT_DIR_PARENT)run-$(START_TIME)/
 TIME = 5
 SIZE = 3
 WORKERS = 3
+TREASHOLD_N = 100
 
 # ---> Visual variables <---
 VISUAL_DATA_DIR = visual/mcts/
@@ -87,7 +88,7 @@ mctsrun:
 	mkdir "$(MCTS_OUT_DIR)"
 
 	# --> Run MCTS program <--
-	main -output=$(MCTS_OUT_DIR) -json=$(JSON) -indent=$(INDENT) -time=$(TIME) -size=$(SIZE) -workers=$(WORKERS) -patterns=$(PATTERNS_FILE)
+	main -output=$(MCTS_OUT_DIR) -json=$(JSON) -indent=$(INDENT) -time=$(TIME) -size=$(SIZE) -workers=$(WORKERS) -patterns=$(PATTERNS_FILE) -treasholdn=$(TREASHOLD_N)
 
 mctsjson: DATA_FILE = "$(shell ls $(MCTS_OUT_DIR)*.json)"
 mctsjson:
