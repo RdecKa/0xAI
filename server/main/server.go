@@ -1,12 +1,13 @@
 package main
 
-import _ "net/http/pprof"
 import (
 	"html/template"
 	"log"
 	"math"
 	"net/http"
+	_ "net/http/pprof"
 	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
@@ -22,6 +23,10 @@ var templates = template.Must(template.New("").Delims("[[", "]]").ParseFiles(
 	"server/tmpl/select.html"))
 
 const addr = "localhost:8080"
+
+const defaultBoardSize = 7
+
+const defaultNumGames = 1
 
 func makeHandler(fn func(http.ResponseWriter, *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -55,8 +60,30 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	red, okRed := args["red"]
 	blue, okBlue := args["blue"]
 	watch, okWatch := args["watch"]
+	boardSizeString, okBoardSize := args["size"]
+	numGamesString, okNumGames := args["numgames"]
+
 	wa := okWatch && watch[0] == "false"
 	pair := [2]hexplayer.HexPlayer{} // 0 - red, 1 - blue
+
+	var boardSize, numGames int
+	var err error
+	if !okBoardSize {
+		boardSize = defaultBoardSize
+	} else {
+		boardSize, err = strconv.Atoi(boardSizeString[0])
+		if err != nil {
+			boardSize = defaultBoardSize
+		}
+	}
+	if !okNumGames {
+		numGames = defaultNumGames
+	} else {
+		numGames, err = strconv.Atoi(numGamesString[0])
+		if err != nil {
+			numGames = defaultNumGames
+		}
+	}
 
 	conn, err := hexplayer.OpenConn(w, r)
 	if err != nil {
@@ -98,7 +125,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		c = nil
 	}
 
-	go hexgame.Play(pair, 15, c)
+	go hexgame.Play(boardSize, pair, numGames, c)
 }
 
 func createHumanPlayer(color hex.Color, conn *websocket.Conn, allowResignation bool) hexplayer.HexPlayer {

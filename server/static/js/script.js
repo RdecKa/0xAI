@@ -6,7 +6,8 @@ window.onload = function() {
 	if (query["red"] == undefined || query["blue"] == undefined) {
 		console.log("Wrong query, using default values.");
 	} else {
-		args = "?red=" + query["red"] + "&blue=" + query["blue"] + "&watch=" + query["watch"];
+		args = "?red=" + query["red"] + "&blue=" + query["blue"] + "&watch=" +
+			query["watch"] + "&size=" + query["size"] + "&numgames=" + query["numgames"];
 	}
 	const socket = new WebSocket("ws://localhost:8080/ws/" + args);
 

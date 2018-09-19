@@ -9,9 +9,8 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func playOneGame(players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlayer, startingPlayer int) error {
+func playOneGame(boardSize int, players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlayer, startingPlayer int) error {
 	// Init game
-	boardSize := 7
 	for p := 0; p < 3; p++ {
 		var err error
 		if p < 2 {
@@ -70,10 +69,10 @@ func playOneGame(players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlay
 	return nil
 }
 
-func playNGames(players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlayer, numGames int) [2]int {
+func playNGames(boardSize int, players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlayer, numGames int) [2]int {
 	startingPlayer := 0
 	for g := 0; g < numGames; g++ {
-		err := playOneGame(players, passiveClient, startingPlayer)
+		err := playOneGame(boardSize, players, passiveClient, startingPlayer)
 		if err != nil {
 			fmt.Println("Game canceled: " + err.Error())
 			continue
@@ -91,13 +90,13 @@ func playNGames(players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlaye
 
 // Play accepts an array of two players and number of games to be played. It
 // runs numGames games of Hex between the given players.
-func Play(players [2]hexplayer.HexPlayer, numGames int, conn *websocket.Conn) {
+func Play(boardSize int, players [2]hexplayer.HexPlayer, numGames int, conn *websocket.Conn) {
 	var passiveClient hexplayer.HexPlayer
 	if conn != nil && players[0].GetType() != hexplayer.HumanType && players[1].GetType() != hexplayer.HumanType {
 		// Create a passive player to show the game in browser
 		passiveClient = hexplayer.CreateHumanPlayer(conn, hex.None)
 	}
-	results := playNGames(players, passiveClient, numGames)
+	results := playNGames(boardSize, players, passiveClient, numGames)
 	fmt.Printf("*** Final results ***:\n")
 	fmt.Printf("\tPlayer one: %d\n", results[0])
 	fmt.Printf("\tPlayer two: %d\n", results[1])
