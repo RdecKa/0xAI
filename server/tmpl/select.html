@@ -16,8 +16,14 @@
 		<select-player :color="'Blue'" @selection-change="onSelectionChange"></select-player>
 		<div class="col col-1">
 			<form>
-				<input type="checkbox" id="watch" name="watch" v-model="watchInBrowser" :disabled=watchInBrowserDisabled>
+				<input type="checkbox" id="watch" name="watch" v-model="watchInBrowser" :disabled="watchInBrowserDisabled">
 				<label for="watch">Watch the match in this browser</label>
+				<br>
+				<label for="boardSize">Board size</label>
+				<input type="number" id="boardSize" v-model="boardSize">
+				<br>
+				<label for="numGames">Number of games</label>
+				<input type="number" id="numGames" v-model="numGames">
 			</form>
 		</div>
 		<div class="col col-1">

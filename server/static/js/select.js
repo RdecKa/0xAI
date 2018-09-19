@@ -10,13 +10,17 @@ function selectPlayers() {
 			message: "Select both players, please.",
 			selection: {"Red": null, "Blue": null},
 			watchInBrowser: true,
-			watchInBrowserDisabled: false
+			watchInBrowserDisabled: false,
+			boardSize: 11,
+			numGames: 5
 		},
 		methods: {
 			clickPlayHandler: function () {
 				window.location.href = "http://localhost:8080/play/?red=" + this.selection["Red"]
 					+ "&blue=" + this.selection["Blue"]
-					+ "&watch=" + this.watchInBrowser;
+					+ "&watch=" + this.watchInBrowser
+					+ "&size=" + this.boardSize
+					+ "&numgames=" + this.numGames;
 			},
 			onSelectionChange: function (event) {
 				this.selection[event.color] = event.selection;
