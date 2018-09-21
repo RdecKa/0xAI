@@ -91,6 +91,7 @@ func playNGames(boardSize int, players [2]hexplayer.HexPlayer, passiveClient hex
 // Play accepts an array of two players and number of games to be played. It
 // runs numGames games of Hex between the given players.
 func Play(boardSize int, players [2]hexplayer.HexPlayer, numGames int, conn *websocket.Conn) {
+	defer conn.Close()
 	var passiveClient hexplayer.HexPlayer
 	if conn != nil && players[0].GetType() != hexplayer.HumanType && players[1].GetType() != hexplayer.HumanType {
 		// Create a passive player to show the game in browser
