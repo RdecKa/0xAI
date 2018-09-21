@@ -1,4 +1,4 @@
-data/*
+data
 *.css
 *.css.map
 
@@ -8,3 +8,4 @@ data/*
 
 # VS Code
 .vs
+.vscode
