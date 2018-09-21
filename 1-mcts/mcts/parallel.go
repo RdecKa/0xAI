@@ -53,8 +53,7 @@ func RunMCTSinParallel(numWorkers, boardSize int, treasholdN uint, timeToRun tim
 	// Create a log file
 	logFile, err := os.Create(fileNameNoEnding + ".log")
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		panic(err)
 	}
 
 	// Create workers
@@ -63,16 +62,14 @@ func RunMCTSinParallel(numWorkers, boardSize int, treasholdN uint, timeToRun tim
 		fileName := fmt.Sprintf("%s_%d.in", fileNameNoEnding, w)
 		f, err := os.Create(fileName)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			panic(err)
 		}
 		defer f.Close()
 
 		// Create a file for a worker to store details about the search
 		fDet, err := os.Create(fileName + ".det")
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			panic(err)
 		}
 		defer fDet.Close()
 
@@ -115,8 +112,7 @@ func RunMCTSinParallel(numWorkers, boardSize int, treasholdN uint, timeToRun tim
 				finished = true
 			}
 		case err = <-e:
-			fmt.Println(err)
-			os.Exit(1)
+			panic(err)
 		}
 	}
 

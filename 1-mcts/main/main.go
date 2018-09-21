@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"math"
-	"os"
 	"time"
 
 	"github.com/RdecKa/bachleor-thesis/1-mcts/mcts"
@@ -46,8 +45,7 @@ func main() {
 		filePrefix := fmt.Sprintf("out_%02d_%d", boardSize, secondsToRun)
 		err := mcts.WriteToFile(*root, outputFolder, filePrefix, indentJSON)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			panic(err)
 		}
 	}
 }
