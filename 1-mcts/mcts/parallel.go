@@ -77,6 +77,7 @@ func RunMCTSinParallel(numWorkers, boardSize int, treasholdN uint, timeToRun tim
 		go worker(w, timeToRun, boardSize, treasholdN, f, fDet, logFile, patFileName, &wc)
 	}
 
+	numExpansions := 1
 	finished, quitted := false, false
 	tasksAssigned, tasksFinished := 1, 0
 	for !finished {
@@ -87,8 +88,11 @@ func RunMCTSinParallel(numWorkers, boardSize int, treasholdN uint, timeToRun tim
 		case newCandidates := <-gather:
 			// Get a returned value from a worker
 			tasksFinished++
-			newCandidates = sampleArrayOfNodes(newCandidates, 1/float64(boardSize*boardSize))
+			probExpand := 0.03 / ((1.0/float64(boardSize*boardSize))*float64(numExpansions) + 1)
+			logFile.WriteString(fmt.Sprintf("Probabilty: %f\n", probExpand))
+			newCandidates = sampleArrayOfNodes(newCandidates, probExpand)
 			expCand = append(expCand, newCandidates...)
+			numExpansions++
 
 			if !quitted {
 				// Add as many new tasks as there are free spots in the assign
@@ -155,7 +159,7 @@ func worker(id int, timeToRun time.Duration, boardSize int, treasholdN uint, out
 // contains some elements from the old array. Each element of the old array is
 // copied to the new array with a probability p, otherwise it is discarded.
 func sampleArrayOfNodes(oldArr []*tree.Node, p float64) []*tree.Node {
-	newArr := make([]*tree.Node, 0, int(p*float64(len(oldArr))))
+	newArr := make([]*tree.Node, 0)
 	for _, el := range oldArr {
 		if rand.Float64() < p {
 			newArr = append(newArr, el)

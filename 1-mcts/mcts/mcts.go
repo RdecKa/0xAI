@@ -83,9 +83,6 @@ func RunMCTS(mc *MCTS, workerID int, timeToRun time.Duration, boardSize int, tre
 		case <-timer.C:
 			timeOut = true
 		default:
-			if iterCount > 0 && iterCount%10000 == 0 {
-				logFile.WriteString(fmt.Sprintf("Worker %d finished iteration %d\n", workerID, iterCount))
-			}
 			mc.RunIteration()
 			break
 		}

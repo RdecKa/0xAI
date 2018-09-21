@@ -31,10 +31,10 @@ MCTS_FILES := $(shell find $(MCTS_DIR) -type f -name "*.go")
 MCTS_MAIN = $(MCTS_DIR)main/main.go
 MCTS_OUT_DIR_PARENT = data/mcts/
 MCTS_OUT_DIR = $(MCTS_OUT_DIR_PARENT)run-$(START_TIME)/
-TIME = 5
-SIZE = 3
+TIME = 10
+SIZE = 7
 WORKERS = 3
-TREASHOLD_N = 100
+TREASHOLD_N = 500
 
 # ---> Visual variables <---
 VISUAL_DATA_DIR = visual/mcts/
