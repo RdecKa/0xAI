@@ -62,9 +62,10 @@ def main(argv):
 	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state = 4224)
 
 	# Create Regressors
-	dtrs = [DecisionTreeRegressor(max_depth =  2, min_samples_leaf = 5),
-			DecisionTreeRegressor(max_depth =  5, min_samples_leaf = 5),
-			DecisionTreeRegressor(max_depth = 10, min_samples_leaf = 5)]
+	dtrs = [DecisionTreeRegressor(max_depth =    2, min_samples_leaf = 5),
+			DecisionTreeRegressor(max_depth =    5, min_samples_leaf = 5),
+			DecisionTreeRegressor(max_depth =   10, min_samples_leaf = 5),
+			DecisionTreeRegressor(max_depth = None, min_samples_leaf = 50)]
 
 	# Create a plot
 	plt.figure(figsize=(10,6))
