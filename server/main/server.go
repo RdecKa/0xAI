@@ -25,8 +25,8 @@ var templates = template.Must(template.New("").Delims("[[", "]]").ParseFiles(
 const addr = "localhost:8080"
 
 const defaultBoardSize = 7
-
 const defaultNumGames = 1
+const defaultTime = 1
 
 func makeHandler(fn func(http.ResponseWriter, *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -62,6 +62,8 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	watch, okWatch := args["watch"]
 	boardSizeString, okBoardSize := args["size"]
 	numGamesString, okNumGames := args["numgames"]
+	redTimeString, okRedTime := args["redtime"]
+	blueTimeString, okBlueTime := args["bluetime"]
 
 	wa := okWatch && watch[0] == "false"
 	pair := [2]hexplayer.HexPlayer{} // 0 - red, 1 - blue
@@ -73,6 +75,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		boardSize, err = strconv.Atoi(boardSizeString[0])
 		if err != nil {
+			log.Println(err)
 			boardSize = defaultBoardSize
 		}
 	}
@@ -81,7 +84,28 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		numGames, err = strconv.Atoi(numGamesString[0])
 		if err != nil {
+			log.Println(err)
 			numGames = defaultNumGames
+		}
+	}
+
+	var redTime, blueTime int
+	if !okRedTime {
+		redTime = defaultTime
+	} else {
+		redTime, err = strconv.Atoi(redTimeString[0])
+		if err != nil {
+			log.Println(err)
+			redTime = defaultTime
+		}
+	}
+	if !okBlueTime {
+		blueTime = defaultTime
+	} else {
+		blueTime, err = strconv.Atoi(blueTimeString[0])
+		if err != nil {
+			log.Println(err)
+			blueTime = defaultTime
 		}
 	}
 
@@ -92,7 +116,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var rFunc, bFunc func(hex.Color, *websocket.Conn, bool) hexplayer.HexPlayer
+	var rFunc, bFunc func(hex.Color, *websocket.Conn, int, bool) hexplayer.HexPlayer
 
 	if okRed && red[0] == "human" {
 		rFunc = createHumanPlayer
@@ -113,11 +137,11 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	if rFunc == nil || bFunc == nil {
 		log.Println("Wrong or missing arguments for players. Using default.")
 		wa = false
-		pair[0] = createHumanPlayer(hex.Red, conn, wa)
-		pair[1] = createMCTSplayer(hex.Blue, conn, wa)
+		pair[0] = createHumanPlayer(hex.Red, conn, redTime, wa)
+		pair[1] = createMCTSplayer(hex.Blue, conn, blueTime, wa)
 	} else {
-		pair[0] = rFunc(hex.Red, conn, wa)
-		pair[1] = bFunc(hex.Blue, conn, wa)
+		pair[0] = rFunc(hex.Red, conn, redTime, wa)
+		pair[1] = bFunc(hex.Blue, conn, blueTime, wa)
 	}
 
 	c := conn
@@ -128,16 +152,16 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	go hexgame.Play(boardSize, pair, numGames, c)
 }
 
-func createHumanPlayer(color hex.Color, conn *websocket.Conn, allowResignation bool) hexplayer.HexPlayer {
+func createHumanPlayer(color hex.Color, conn *websocket.Conn, secondsPerAction int, allowResignation bool) hexplayer.HexPlayer {
 	return hexplayer.CreateHumanPlayer(conn, color)
 }
 
-func createMCTSplayer(color hex.Color, conn *websocket.Conn, allowResignation bool) hexplayer.HexPlayer {
-	return hexplayer.CreateMCTSplayer(color, math.Sqrt(2), time.Duration(1)*time.Second, 10, allowResignation)
+func createMCTSplayer(color hex.Color, conn *websocket.Conn, secondsPerAction int, allowResignation bool) hexplayer.HexPlayer {
+	return hexplayer.CreateMCTSplayer(color, math.Sqrt(2), time.Duration(secondsPerAction)*time.Second, 10, allowResignation)
 }
 
-func createAbPlayer(color hex.Color, conn *websocket.Conn, allowResignation bool) hexplayer.HexPlayer {
-	return hexplayer.CreateAbPlayer(color, conn, time.Duration(1)*time.Second, allowResignation, "common/game/hex/patterns.txt", false)
+func createAbPlayer(color hex.Color, conn *websocket.Conn, secondsPerAction int, allowResignation bool) hexplayer.HexPlayer {
+	return hexplayer.CreateAbPlayer(color, conn, time.Duration(secondsPerAction)*time.Second, allowResignation, "common/game/hex/patterns.txt", false)
 }
 
 func main() {
