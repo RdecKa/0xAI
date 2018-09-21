@@ -79,16 +79,15 @@ function respondToMessage(obj, msg) {
 			console.log("Init");
 			let s = ms[1].split(":");
 			obj.initGrid(parseInt(s[1]));
+			obj.setIsMyTurn(false);
 
 			let c = ms[2].split(":")
 			switch (c[1]) {
 				case "r":
 					obj.myColor = colors.RED;
-					obj.setIsMyTurn(true);
 					break;
 				case "b":
 					obj.myColor = colors.BLUE;
-					obj.setIsMyTurn(false);
 					break;
 				default:
 					obj.myColor = colors.NONE;
