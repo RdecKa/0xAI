@@ -34,6 +34,7 @@ var (
 	AttrPatCountBlue0 = AttrPatternCount{Blue, 0}
 	AttrPatCountBlue1 = AttrPatternCount{Blue, 1}
 	AttrPatCountBlue2 = AttrPatternCount{Blue, 2}
+	AttrLastPlayer    = AttrLastPlayerTurn{}
 )
 
 // GenSamAttributes contains the attributes that are included in the sample
@@ -50,6 +51,7 @@ var GenSamAttributes = []game.Attribute{
 	AttrPatCountBlue0,
 	AttrPatCountBlue1,
 	AttrPatCountBlue2,
+	AttrLastPlayer,
 }
 
 // ----------------------------
@@ -170,4 +172,29 @@ func (a AttrPatternCount) GetAttributeValue(args *[]interface{}) int {
 	}
 
 	return patCount[i][a.patternIndex]
+}
+
+// ------------------------------
+// |     AttrLastPlayerTurn     |
+// ------------------------------
+
+// AttrLastPlayerTurn stores information about the last player
+type AttrLastPlayerTurn struct{}
+
+// GetAttributeName returns the name of an attribute
+func (a AttrLastPlayerTurn) GetAttributeName() string {
+	return "lp"
+}
+
+// GetAttributeValue returns the value of an attribute
+func (a AttrLastPlayerTurn) GetAttributeValue(args *[]interface{}) int {
+	s := (*args)[0].(State)
+	lp := s.GetLastPlayer()
+	if lp == Red {
+		return 0
+	}
+	if lp == Blue {
+		return 1
+	}
+	panic(fmt.Errorf("Invalid color %v", lp))
 }
