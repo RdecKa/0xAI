@@ -4,7 +4,11 @@ import (
 	"fmt"
 )
 
-// GenSample returns a string representation of a single learning sample (output, attributes...)
+// GenSample returns a string representation of two learning samples in format:
+// (output, attributes...)
+// First learning sample is a representation of a given State s, the second is a
+// representation of the same state but with reversed roles of red and blue
+// player
 func (s State) GenSample(q float64, gridChan chan []uint32, resultChan chan [2][]int) string {
 	gridChan <- s.GetCopyGrid()
 
@@ -13,24 +17,28 @@ func (s State) GenSample(q float64, gridChan chan []uint32, resultChan chan [2][
 		q = -q
 	}
 
-	o := fmt.Sprintf("%f", q)
+	// o1 <- State s
+	// o2 <- inversed State s
+	o1 := fmt.Sprintf("%f", q)
+	o2 := fmt.Sprintf("%f", -q)
 
 	patCount := <-resultChan
 	args := &[]interface{}{s, patCount}
-	for _, attr := range GenSamAttributes {
-		o += ","
-		o += fmt.Sprintf("%v", attr.GetAttributeValue(args))
+	for _, attrPair := range GenSamAttributes {
+		o1 += ","
+		o1 += fmt.Sprintf("%v", attrPair[0].GetAttributeValue(args))
+		o2 += ","
+		o2 += fmt.Sprintf("%v", attrPair[1].GetAttributeValue(args))
 	}
-	o += "\n"
-	return o
+	return o1 + "\n" + o2 + "\n"
 }
 
 // GetHeaderCSV returns a string consisting of attribute names.
 func GetHeaderCSV() string {
 	o := "value"
-	for _, attr := range GenSamAttributes {
+	for _, attrPair := range GenSamAttributes {
 		o += ","
-		o += attr.GetAttributeName()
+		o += attrPair[0].GetAttributeName()
 	}
 	o += "\n"
 	return o

@@ -4,7 +4,8 @@
 // To add an attribute, do the following:
 // 	- Implement a type implementing game.Attribute
 // 	- Initialize instance(s) of that attribute
-// 	- Add this/these instance(s) to the slice GenSamAttributes
+// 	- Add this/these instance(s) to the slice GenSamAttributes (together with
+// 		matching opposite attribute)
 // 	- In 2-ml/regression.py, select a type of the attribute when reading a CSV
 // 		file (for now only integer values are supported)
 // 	- In 3-ab/ab/ab.go, add a line to initialization of Sample sample for each
@@ -23,35 +24,39 @@ import (
 
 // Initialization of all available attributes
 var (
-	AttrNumStones     = AttrNumberStones{}
-	AttrOccRedRows    = AttrOccupiedRowsCols{Red, true}
-	AttrOccRedCols    = AttrOccupiedRowsCols{Red, false}
-	AttrOccBlueRows   = AttrOccupiedRowsCols{Blue, true}
-	AttrOccBlueCols   = AttrOccupiedRowsCols{Blue, false}
-	AttrPatCountRed0  = AttrPatternCount{Red, 0}
-	AttrPatCountRed1  = AttrPatternCount{Red, 1}
-	AttrPatCountRed2  = AttrPatternCount{Red, 2}
-	AttrPatCountBlue0 = AttrPatternCount{Blue, 0}
-	AttrPatCountBlue1 = AttrPatternCount{Blue, 1}
-	AttrPatCountBlue2 = AttrPatternCount{Blue, 2}
-	AttrLastPlayer    = AttrLastPlayerTurn{}
+	AttrNumStones          = AttrNumberStones{}
+	AttrOccRedRows         = AttrOccupiedRowsCols{Red, true}
+	AttrOccRedCols         = AttrOccupiedRowsCols{Red, false}
+	AttrOccBlueRows        = AttrOccupiedRowsCols{Blue, true}
+	AttrOccBlueCols        = AttrOccupiedRowsCols{Blue, false}
+	AttrPatCountRed0       = AttrPatternCount{Red, 0}
+	AttrPatCountRed1       = AttrPatternCount{Red, 1}
+	AttrPatCountRed2       = AttrPatternCount{Red, 2}
+	AttrPatCountBlue0      = AttrPatternCount{Blue, 0}
+	AttrPatCountBlue1      = AttrPatternCount{Blue, 1}
+	AttrPatCountBlue2      = AttrPatternCount{Blue, 2}
+	AttrLastPlayer         = AttrLastPlayerTurn{true}
+	AttrLastPlayerOpponent = AttrLastPlayerTurn{false}
 )
 
 // GenSamAttributes contains the attributes that are included in the sample
-// generation
-var GenSamAttributes = []game.Attribute{
-	AttrNumStones,
-	AttrOccRedRows,
-	AttrOccRedCols,
-	AttrOccBlueRows,
-	AttrOccBlueCols,
-	AttrPatCountRed0,
-	AttrPatCountRed1,
-	AttrPatCountRed2,
-	AttrPatCountBlue0,
-	AttrPatCountBlue1,
-	AttrPatCountBlue2,
-	AttrLastPlayer,
+// generation. Each sub-slice represents a pair of attributes that are oppposite
+// to each other. This information is used in generation of learning samples
+// when two samples are generated for each state - one as it is and one with
+// switched roles of red and blue player.
+var GenSamAttributes = [][]game.Attribute{
+	[]game.Attribute{AttrNumStones, AttrNumStones},
+	[]game.Attribute{AttrOccRedRows, AttrOccBlueCols},
+	[]game.Attribute{AttrOccRedCols, AttrOccBlueRows},
+	[]game.Attribute{AttrOccBlueRows, AttrOccRedCols},
+	[]game.Attribute{AttrOccBlueCols, AttrOccRedRows},
+	[]game.Attribute{AttrPatCountRed0, AttrPatCountBlue0},
+	[]game.Attribute{AttrPatCountRed1, AttrPatCountBlue1},
+	[]game.Attribute{AttrPatCountRed2, AttrPatCountBlue2},
+	[]game.Attribute{AttrPatCountBlue0, AttrPatCountRed0},
+	[]game.Attribute{AttrPatCountBlue1, AttrPatCountRed1},
+	[]game.Attribute{AttrPatCountBlue2, AttrPatCountRed2},
+	[]game.Attribute{AttrLastPlayer, AttrLastPlayerOpponent},
 }
 
 // ----------------------------
@@ -179,7 +184,9 @@ func (a AttrPatternCount) GetAttributeValue(args *[]interface{}) int {
 // ------------------------------
 
 // AttrLastPlayerTurn stores information about the last player
-type AttrLastPlayerTurn struct{}
+type AttrLastPlayerTurn struct {
+	isLastPlayer bool
+}
 
 // GetAttributeName returns the name of an attribute
 func (a AttrLastPlayerTurn) GetAttributeName() string {
@@ -190,11 +197,15 @@ func (a AttrLastPlayerTurn) GetAttributeName() string {
 func (a AttrLastPlayerTurn) GetAttributeValue(args *[]interface{}) int {
 	s := (*args)[0].(State)
 	lp := s.GetLastPlayer()
-	if lp == Red {
+	switch {
+	case a.isLastPlayer && lp == Red:
 		return 0
-	}
-	if lp == Blue {
+	case a.isLastPlayer && lp == Blue:
 		return 1
+	case !a.isLastPlayer && lp == Red:
+		return 1
+	case !a.isLastPlayer && lp == Blue:
+		return 0
 	}
 	panic(fmt.Errorf("Invalid color %v", lp))
 }
