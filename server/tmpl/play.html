@@ -31,7 +31,9 @@
 	<div id="absearch" class="col col-2">
 		<ul v-if="model">
 			<node
-			:model="model.root"
+			:size="size"
+			:state="state"
+			:model="model"
 			></node>
 		</ul>
 	</div>

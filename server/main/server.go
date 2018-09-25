@@ -161,7 +161,7 @@ func createMCTSplayer(color hex.Color, conn *websocket.Conn, secondsPerAction in
 }
 
 func createAbPlayer(color hex.Color, conn *websocket.Conn, secondsPerAction int, allowResignation bool) hexplayer.HexPlayer {
-	return hexplayer.CreateAbPlayer(color, conn, time.Duration(secondsPerAction)*time.Second, allowResignation, "common/game/hex/patterns.txt", false)
+	return hexplayer.CreateAbPlayer(color, conn, time.Duration(secondsPerAction)*time.Second, allowResignation, "common/game/hex/patterns.txt", true)
 }
 
 func main() {

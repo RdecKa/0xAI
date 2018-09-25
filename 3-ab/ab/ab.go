@@ -56,6 +56,9 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, patFileName string, cr
 	// Create a tree for debuginng purposes
 	var searchTree *tree.Tree
 	if createTree && rootNode != nil {
+		// Add root node with extra information about the game
+		rootNodeValue := CreateAbRootNodeValue(rootNode, state, state.GetSize())
+		rootNode = tree.NewNode(rootNodeValue)
 		searchTree = tree.NewTree(rootNode)
 	}
 
@@ -78,7 +81,7 @@ func alphaBeta(ctx context.Context, depth int, state *hex.State, lastAction *hex
 	if val, ok := transpositionTable[state.GetMapKey()]; ok {
 		// Current state was already investigated
 		if createTree {
-			leaf = tree.NewNode(CreateAbNodeValue(state, val, "TT"))
+			leaf = tree.NewNode(CreateAbNodeValue(lastAction, val, "TT"))
 		}
 		return val, lastAction, leaf, nil
 	}
@@ -86,7 +89,7 @@ func alphaBeta(ctx context.Context, depth int, state *hex.State, lastAction *hex
 		// The game has ended - the player who's turn it is has lost
 		transpositionTable[state.GetMapKey()] = -won
 		if createTree {
-			leaf = tree.NewNode(CreateAbNodeValue(state, -won, "G"))
+			leaf = tree.NewNode(CreateAbNodeValue(lastAction, -won, "G"))
 		}
 		return -won, lastAction, leaf, nil
 	}
@@ -97,7 +100,7 @@ func alphaBeta(ctx context.Context, depth int, state *hex.State, lastAction *hex
 		}
 		transpositionTable[state.GetMapKey()] = val
 		if createTree {
-			leaf = tree.NewNode(CreateAbNodeValue(state, val, "D"))
+			leaf = tree.NewNode(CreateAbNodeValue(lastAction, val, "D"))
 		}
 		return val, lastAction, leaf, nil
 	}
@@ -153,7 +156,7 @@ func alphaBeta(ctx context.Context, depth int, state *hex.State, lastAction *hex
 
 	var node *tree.Node
 	if createTree {
-		node = tree.NewNode(CreateAbNodeValue(state, bestValue, comment))
+		node = tree.NewNode(CreateAbNodeValue(lastAction, bestValue, comment))
 		node.SetChildren(nodeChildren)
 	}
 

@@ -120,7 +120,8 @@ function respondToMessage(obj, msg) {
 			return;
 		case "ABJSON":
 			console.log("Got JSON");
-			obj.abSearchTree.setJSON(JSON.parse(msg.substring(7)));
+			let dataJSON = JSON.parse(msg.substring(7));
+			obj.abSearchTree.setJSON(dataJSON);
 			return;
 		default:
 			console.log("Unknown message: '" + msg + "'");
