@@ -57,8 +57,6 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, patFileName string, cr
 	var searchTree *tree.Tree
 	if createTree && rootNode != nil {
 		// Add root node with extra information about the game
-		//rootNodeValue := CreateAbRootNodeValue(rootNode, state, state.GetSize())
-		//rootNode = tree.NewNode(rootNodeValue)
 		searchTree = tree.NewTree(rootNode)
 	}
 

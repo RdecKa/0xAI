@@ -110,29 +110,29 @@ Vue.component('node', {
 				r += this.indent(row);
 
 				// Draw left blue column
-				r += "<span class=\"cell blue\"></span>";
+				r += drawCellWithClass("cell blue");
 
 				let rowN = this.node.value.state.grid[row];
 				for (let col = 0; col < this.size; col++) {
 					let c = rowN & 3;
 					switch (c) {
 						case 0:
-							r += "<span class=\"cell empty\"></span>";
+							r += drawCellWithClass("cell empty");
 							break;
 						case 1:
-							r += "<span class=\"cell red\"></span>";
+							r += drawCellWithClass("cell red");
 							break;
 						case 2:
-							r += "<span class=\"cell blue\"></span>";
+							r += drawCellWithClass("cell blue");
 							break;
 						default:
-							r += "<span class=\"cell undef\"></span>";
+							r += drawCellWithClass("cell undef");
 					}
 					rowN = rowN >> 2;
 				}
 
 				// Draw right blue column
-				r += "<span class=\"cell blue\"></span>";
+				r += drawCellWithClass("cell blue");
 
 				r += "</div>";
 			}
@@ -145,17 +145,17 @@ Vue.component('node', {
 		drawTopBottomRow() {
 			// Draw top/bottom red row with two corner cells
 			let r = "";
-			r += "<span class=\"cell violet\"></span>";
+			r += drawCellWithClass("cell violet");
 			for (let col = 0; col < this.size; col++) {
-				r += "<span class=\"cell red\"></span>";
+				r += drawCellWithClass("cell red");
 			}
-			r += "<span class=\"cell violet\"></span>";
+			r += drawCellWithClass("cell violet");
 			return r;
 		},
 		indent(indent) {
 			let r = "";
 			for (let i = 0; i <= indent; i++) {
-				r += "<span class=\"indent\"></span>";
+				r += drawCellWithClass("indent");
 			}
 			return r;
 		},
@@ -164,3 +164,7 @@ Vue.component('node', {
 		}
 	}
 })
+
+function drawCellWithClass(cl) {
+	return "<span class=\"" + cl + "\"></span>";
+}
