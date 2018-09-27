@@ -29,11 +29,10 @@
 		</svg>
 	</div>
 	<div id="absearch" class="col col-2">
-		<ul v-if="model">
+		<ul>
 			<node
-			:size="size"
-			:state="state"
-			:model="model"
+				:modelindex="[]"
+				:initialised="initialised"
 			></node>
 		</ul>
 	</div>

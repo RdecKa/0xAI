@@ -1,23 +1,38 @@
+let abTreeJSON;
+
 function abSearchTree() {
 	return new Vue({
 		el: '#absearch',
 		data: {
-			size: 11,
-			state: null,
-			model: null
+			initialised: false,
 		},
 		methods: {
 			setJSON: function (dataJSON) {
-				this.size = dataJSON.root.value.size;
-				this.state = dataJSON.root.value.state;
-				this.model = dataJSON.root.value.rootAB;
+				console.log("Setting abTreeJSON");
+				this.initialised = false;
+				abTreeJSON = dataJSON.root;
+				this.initialised = true;
+				console.log(abTreeJSON);
 			}
 		}
 	});
 }
 
+function getNodeFromIndices(treeJSON, indices) {
+	if (treeJSON == undefined || treeJSON == null) {
+		return null;
+	}
+
+	if (indices.length <= 0) {
+		return treeJSON;
+	}
+
+	let subTree = treeJSON.children[indices[0]]
+	return getNodeFromIndices(subTree, indices.slice(1));
+}
+
 Vue.component('node', {
-	template: `<li>
+	template: `<li v-if="initialised">
 			<div class="node"
 			:class="{extendable : !isLeaf}"
 			@click="toggle"
@@ -25,31 +40,26 @@ Vue.component('node', {
 			@mouseleave="showBoard = false">
 				<span class="info">
 					<span v-if="!isLeaf" class="expand-sign">[{{ open ? '-' : '+' }}]</span>
-					<span>val: {{ model.value.val }}, </span>
-					<span v-if="model.value.action">act:
-						({{ model.value.action.x }},
-						{{ model.value.action.y }},
-						{{ model.value.action.c }})
-					</span>
-					<span>({{ model.value.comment }})</span>
+					<span>value: {{ node.value.val }}, </span>
+					<span>lastPlayer: {{ node.value.state.lastPlayer }}, </span>
+					<!--<span>grid: {{ node.value.state.grid }} </span>-->
+					<span>({{ node.value.comment }})</span>
 				</span>
 				<div v-if="showBoard" v-html="boardHTML" class="simple-board"></div>
 			</div>
 
 			<ul v-show="open" v-if="!isLeaf">
 				<node
-					v-for="(model, index) in model.children"
-					:key="index"
-					:size="size"
-					:state="state"
-					:model="model"
+				v-for="(c, i) in children"
+					:key="i"
+					:modelindex="addIndexToModelindex(modelindex, i, c)"
+					:initialised="initialised"
 				></node>
 			</ul>
 		</li>`,
 	props: {
-		size: Number,
-		state: Object,
-		model: Object
+		modelindex: Array,
+		initialised: Boolean,
 	},
 	data: function () {
 		return {
@@ -59,11 +69,33 @@ Vue.component('node', {
 	},
 	computed: {
 		isLeaf: function () {
-			return !this.model.children || !this.model.children.length;
+			if (!this.initialised) {
+				return false;
+			}
+			let node = getNodeFromIndices(abTreeJSON, this.modelindex)
+			return node == null || !node.children || !node.children.length;
+		},
+		size: function () {
+			if (!this.initialised) {
+				return 0;
+			}
+			return this.node.value.state.grid.length;
 		},
 		boardHTML: function () {
+			if (!this.initialised) {
+				return "";
+			}
 			return this.drawBoard();
-		}
+		},
+		node: function () {
+			return getNodeFromIndices(abTreeJSON, this.modelindex);
+		},
+		children: function () {
+			if (!this.initialised) {
+				return [];
+			}
+			return this.node.children;
+		},
 	},
 	methods: {
 		toggle: function () {
@@ -71,16 +103,11 @@ Vue.component('node', {
 				this.open = !this.open;
 			}
 		},
-		getPreviousActions: function(obj, depth) {
-			if (obj.model.value.action == null) {
-				return [];
-			}
-			let prevActions = obj.$parent.$options.methods.getPreviousActions(obj.$parent, depth + 1);
-			prevActions.push(obj.model.value.action);
-			return prevActions;
-		},
 		drawBoard: function () {
-			let prevActions = this.getPreviousActions(this, 0);
+			console.log("this:");
+			console.log(this);
+			console.log("NODE:");
+			console.log(this.node);
 
 			let r = this.drawTopBottomRow();
 
@@ -92,31 +119,12 @@ Vue.component('node', {
 				// Draw left blue column
 				r += "<span class=\"cell blue\"></span>";
 
-				let rowN = this.state.grid[row];
+				let rowN = this.node.value.state.grid[row];
 				for (let col = 0; col < this.size; col++) {
 					let c = rowN & 3;
 					switch (c) {
 						case 0:
-							let set = false
-							for (let a = 0; a < prevActions.length; a++) {
-								if (prevActions[a].x == col && prevActions[a].y == row) {
-									switch (prevActions[a].c) {
-										case "r":
-											r += "<span class=\"cell red\"></span>";
-											set = true;
-											break;
-										case "b":
-											r += "<span class=\"cell blue\"></span>";
-											set = true;
-											break;
-										default:
-											console.log("Invalid color: " + prevActions[a].c);
-									}
-								}
-							}
-							if (!set) {
-								r += "<span class=\"cell empty\"></span>";
-							}
+							r += "<span class=\"cell empty\"></span>";
 							break;
 						case 1:
 							r += "<span class=\"cell red\"></span>";
@@ -157,6 +165,9 @@ Vue.component('node', {
 				r += "<span class=\"indent\"></span>";
 			}
 			return r;
+		},
+		addIndexToModelindex: function (indices, indexToAdd) {
+			return indices.concat([indexToAdd]);
 		}
 	}
 })
