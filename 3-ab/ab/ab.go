@@ -56,7 +56,6 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, patFileName string, cr
 	// Create a tree for debuginng purposes
 	var searchTree *tree.Tree
 	if createTree && rootNode != nil {
-		// Add root node with extra information about the game
 		searchTree = tree.NewTree(rootNode)
 	}
 

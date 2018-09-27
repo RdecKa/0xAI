@@ -89,7 +89,11 @@ Vue.component('node', {
 			return getNodeFromIndices(abTreeJSON, this.modelindex);
 		},
 		children: function () {
-			if (!this.initialised || !this.open) {
+			if (!this.initialised) {
+				return [];
+			}
+			if (!this.open) {
+				// For the sake of RAM well-being
 				return [];
 			}
 			return this.node.children;
