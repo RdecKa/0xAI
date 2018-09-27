@@ -8,11 +8,9 @@ function abSearchTree() {
 		},
 		methods: {
 			setJSON: function (dataJSON) {
-				console.log("Setting abTreeJSON");
 				this.initialised = false;
 				abTreeJSON = dataJSON.root;
 				this.initialised = true;
-				console.log(abTreeJSON);
 			}
 		}
 	});
@@ -50,7 +48,7 @@ Vue.component('node', {
 
 			<ul v-show="open" v-if="!isLeaf">
 				<node
-				v-for="(c, i) in children"
+					v-for="(c, i) in children"
 					:key="i"
 					:modelindex="addIndexToModelindex(modelindex, i, c)"
 					:initialised="initialised"
@@ -91,7 +89,7 @@ Vue.component('node', {
 			return getNodeFromIndices(abTreeJSON, this.modelindex);
 		},
 		children: function () {
-			if (!this.initialised) {
+			if (!this.initialised || !this.open) {
 				return [];
 			}
 			return this.node.children;
@@ -104,11 +102,6 @@ Vue.component('node', {
 			}
 		},
 		drawBoard: function () {
-			console.log("this:");
-			console.log(this);
-			console.log("NODE:");
-			console.log(this.node);
-
 			let r = this.drawTopBottomRow();
 
 			for (let row = 0; row < this.size; row++) {
