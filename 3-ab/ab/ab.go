@@ -174,9 +174,13 @@ func eval(state *hex.State, gridChan chan []uint32, resultChan chan [2][]int) (f
 		red_p0:        hex.AttrPatCountRed0.GetAttributeValue(args),
 		red_p1:        hex.AttrPatCountRed1.GetAttributeValue(args),
 		red_p2:        hex.AttrPatCountRed2.GetAttributeValue(args),
+		red_p3:        hex.AttrPatCountRed3.GetAttributeValue(args),
+		red_p4:        hex.AttrPatCountRed4.GetAttributeValue(args),
 		blue_p0:       hex.AttrPatCountBlue0.GetAttributeValue(args),
 		blue_p1:       hex.AttrPatCountBlue1.GetAttributeValue(args),
 		blue_p2:       hex.AttrPatCountBlue2.GetAttributeValue(args),
+		blue_p3:       hex.AttrPatCountBlue3.GetAttributeValue(args),
+		blue_p4:       hex.AttrPatCountBlue4.GetAttributeValue(args),
 		lp:            hex.AttrLastPlayer.GetAttributeValue(args),
 	}
 	val := sample.getEstimatedValue()

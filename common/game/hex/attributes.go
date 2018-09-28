@@ -32,9 +32,13 @@ var (
 	AttrPatCountRed0       = AttrPatternCount{Red, 0}
 	AttrPatCountRed1       = AttrPatternCount{Red, 1}
 	AttrPatCountRed2       = AttrPatternCount{Red, 2}
+	AttrPatCountRed3       = AttrPatternCount{Red, 3}
+	AttrPatCountRed4       = AttrPatternCount{Red, 4}
 	AttrPatCountBlue0      = AttrPatternCount{Blue, 0}
 	AttrPatCountBlue1      = AttrPatternCount{Blue, 1}
 	AttrPatCountBlue2      = AttrPatternCount{Blue, 2}
+	AttrPatCountBlue3      = AttrPatternCount{Blue, 3}
+	AttrPatCountBlue4      = AttrPatternCount{Blue, 4}
 	AttrLastPlayer         = AttrLastPlayerTurn{true}
 	AttrLastPlayerOpponent = AttrLastPlayerTurn{false}
 )
@@ -53,9 +57,13 @@ var GenSamAttributes = [][]game.Attribute{
 	[]game.Attribute{AttrPatCountRed0, AttrPatCountBlue0},
 	[]game.Attribute{AttrPatCountRed1, AttrPatCountBlue1},
 	[]game.Attribute{AttrPatCountRed2, AttrPatCountBlue2},
+	[]game.Attribute{AttrPatCountRed3, AttrPatCountBlue3},
+	[]game.Attribute{AttrPatCountRed4, AttrPatCountBlue4},
 	[]game.Attribute{AttrPatCountBlue0, AttrPatCountRed0},
 	[]game.Attribute{AttrPatCountBlue1, AttrPatCountRed1},
 	[]game.Attribute{AttrPatCountBlue2, AttrPatCountRed2},
+	[]game.Attribute{AttrPatCountBlue3, AttrPatCountRed3},
+	[]game.Attribute{AttrPatCountBlue4, AttrPatCountRed4},
 	[]game.Attribute{AttrLastPlayer, AttrLastPlayerOpponent},
 }
 

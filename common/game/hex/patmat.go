@@ -2,6 +2,7 @@ package hex
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -12,8 +13,9 @@ import (
 // represents one row, and each two bits in an integer represent one column.
 
 type pattern struct {
-	w, h int     // width and heigth of the pattern
-	pat  []uint8 // pattern
+	w, h     int     // width and heigth of the pattern
+	pat      []uint8 // pattern
+	excluded bool    // true if rows and columns where this pattern is found do not count as occupied, false otherwise
 }
 
 // CreatePatChecker creates a go routine that will serach for patterns in grids.
@@ -40,19 +42,23 @@ func readPatternsFromFile(fileName string) ([][]*pattern, error) {
 
 	patterns := make([][]*pattern, 0, 10)
 	patC, rotC, lineC := -1, -1, 0 // Counters of patterns, rotations for each pattern, and lines in each pattern
+	exclude := false
 
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		line := scanner.Text()
 		lineSplit := strings.Fields(line)
 		if lineSplit[0] == "###" {
+			exclude = false
 			patC++
 			rotC = -1
 			patterns = append(patterns, make([]*pattern, 0, 6))
 		} else if lineSplit[0] == "---" {
 			rotC++
 			lineC = 0
-			patterns[patC] = append(patterns[patC], &pattern{0, 0, make([]uint8, 0)})
+			patterns[patC] = append(patterns[patC], &pattern{0, 0, make([]uint8, 0), exclude})
+		} else if lineSplit[0] == "exclude" {
+			exclude = true
 		} else {
 			val, w := lineToNumber(lineSplit)
 			patterns[patC][rotC].pat = append(patterns[patC][rotC].pat, val)
@@ -81,11 +87,16 @@ func lineToNumber(lineSplit []string) (uint8, int) {
 
 		num = num << 2
 		switch ls {
-		case ".":
+		case ".": // Empty cell
 			num += 0
-		case "*":
+		case "/": // Opponent's color
+			num += 1
+		case "?": // Cell state not important
+			num += 2
+		case "*": // Player's color
 			num += 3
 		default:
+			fmt.Println(fmt.Errorf("Invalid character '%s' in pattern", ls))
 			num += 2
 		}
 	}
@@ -123,7 +134,7 @@ func countPatternInGrid(pat pattern, grid []uint32) (int, int, [2][]bool, [2][]b
 				countBlue++
 				found = 1
 			}
-			if found >= 0 {
+			if found >= 0 && !pat.excluded {
 				for x := xStart; x < xStart+pat.w; x++ {
 					occCols[found][x] = true
 				}
@@ -151,7 +162,11 @@ func matches(pat pattern, grid []uint32, xStart, yStart int, player Color) bool 
 				if GetColorFromBits(cellGrid) != None {
 					return false
 				}
-			case 3: // Marked cell in the pattern
+			case 1: // Opponent
+				if GetColorFromBits(cellGrid) != player.Opponent() {
+					return false
+				}
+			case 3: // Marked cell in the pattern (player's color)
 				if GetColorFromBits(cellGrid) != player {
 					return false
 				}

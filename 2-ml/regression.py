@@ -52,6 +52,8 @@ def main(argv):
 							"red_p0": np.uint8, "blue_p0": np.uint8,
 							"red_p1": np.uint8, "blue_p1": np.uint8,
 							"red_p2": np.uint8, "blue_p2": np.uint8,
+							"red_p3": np.uint8, "blue_p3": np.uint8,
+							"red_p4": np.uint8, "blue_p4": np.uint8,
 							"lp": bool})
 
 	y = df["value"]

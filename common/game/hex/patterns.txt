@@ -1,7 +1,7 @@
-###
+### number of stones
 ---
 *
-###
+### number of bridges
 ---
 ? *
  . .
@@ -12,7 +12,7 @@
 ---
 ? . *
  * . ?
-###
+### a more complex pattern
 ---
 ? * *
  . . .
@@ -41,3 +41,37 @@
 ? . . *
  * . . *
   * . . ?
+### attacked bridges
+exclude
+---
+? *
+ / .
+  * ?
+---
+? *
+ . /
+  * ?
+---
+* /
+ . *
+---
+* .
+ / *
+---
+? / *
+ * . ?
+---
+? . *
+ * / ?
+### bridges that are completely blocked
+exclude
+---
+? *
+ / /
+  * ?
+---
+* /
+ / *
+---
+? / *
+ * / ?
