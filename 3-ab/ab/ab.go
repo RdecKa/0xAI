@@ -23,16 +23,18 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, patFileName string, cr
 	var selectedAction, a *hex.Action
 	var rootNode, rn *tree.Node
 	var err error
+	var oldTransitionTable map[string]float64
 
 	timeout := timeToRun
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 
 	boardSize := state.GetSize()
-	for depth := 2; depth < boardSize*boardSize; depth += 2 {
-		fmt.Printf("Starting AB on depth %d\n", depth)
+	for depthLimit := 2; depthLimit < boardSize*boardSize; depthLimit += 2 {
+		fmt.Printf("Starting AB on depth %d\n", depthLimit)
 
 		transpositionTable := make(map[string]float64)
-		_, a, rn, err = alphaBeta(ctx, depth, state, nil, -abInit, abInit, gridChan, resultChan, transpositionTable, createTree)
+		_, a, rn, err = alphaBeta(ctx, 0, depthLimit, state, nil, -abInit, abInit, gridChan, resultChan, transpositionTable, oldTransitionTable, createTree)
+		oldTransitionTable = transpositionTable
 
 		if err != nil {
 			fmt.Println(err)
@@ -62,9 +64,9 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, patFileName string, cr
 	return selectedAction, searchTree
 }
 
-func alphaBeta(ctx context.Context, depth int, state *hex.State, lastAction *hex.Action,
+func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State, lastAction *hex.Action,
 	alpha, beta float64, gridChan chan []uint32, resultChan chan [2][]int,
-	transpositionTable map[string]float64, createTree bool) (float64, *hex.Action, *tree.Node, error) {
+	transpositionTable, oldTransitionTable map[string]float64, createTree bool) (float64, *hex.Action, *tree.Node, error) {
 
 	// End recursion on timeout
 	select {
@@ -90,7 +92,7 @@ func alphaBeta(ctx context.Context, depth int, state *hex.State, lastAction *hex
 		}
 		return -won, lastAction, leaf, nil
 	}
-	if depth <= 0 {
+	if depth >= depthLimit {
 		val, err := eval(state, gridChan, resultChan)
 		if err != nil {
 			return 0, nil, nil, err
@@ -106,6 +108,8 @@ func alphaBeta(ctx context.Context, depth int, state *hex.State, lastAction *hex
 	var bestState *hex.State
 
 	possibleActions := state.GetPossibleActions()
+	possibleActions = orderMoves(state, possibleActions, oldTransitionTable, true)
+
 	var nodeChildren []*tree.Node
 	if createTree {
 		nodeChildren = make([]*tree.Node, 0, len(possibleActions))
@@ -120,7 +124,8 @@ func alphaBeta(ctx context.Context, depth int, state *hex.State, lastAction *hex
 		}
 
 		successor := state.GetSuccessorState(a).(hex.State)
-		value, _, childNode, err := alphaBeta(ctx, depth-1, &successor, a.(*hex.Action), -beta, -alpha, gridChan, resultChan, transpositionTable, createTree)
+		value, _, childNode, err := alphaBeta(ctx, depth+1, depthLimit, &successor, a.(*hex.Action),
+			-beta, -alpha, gridChan, resultChan, transpositionTable, oldTransitionTable, createTree)
 		if err != nil {
 			return 0, nil, nil, err
 		}
