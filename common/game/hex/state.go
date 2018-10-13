@@ -94,12 +94,14 @@ func getCellInRow(row uint32, index byte) Color {
 	return GetColorFromBits(bits)
 }
 
-func (s *State) clone() game.State {
+// cloneNoAction returns a new State with same data as original state but with
+// nil as State.lastAction
+func (s *State) cloneNoAction() game.State {
 	newGrid := make([]uint32, len(s.grid))
 	for i, v := range s.grid {
 		newGrid[i] = v
 	}
-	return State{s.size, newGrid, s.lastAction.clone(), s.isInitialState}
+	return State{s.size, newGrid, nil, s.isInitialState}
 }
 
 // IsCellValid returns true if a cell (x, y) is on the grid, and false otherwise
@@ -130,8 +132,8 @@ func (s State) GetSuccessorState(action game.Action) game.State {
 	if x, y := a.GetCoordinates(); s.getColorOn(byte(x), byte(y)) != None {
 		panic(fmt.Sprintf("Cell (%d, %d) already occupied!", x, y))
 	}
-	newState := s.clone().(State)
-	newState.lastAction.c = a.c
+	newState := s.cloneNoAction().(State)
+	newState.lastAction = action.(*Action)
 	newState.setCell(a.x, a.y, a.c)
 	newState.isInitialState = false
 	return newState
