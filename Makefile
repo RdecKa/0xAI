@@ -48,7 +48,7 @@ ML_DIR = 2-ml/
 ML_OUT_DIR = data/ml/ml-$(START_TIME)/
 ML_MERGE_DATA_FILE = $(ML_OUT_DIR)data.in
 ML_INPUT_FILES = $(shell find $(MCTS_OUT_DIR) -type f -name "*.in")
-ML_MAIN = $(ML_DIR)regression.py
+ML_MAIN = $(ML_DIR)learn.py
 ML_DOT_FILES = $(shell find $(ML_OUT_DIR) -type f -name "*.dot")
 ML_PS_FILES = $(ML_DOT_FILES:.dot=.ps)
 ML_SELECT_TREE = 2

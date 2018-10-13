@@ -6,7 +6,7 @@
 // 	- Initialize instance(s) of that attribute
 // 	- Add this/these instance(s) to the slice GenSamAttributes (together with
 // 		matching opposite attribute)
-// 	- In 2-ml/regression.py, select a type of the attribute when reading a CSV
+// 	- In 2-ml/learn.py, select a type of the attribute when reading a CSV
 // 		file (for now only integer values are supported)
 // 	- In 3-ab/ab/ab.go, add a line to initialization of Sample sample for each
 // 		instance of the attribute

@@ -103,7 +103,7 @@ for filename in ${output_folder_mcts}*.in; do
 done
 
 # Run the program
-python3 2-ml/regression.py -d "$data_file" -o "$output_folder_ml"
+python3 2-ml/learn.py -d "$data_file" -o "$output_folder_ml"
 
 # Visualize trees
 for filename in ${output_folder_ml}*.dot; do
