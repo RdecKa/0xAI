@@ -1,4 +1,5 @@
-import sys, getopt
+import sys
+import getopt
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -36,7 +37,7 @@ class Model:
 def main(argv):
     # Read flags
     datafile = "sample_data/data.in"
-    outfolder = "./"
+    outfolder = "sample_out/"
     try:
         opts, args = getopt.getopt(argv, "d:o:")
     except getopt.GetoptError:
@@ -72,7 +73,6 @@ def main(argv):
                                                         random_state=4224)
 
     dt_models = [
-        DecisionTreeRegressor(max_depth=2, min_samples_leaf=5),
         DecisionTreeRegressor(max_depth=5, min_samples_leaf=5),
         DecisionTreeRegressor(max_depth=10, min_samples_leaf=5),
         DecisionTreeRegressor(max_depth=None, min_samples_leaf=1),
@@ -80,7 +80,7 @@ def main(argv):
         DecisionTreeRegressor(max_depth=None, min_samples_leaf=20),
         DecisionTreeRegressor(max_depth=None, min_samples_leaf=50),
     ]
-    dt_models = [dt.DecisionTreeModel(m) for m in dt_models]
+    dt_models = [dt.DecisionTreeModel(m, index) for index, m in enumerate(dt_models)]
 
     learners = [
         dt.DecisionTreeLearner(dt_models),
@@ -110,7 +110,7 @@ def main(argv):
                 stats_file.write("Statistics for:" + str(model) + "\n")
 
                 stats_file.write("Feature importances:\n")
-                stats_file.write(model.feature_importances(X.keys()))
+                stats_file.write(model.feature_importances(X.keys(), outfolder))
 
                 sc = model.score(X_test, y_test)
                 stats_file.write("SCORE: " + str(sc) + "\n")

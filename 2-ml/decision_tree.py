@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+
 from sklearn import tree
 
 import tree_to_code as ttc
@@ -23,6 +25,10 @@ class DecisionTreeLearner(Learner):
 
 class DecisionTreeModel(Model):
 
+    def __init__(self, model, ID):
+        super().__init__(model)
+        self.ID = "dtl_" + str(ID)
+
     def __str__(self):
         return str(self.model)
 
@@ -30,11 +36,19 @@ class DecisionTreeModel(Model):
         return "dt (max_depth=" + str(self.model.max_depth) + \
                ", min_leaf=" + str(self.model.min_samples_leaf) + ")"
 
-    def feature_importances(self, feature_names):
+    def feature_importances(self, feature_names, outfolder):
+        plt.figure()
+        plt.bar(feature_names, self.model.feature_importances_)
+        plt.gcf().subplots_adjust(bottom=0.25)
+        plt.xticks(rotation='vertical')
+        plt.savefig(outfolder + "features_" + self.ID + ".pdf")
+        plt.close()
+
         fi = zip(feature_names, self.model.feature_importances_)
         s = ""
         for (k, v) in fi:
             s += "\t" + k + ": " + str(v) + "\n"
+
         return s
 
     def custom_output(self, model_index, feature_names, outfolder):
