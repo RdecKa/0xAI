@@ -14,7 +14,7 @@ func (state State) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	buffer.WriteString(fmt.Sprintf("\"grid\":%s,\"lastPlayer\":\"%s\"", jsonValue, state.lastPlayer))
+	buffer.WriteString(fmt.Sprintf("\"grid\":%s,\"lp\":\"%s\"", jsonValue, state.lastAction.c))
 	buffer.WriteString("}")
 	return buffer.Bytes(), nil
 }

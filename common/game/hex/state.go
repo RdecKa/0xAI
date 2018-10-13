@@ -22,20 +22,24 @@ import (
 //			11 - undefined
 //		Lowest two bits represent the cell with index 0. Because of using 32
 //		bits for a row, maximal size of the grid is 16x16.
-//	lastPlayer is the color of the player who made the last action
+//	lastAction is the action that led to the current position on board
+//	isInitialState tells whether the board is completely empty (at the beginning
+//		of the game)
 //
 // A goal of the red player is to connect top-most and bottom-most row while a
 // goal of the blue player is to connect left-most and right-most column
 type State struct {
-	size       byte
-	grid       []uint32
-	lastPlayer Color
+	size           byte
+	grid           []uint32
+	lastAction     *Action
+	isInitialState bool
 }
 
-// NewState returns new State with a grid of given size
+// NewState returns new State with a grid of given size and an invalid action as
+// lastAction
 func NewState(size byte, firstPlayer Color) *State {
 	grid := make([]uint32, size)
-	return &State{size, grid, firstPlayer.Opponent()} // Opponent is set as last player, so firstPlayer starts
+	return &State{size, grid, NewAction(size, size, firstPlayer.Opponent()), true} // Opponent is set as last player, so firstPlayer starts
 }
 
 func (s State) String() string {
@@ -67,7 +71,7 @@ func (s *State) GetCopyGrid() []uint32 {
 
 // GetLastPlayer returns the player who made the last move
 func (s State) GetLastPlayer() Color {
-	return s.lastPlayer
+	return s.lastAction.c
 }
 
 // getColorOn returns the color of the stone in cell (x, y)
@@ -95,7 +99,7 @@ func (s *State) clone() game.State {
 	for i, v := range s.grid {
 		newGrid[i] = v
 	}
-	return State{s.size, newGrid, s.lastPlayer}
+	return State{s.size, newGrid, s.lastAction.clone(), s.isInitialState}
 }
 
 // IsCellValid returns true if a cell (x, y) is on the grid, and false otherwise
@@ -120,27 +124,29 @@ func (s *State) IsEndingCell(x, y int, c Color) bool {
 // GetSuccessorState returns a state after Action a is performed
 func (s State) GetSuccessorState(action game.Action) game.State {
 	a := action.(*Action)
-	if a.c == s.lastPlayer {
-		panic(fmt.Sprintf("Player cannot do two moves in a row! (last player: %s, current action: %s)", s.lastPlayer, a))
+	if a.c == s.lastAction.c {
+		panic(fmt.Sprintf("Player cannot do two moves in a row! (last player: %s, current action: %s)", s.lastAction.c, a))
 	}
 	if x, y := a.GetCoordinates(); s.getColorOn(byte(x), byte(y)) != None {
 		panic(fmt.Sprintf("Cell (%d, %d) already occupied!", x, y))
 	}
 	newState := s.clone().(State)
-	newState.lastPlayer = a.c
+	newState.lastAction.c = a.c
 	newState.setCell(a.x, a.y, a.c)
+	newState.isInitialState = false
 	return newState
 }
 
 // GetPossibleActions returns a list of all possible actions from State s
 func (s State) GetPossibleActions() []game.Action {
 	actions := make([]game.Action, 0, s.size*s.size)
+	playerColor := s.lastAction.c.Opponent()
 	for rowIndex := byte(0); rowIndex < s.size; rowIndex++ {
 		row := s.grid[rowIndex]
 		for colIndex := byte(0); colIndex < s.size; colIndex++ {
 			bits := row & 3 // Get last two bits of a row
 			if GetColorFromBits(bits) == None {
-				actions = append(actions, &Action{colIndex, rowIndex, s.lastPlayer.Opponent()})
+				actions = append(actions, &Action{colIndex, rowIndex, playerColor})
 			}
 			row = row >> 2
 		}
@@ -169,7 +175,7 @@ func (s State) Same(sg game.State) bool {
 	if s.size != s2.size {
 		return false
 	}
-	if s.lastPlayer != s2.lastPlayer {
+	if s.lastAction.c != s2.lastAction.c {
 		return false
 	}
 	for i := byte(0); i < s.size; i++ {

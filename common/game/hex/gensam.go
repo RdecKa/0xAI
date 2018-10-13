@@ -12,7 +12,7 @@ import (
 func (s State) GenSample(q float64, gridChan chan []uint32, resultChan chan [2][]int) string {
 	gridChan <- s.GetCopyGrid()
 
-	if s.lastPlayer == Blue {
+	if s.lastAction.c == Blue {
 		// Always store the Q value for the red player
 		q = -q
 	}

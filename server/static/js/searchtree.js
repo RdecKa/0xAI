@@ -38,10 +38,10 @@ Vue.component('node', {
 			@mouseleave="showBoard = false">
 				<span class="info">
 					<span v-if="!isLeaf" class="expand-sign">[{{ open ? '-' : '+' }}]</span>
-					<span>value: {{ node.value.val }}, </span>
-					<span>lastPlayer: {{ node.value.state.lastPlayer }}, </span>
+					<span>val: {{ node.value.val }}, </span>
+					<span>lp: {{ node.value.state.lp }}, </span>
 					<!--<span>grid: {{ node.value.state.grid }} </span>-->
-					<span>({{ node.value.comment }})</span>
+					<span>({{ node.value.com }})</span>
 				</span>
 				<div v-if="showBoard" v-html="boardHTML" class="simple-board"></div>
 			</div>

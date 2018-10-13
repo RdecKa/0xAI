@@ -20,7 +20,7 @@
 						<span v-if="!isGoal" class="expand-sign">[{{ open ? '-' : '+' }}]</span>
 						<span v-if="showN" class="info-n">N: {{ model.value.N }},</span>
 						<span v-if="showQ" class="info-q">Q: {{ model.value.Q }},</span>
-						<span v-if="showLastPlayer" class="info-lp">lastPlayer: {{ model.value.state.lastPlayer }},</span>
+						<span v-if="showLastPlayer" class="info-lp">lp: {{ model.value.state.lp }},</span>
 						<span v-if="showGrid" class="info-g">grid: {{ model.value.state.grid }}</span>
 					</span>
 					<div v-if="showBoard" v-html="boardHTML" class="info-b"></div>

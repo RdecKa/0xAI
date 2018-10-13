@@ -36,7 +36,7 @@ type searchState struct {
 
 // GetInitialState returns inital state of the search
 func GetInitialState(gameState *State) searchState {
-	return searchState{-1, -1, gameState.lastPlayer, gameState, nil}
+	return searchState{-1, -1, gameState.lastAction.c, gameState, nil}
 }
 
 // GetClean returns an array that is unique for each searchState.

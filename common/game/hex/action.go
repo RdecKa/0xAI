@@ -22,6 +22,10 @@ func (a *Action) String() string {
 	return fmt.Sprintf("%s: (%d, %d)", a.c, a.x, a.y)
 }
 
+func (a *Action) clone() *Action {
+	return NewAction(a.x, a.y, a.c)
+}
+
 // GetCoordinates returns X and Y coordinates of an action
 func (a *Action) GetCoordinates() (int, int) {
 	return int(a.x), int(a.y)

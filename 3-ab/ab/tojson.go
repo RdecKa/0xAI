@@ -14,7 +14,7 @@ func (anv NodeValue) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	buffer.WriteString(fmt.Sprintf("\"state\":%s,\"val\":%f,\"comment\":\"%s\"", jsonValue, anv.value, anv.comment))
+	buffer.WriteString(fmt.Sprintf("\"state\":%s,\"val\":%f,\"com\":\"%s\"", jsonValue, anv.value, anv.comment))
 	buffer.WriteString("}")
 	return buffer.Bytes(), nil
 }
