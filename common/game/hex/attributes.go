@@ -81,9 +81,8 @@ func (a AttrNumberStones) GetAttributeName() string {
 
 // GetAttributeValue returns the value of an attribute
 func (a AttrNumberStones) GetAttributeValue(args *[]interface{}) int {
-	s := (*args)[0].(State)
-	r, b, _ := s.GetNumOfStones()
-	return r + b
+	patCount := (*args)[1].([2][]int)
+	return patCount[0][0] + patCount[1][0] // red_p0 + blue_p0
 }
 
 // --------------------------------
@@ -201,15 +200,17 @@ func (a AttrLastPlayerTurn) GetAttributeName() string {
 	return "lp"
 }
 
-// GetAttributeValue returns the value of an attribute
+// GetAttributeValue returns 0 if the Red player had the last turn and 1 otherwise
 func (a AttrLastPlayerTurn) GetAttributeValue(args *[]interface{}) int {
 	s := (*args)[0].(State)
 	lp := s.GetLastPlayer()
 	switch {
+	// Actual state
 	case a.isLastPlayer && lp == Red:
 		return 0
 	case a.isLastPlayer && lp == Blue:
 		return 1
+	// State with reversed roles of players
 	case !a.isLastPlayer && lp == Red:
 		return 1
 	case !a.isLastPlayer && lp == Blue:
