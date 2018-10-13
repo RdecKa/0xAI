@@ -54,7 +54,8 @@ def main(argv):
 							"red_p2": np.uint8, "blue_p2": np.uint8,
 							"red_p3": np.uint8, "blue_p3": np.uint8,
 							"red_p4": np.uint8, "blue_p4": np.uint8,
-							"lp": bool})
+							"lp": bool,
+							"dtc": np.uint8})
 
 	y = df["value"]
 	X = df.drop(columns = ["value"])
@@ -68,6 +69,8 @@ def main(argv):
 	dtrs = [DecisionTreeRegressor(max_depth =    2, min_samples_leaf = 5),
 			DecisionTreeRegressor(max_depth =    5, min_samples_leaf = 5),
 			DecisionTreeRegressor(max_depth =   10, min_samples_leaf = 5),
+			DecisionTreeRegressor(max_depth = None, min_samples_leaf = 10),
+			DecisionTreeRegressor(max_depth = None, min_samples_leaf = 20),
 			DecisionTreeRegressor(max_depth = None, min_samples_leaf = 50),
 			DecisionTreeRegressor(max_depth = None, min_samples_leaf = 1)]
 

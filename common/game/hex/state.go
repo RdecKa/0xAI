@@ -69,6 +69,11 @@ func (s *State) GetCopyGrid() []uint32 {
 	return c
 }
 
+// GetLastAction returns the last action that was made
+func (s State) GetLastAction() *Action {
+	return s.lastAction
+}
+
 // GetLastPlayer returns the player who made the last move
 func (s State) GetLastPlayer() Color {
 	return s.lastAction.c

@@ -25,10 +25,13 @@ func (s State) GenSample(q float64, gridChan chan []uint32, resultChan chan [2][
 	patCount := <-resultChan
 	args := &[]interface{}{s, patCount}
 	for _, attrPair := range GenSamAttributes {
-		o1 += ","
-		o1 += fmt.Sprintf("%v", attrPair[0].GetAttributeValue(args))
-		o2 += ","
-		o2 += fmt.Sprintf("%v", attrPair[1].GetAttributeValue(args))
+		aVal := attrPair[0].GetAttributeValue(args)
+		o1 += fmt.Sprintf(",%v", aVal)
+
+		if attrPair[1] != nil {
+			aVal = attrPair[1].GetAttributeValue(args)
+		}
+		o2 += fmt.Sprintf(",%v", aVal)
 	}
 	return o1 + "\n" + o2 + "\n"
 }

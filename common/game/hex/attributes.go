@@ -41,6 +41,7 @@ var (
 	AttrPatCountBlue4      = AttrPatternCount{Blue, 4}
 	AttrLastPlayer         = AttrLastPlayerTurn{true}
 	AttrLastPlayerOpponent = AttrLastPlayerTurn{false}
+	AttrDistanceToCenter   = AttrLastActionDistanceToCenter{}
 )
 
 // GenSamAttributes contains the attributes that are included in the sample
@@ -48,23 +49,26 @@ var (
 // to each other. This information is used in generation of learning samples
 // when two samples are generated for each state - one as it is and one with
 // switched roles of red and blue player.
-var GenSamAttributes = [][]game.Attribute{
-	[]game.Attribute{AttrNumStones, AttrNumStones},
-	[]game.Attribute{AttrOccRedRows, AttrOccBlueCols},
-	[]game.Attribute{AttrOccRedCols, AttrOccBlueRows},
-	[]game.Attribute{AttrOccBlueRows, AttrOccRedCols},
-	[]game.Attribute{AttrOccBlueCols, AttrOccRedRows},
-	[]game.Attribute{AttrPatCountRed0, AttrPatCountBlue0},
-	[]game.Attribute{AttrPatCountRed1, AttrPatCountBlue1},
-	[]game.Attribute{AttrPatCountRed2, AttrPatCountBlue2},
-	[]game.Attribute{AttrPatCountRed3, AttrPatCountBlue3},
-	[]game.Attribute{AttrPatCountRed4, AttrPatCountBlue4},
-	[]game.Attribute{AttrPatCountBlue0, AttrPatCountRed0},
-	[]game.Attribute{AttrPatCountBlue1, AttrPatCountRed1},
-	[]game.Attribute{AttrPatCountBlue2, AttrPatCountRed2},
-	[]game.Attribute{AttrPatCountBlue3, AttrPatCountRed3},
-	[]game.Attribute{AttrPatCountBlue4, AttrPatCountRed4},
-	[]game.Attribute{AttrLastPlayer, AttrLastPlayerOpponent},
+// If the second element of a pair is nil, the attribute is the same for both
+// players.
+var GenSamAttributes = [][2]game.Attribute{
+	[2]game.Attribute{AttrNumStones, nil},
+	[2]game.Attribute{AttrOccRedRows, AttrOccBlueCols},
+	[2]game.Attribute{AttrOccRedCols, AttrOccBlueRows},
+	[2]game.Attribute{AttrOccBlueRows, AttrOccRedCols},
+	[2]game.Attribute{AttrOccBlueCols, AttrOccRedRows},
+	[2]game.Attribute{AttrPatCountRed0, AttrPatCountBlue0},
+	[2]game.Attribute{AttrPatCountRed1, AttrPatCountBlue1},
+	[2]game.Attribute{AttrPatCountRed2, AttrPatCountBlue2},
+	[2]game.Attribute{AttrPatCountRed3, AttrPatCountBlue3},
+	[2]game.Attribute{AttrPatCountRed4, AttrPatCountBlue4},
+	[2]game.Attribute{AttrPatCountBlue0, AttrPatCountRed0},
+	[2]game.Attribute{AttrPatCountBlue1, AttrPatCountRed1},
+	[2]game.Attribute{AttrPatCountBlue2, AttrPatCountRed2},
+	[2]game.Attribute{AttrPatCountBlue3, AttrPatCountRed3},
+	[2]game.Attribute{AttrPatCountBlue4, AttrPatCountRed4},
+	[2]game.Attribute{AttrLastPlayer, AttrLastPlayerOpponent},
+	[2]game.Attribute{AttrDistanceToCenter, nil},
 }
 
 // ----------------------------
@@ -217,4 +221,59 @@ func (a AttrLastPlayerTurn) GetAttributeValue(args *[]interface{}) int {
 		return 0
 	}
 	panic(fmt.Errorf("Invalid color %v", lp))
+}
+
+// ------------------------------------------
+// |     AttrLastActionDistanceToCenter     |
+// ------------------------------------------
+
+// AttrLastActionDistanceToCenter tells how far from the center was the last
+// stone placed
+type AttrLastActionDistanceToCenter struct{}
+
+// GetAttributeName returns the name of an attribute
+func (a AttrLastActionDistanceToCenter) GetAttributeName() string {
+	return "dtc"
+}
+
+// GetAttributeValue returns the value of an attribute
+func (a AttrLastActionDistanceToCenter) GetAttributeValue(args *[]interface{}) int {
+	s := (*args)[0].(State)
+	lastAction := s.GetLastAction()
+	x, y := lastAction.GetCoordinates()
+	size := s.GetSize()
+	var centerX, centerY int
+	if size%2 == 1 {
+		// Board has only one central position
+		centerX = size / 2
+		centerY = centerX
+	} else {
+		// Board has four central positions
+		centerSmall, centerBig := size/2-1, size/2
+		if x <= centerSmall {
+			centerX = centerSmall
+		} else {
+			centerX = centerBig
+		}
+		if y <= centerSmall {
+			centerY = centerSmall
+		} else {
+			centerY = centerBig
+		}
+		// (centerX, centerY) is the central position that is closest to (x, y)
+	}
+	return getDistanceBetween(centerX, centerY, x, y)
+}
+
+// getDistanceBetween returns the distance between points (x1, y1) and (x2, y2)
+// in a hexagonal grid
+func getDistanceBetween(x1, y1, x2, y2 int) int {
+	return (abs(x1-x2) + abs(x1+y1-x2-y2) + abs(y1-y2)) / 2
+}
+
+func abs(a int) int {
+	if a >= 0 {
+		return a
+	}
+	return -a
 }
