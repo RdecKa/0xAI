@@ -3,9 +3,15 @@ data
 *.css.map
 
 # Generated code
+2-ml/sample_out
 3-ab/ab/sample.go
 3-ab/ab/tree*code.go
+3-ab/ab/linear*code.go
 
 # VS Code
 .vs
 .vscode
+
+# PyCharm
+__pycache__
+.idea
