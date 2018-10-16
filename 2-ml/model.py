@@ -15,4 +15,4 @@ class Model:
         return self.model.predict(X)
 
     def score(self, X, y):
-        return self.model.score(X, y)
+        return {0: (self.model.score(X, y), len(X))}

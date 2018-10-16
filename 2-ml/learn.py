@@ -4,8 +4,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 
 import decision_tree as dt
@@ -64,23 +62,23 @@ def main(argv):
                                                         random_state=4224)
 
     # Create decision tree models
-    dt_models = [
-        DecisionTreeRegressor(max_depth=5, min_samples_leaf=5),
-        DecisionTreeRegressor(max_depth=10, min_samples_leaf=5),
-        DecisionTreeRegressor(max_depth=None, min_samples_leaf=1),
-        DecisionTreeRegressor(max_depth=None, min_samples_leaf=10),
-        DecisionTreeRegressor(max_depth=None, min_samples_leaf=20),
-        DecisionTreeRegressor(max_depth=None, min_samples_leaf=50),
+    dt_models_args = [  # [max_depth, min_samples_leaf]
+        [5, 5],
+        [10, 5],
+        [None, 1],
+        [None, 10],
+        [None, 20],
+        [None, 50],
     ]
 
     # Create linear regression models
-    lr_models = [
-        LinearRegression(normalize=True, n_jobs=-1)
+    lr_models_args = [
+        [0, 1, 2, 3, 4, 5, 7, 10, 15, 22, 30],
     ]
 
     learners = [
-        dt.DecisionTreeLearner(dt_models, feature_names),
-        lr.LinearRegressionLearner(lr_models, feature_names),
+        dt.DecisionTreeLearner(dt_models_args, feature_names),
+        lr.LinearRegressionLearner(lr_models_args, feature_names),
     ]
 
     # Create a plot
@@ -107,28 +105,42 @@ def main(argv):
                 stats_file.write("Statistics for:" + str(model) + "\n")
 
                 feature_importances = model.feature_importances()
-                if isinstance(learner, dt.DecisionTreeLearner):
-                    stats_file.write("Feature importances:\n")
-                else:
-                    stats_file.write("Feature coefficients:\n")
-                s = ""
-                for (n, v) in zip(feature_names, feature_importances):
-                    s += "\t" + n + ": " + str(v) + "\n"
-                stats_file.write(s)
+                for ind, fi in enumerate(feature_importances):
+                    if len(fi) == 0:
+                        continue
+
+                    if isinstance(learner, dt.DecisionTreeLearner):
+                        stats_file.write("Feature importances:\n")
+                    else:
+                        stats_file.write("Feature coefficients:\n")
+
+                    s = ""
+                    for (n, v) in zip(feature_names, fi):
+                        s += "\t" + n + ": " + str(v) + "\n"
+                    stats_file.write(s)
+
+                    # Create a plot for feature importances
+                    plt.figure(num=str(model)+"_"+str(ind))
+                    plt.bar(feature_names, fi)
+                    plt.gcf().subplots_adjust(bottom=0.35)
+                    plt.xticks(rotation='vertical')
+                    plt.savefig(outfolder + "features_" + model.get_ID()
+                                + "_" + str(ind) + ".pdf")
+                    plt.close()
 
                 sc = model.score(X_test, y_test)
-                stats_file.write("SCORE: " + str(sc) + "\n")
+                stats_file.write("SCORE:\n")
+                s = ""
+                for key in sc:
+                    v = sc[key]
+                    if v is None:
+                        s += "{}: No samples\n".format(key)
+                    else:
+                        s += "{}: {} ({} samples)\n".format(key, v[0], v[1])
+                stats_file.write(s)
 
                 # Output some custom properties for current model
                 model.custom_output(model_index, outfolder)
-
-                # Create a plot for feature importances
-                plt.figure(num=str(model))
-                plt.bar(feature_names, feature_importances)
-                plt.gcf().subplots_adjust(bottom=0.35)
-                plt.xticks(rotation='vertical')
-                plt.savefig(outfolder + "features_" + model.get_ID() + ".pdf")
-                plt.close()
 
                 # Add results to plot of all models
                 plt.plot(y1, label="predicted values - " + model.name(),

@@ -1,7 +1,7 @@
 import math
 
 from sklearn import tree
-from sklearn.tree import _tree
+from sklearn.tree import _tree, DecisionTreeRegressor
 
 from learner import Learner
 from model import Model
@@ -24,7 +24,9 @@ class DecisionTreeLearner(Learner):
 
 class DecisionTreeModel(Model):
 
-    def __init__(self, model, feature_names, ID):
+    def __init__(self, model_args, feature_names, ID):
+        model = DecisionTreeRegressor(max_depth=model_args[0],
+                                      min_samples_leaf=model_args[1])
         super().__init__(model, feature_names)
         self.ID = "dtl_" + str(ID)
 
@@ -36,7 +38,7 @@ class DecisionTreeModel(Model):
                ", min_leaf=" + str(self.model.min_samples_leaf) + ")"
 
     def feature_importances(self):
-        return self.model.feature_importances_
+        return [self.model.feature_importances_]
 
     def custom_output(self, model_index, outfolder):
         # Visualize trees
