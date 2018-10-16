@@ -55,8 +55,9 @@ class LinearRegressionModel(Model):
                 return "({})*float64(s.{})".format(coefficient, feature_name)
 
             def get_one_submodel(key):
-                s = "\t\treturn {}".format(get_one_factor(self.feature_names[0], coefficients[key][0]))
-                for (n, c) in zip(self.feature_names[1:], coefficients[key][1:]):
+                z = [(fn, c) for (fn, c) in zip(self.feature_names, coefficients[key]) if c != 0]
+                s = "\t\treturn {}".format(get_one_factor(*z[0]))
+                for (n, c) in z[1:]:
                     s += " +\n\t\t\t{}".format(get_one_factor(n, c))
                 s += "\n"
                 return s
