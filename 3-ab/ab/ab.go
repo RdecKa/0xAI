@@ -9,9 +9,9 @@ import (
 	"github.com/RdecKa/bachleor-thesis/common/tree"
 )
 
-const maxValue = 10000.0
-const abInit = 1000.0
-const won = 500.0
+const maxValue = 1e15
+const abInit = 1e14
+const won = abInit
 
 // AlphaBeta runs search with AB pruning to select the next action to be taken.
 // In addition to the selected action it returns the tree that was constructed
