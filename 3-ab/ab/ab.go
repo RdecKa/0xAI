@@ -16,10 +16,8 @@ const won = abInit
 // AlphaBeta runs search with AB pruning to select the next action to be taken.
 // In addition to the selected action it returns the tree that was constructed
 // during the last AB search (if wanted).
-func AlphaBeta(state *hex.State, timeToRun time.Duration, patFileName string, createTree bool) (*hex.Action, *tree.Tree) {
-	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
-	defer func() { stopChan <- struct{}{} }()
-
+func AlphaBeta(state *hex.State, timeToRun time.Duration, createTree bool,
+	gridChan chan []uint32, resultChan chan [2][]int) (*hex.Action, *tree.Tree) {
 	var selectedAction, a *hex.Action
 	var rootNode, rn *tree.Node
 	var err error
@@ -64,9 +62,10 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, patFileName string, cr
 	return selectedAction, searchTree
 }
 
-func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State, lastAction *hex.Action,
-	alpha, beta float64, gridChan chan []uint32, resultChan chan [2][]int,
-	transpositionTable, oldTransitionTable map[string]float64, createTree bool) (float64, *hex.Action, *tree.Node, error) {
+func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State,
+	lastAction *hex.Action, alpha, beta float64, gridChan chan []uint32,
+	resultChan chan [2][]int, transpositionTable, oldTransitionTable map[string]float64,
+	createTree bool) (float64, *hex.Action, *tree.Node, error) {
 
 	// End recursion on timeout
 	select {

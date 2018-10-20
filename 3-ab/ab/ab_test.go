@@ -17,9 +17,12 @@ func benchmarkAB(actions []*hex.Action, size byte, b *testing.B) {
 		state = &s
 	}
 
+	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
+	defer func() { stopChan <- struct{}{} }()
+
 	for n := 0; n < b.N; n++ {
 		// Now when time is added, results cannot really be compared anymore ...
-		AlphaBeta(state, time.Second, patFileName, false)
+		AlphaBeta(state, time.Second, false, gridChan, resultChan)
 	}
 }
 

@@ -180,7 +180,7 @@ func matches(pat pattern, grid []uint32, xStart, yStart int, player Color) bool 
 // gridChan. Results are sent via resultChan. stopChan is used to end the
 // goroutine.
 // It also checks in how many rows and columns each player has at least one
-// virtual connection
+// stoen or virtual connection
 func patChecker(filename string, gridChan chan []uint32, stopChan chan struct{}, resultChan chan [2][]int) {
 	defer close(gridChan)
 	defer close(stopChan)

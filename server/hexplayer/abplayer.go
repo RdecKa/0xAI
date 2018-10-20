@@ -20,14 +20,18 @@ type AbPlayer struct {
 	state              *hex.State      // Current state in a game
 	safeWinCells       [][2]cell       // List of cells under the bridges on a winning path
 	lastOpponentAction *hex.Action     // Opponent's last action
-	patFileName        string          // File with patterns
 	allowResignation   bool            // Allow the player to resign if the game is lost
 	createTree         bool            // If true, create a search tree for debugging purposes
+	gridChan           chan []uint32   // Used for pattern checking
+	stopChan           chan struct{}   // -||-
+	resultChan         chan [2][]int   // -||-
 }
 
 // CreateAbPlayer creates a new player
 func CreateAbPlayer(c hex.Color, webso *websocket.Conn, t time.Duration, allowResignation bool, patFileName string, createTree bool) *AbPlayer {
-	ap := AbPlayer{c, webso, t, 0, nil, nil, nil, patFileName, allowResignation, createTree}
+	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
+	ap := AbPlayer{c, webso, t, 0, nil, nil, nil, allowResignation,
+		createTree, gridChan, stopChan, resultChan}
 	return &ap
 }
 
@@ -58,7 +62,8 @@ func (ap *AbPlayer) NextAction() (*hex.Action, error) {
 	}
 
 	// Run Minimax with alpha-beta pruning
-	chosenAction, searchedTree := ab.AlphaBeta(ap.state, ap.timeToRun, ap.patFileName, ap.createTree)
+	chosenAction, searchedTree := ab.AlphaBeta(ap.state, ap.timeToRun,
+		ap.createTree, ap.gridChan, ap.resultChan)
 
 	if chosenAction == nil {
 		if !ap.allowResignation {
