@@ -80,27 +80,27 @@ func benchAB(b *testing.B, depthLimit int) {
 	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
 	defer func() { stopChan <- struct{}{} }()
 
-	actions, state := getActionsAndStateSample()
+	_, state := getActionsAndStateSample()
 
 	for n := 0; n < b.N; n++ {
 		var oldTranspositionTable map[string]float64
 		for depth := 2; depth <= depthLimit; depth += 2 {
 			transpositionTable := make(map[string]float64)
-			alphaBeta(context.TODO(), 0, depth, state, actions[len(actions)-1], -500, 500, gridChan,
+			alphaBeta(context.TODO(), 0, depth, state, nil, -1e14, 1e14, gridChan,
 				resultChan, transpositionTable, oldTranspositionTable, false)
 			oldTranspositionTable = transpositionTable
 		}
 	}
 }
 
-func BenchmarkMoveOrderingLevel2(b *testing.B) {
+func BenchmarkABLevel2(b *testing.B) {
 	benchAB(b, 2)
 }
 
-func BenchmarkMoveOrderingLevel4(b *testing.B) {
+func BenchmarkABLevel4(b *testing.B) {
 	benchAB(b, 4)
 }
 
-func BenchmarkMoveOrderingLevel6(b *testing.B) {
+func BenchmarkABLevel6(b *testing.B) {
 	benchAB(b, 6)
 }

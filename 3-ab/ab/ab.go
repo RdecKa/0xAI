@@ -152,7 +152,7 @@ func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State, las
 
 	var retAction *hex.Action
 	if bestState != nil {
-		retAction = state.GetTransitionAction(*bestState).(*hex.Action)
+		retAction = bestState.GetLastAction()
 	}
 	transpositionTable[state.GetMapKey()] = bestValue
 
