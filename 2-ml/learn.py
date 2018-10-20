@@ -148,7 +148,10 @@ def main(argv):
             ax.legend(loc="center left", bbox_to_anchor=(1, 0.5), fontsize="x-small")
             ax.set_xlabel("Attribute")
             ax.set_ylabel("Influence")
-            plt.savefig(outfolder + "features_" + learner.short_name() + ".pdf")
+            plt.yscale("linear")
+            plt.savefig(outfolder + "features_" + learner.short_name() + "_lin.pdf")
+            plt.yscale("symlog")
+            plt.savefig(outfolder + "features_" + learner.short_name() + "_log.pdf")
             plt.close()
 
 
