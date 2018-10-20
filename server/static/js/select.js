@@ -72,16 +72,21 @@ Vue.component("select-player", {
 			<input type="number" min="1" :id="'time-mcts-' + color" v-model="time.mcts" @change="selectionChange">
 			<label :for="'time-mcts-' + color">seconds</label>
 			<br>
-			<input type="radio" :id="'ab-'  + color" :name="color" value="ab"      v-model="player" @change="selectionChange" />
-			<label :for="'ab-'  + color">Computer (AB)</label>
-			<input type="number" min="1" :id="'time-ab-' + color" v-model="time.ab" @change="selectionChange">
-			<label :for="'time-ab-' + color">seconds</label>
+			<input type="radio" :id="'abDT-'  + color" :name="color" value="abDT"  v-model="player" @change="selectionChange" />
+			<label :for="'abDT-'  + color">Computer (AB-DL)</label>
+			<input type="number" min="1" :id="'time-abDT-' + color" v-model="time.abDT" @change="selectionChange">
+			<label :for="'time-abDT-' + color">seconds</label>
+			<br>
+			<input type="radio" :id="'abLR-'  + color" :name="color" value="abLR"  v-model="player" @change="selectionChange" />
+			<label :for="'abLR-'  + color">Computer (AB-LR)</label>
+			<input type="number" min="1" :id="'time-abLR-' + color" v-model="time.abLR" @change="selectionChange">
+			<label :for="'time-abLR-' + color">seconds</label>
 		</div>`,
 	props: ["color"],
 	data: function () {
 		return {
 			player: null,
-			time: {mcts: 1, ab: 1}
+			time: {mcts: 1, abDT: 1, abLR: 1},
 		}
 	},
 	methods: {

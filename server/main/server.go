@@ -116,13 +116,13 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var rFunc, bFunc func(hex.Color, *websocket.Conn, int, bool) hexplayer.HexPlayer
+	var rFunc, bFunc func(hex.Color, *websocket.Conn, int, bool, string) hexplayer.HexPlayer
 
 	if okRed && red[0] == "human" {
 		rFunc = createHumanPlayer
 	} else if okRed && red[0] == "mcts" {
 		rFunc = createMCTSplayer
-	} else if okRed && red[0] == "ab" {
+	} else if okRed && red[0][:2] == "ab" {
 		rFunc = createAbPlayer
 	}
 
@@ -130,18 +130,18 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		bFunc = createHumanPlayer
 	} else if okBlue && blue[0] == "mcts" {
 		bFunc = createMCTSplayer
-	} else if okBlue && blue[0] == "ab" {
+	} else if okBlue && blue[0][:2] == "ab" {
 		bFunc = createAbPlayer
 	}
 
 	if rFunc == nil || bFunc == nil {
 		log.Println("Wrong or missing arguments for players. Using default.")
 		wa = false
-		pair[0] = createHumanPlayer(hex.Red, conn, redTime, wa)
-		pair[1] = createMCTSplayer(hex.Blue, conn, blueTime, wa)
+		pair[0] = createHumanPlayer(hex.Red, conn, redTime, wa, red[0])
+		pair[1] = createMCTSplayer(hex.Blue, conn, blueTime, wa, blue[0])
 	} else {
-		pair[0] = rFunc(hex.Red, conn, redTime, wa)
-		pair[1] = bFunc(hex.Blue, conn, blueTime, wa)
+		pair[0] = rFunc(hex.Red, conn, redTime, wa, red[0])
+		pair[1] = bFunc(hex.Blue, conn, blueTime, wa, blue[0])
 	}
 
 	c := conn
@@ -152,16 +152,16 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	go hexgame.Play(boardSize, pair, numGames, c)
 }
 
-func createHumanPlayer(color hex.Color, conn *websocket.Conn, secondsPerAction int, allowResignation bool) hexplayer.HexPlayer {
+func createHumanPlayer(color hex.Color, conn *websocket.Conn, _ int, _ bool, _ string) hexplayer.HexPlayer {
 	return hexplayer.CreateHumanPlayer(conn, color)
 }
 
-func createMCTSplayer(color hex.Color, conn *websocket.Conn, secondsPerAction int, allowResignation bool) hexplayer.HexPlayer {
+func createMCTSplayer(color hex.Color, _ *websocket.Conn, secondsPerAction int, allowResignation bool, _ string) hexplayer.HexPlayer {
 	return hexplayer.CreateMCTSplayer(color, math.Sqrt(2), time.Duration(secondsPerAction)*time.Second, 10, allowResignation)
 }
 
-func createAbPlayer(color hex.Color, conn *websocket.Conn, secondsPerAction int, allowResignation bool) hexplayer.HexPlayer {
-	return hexplayer.CreateAbPlayer(color, conn, time.Duration(secondsPerAction)*time.Second, allowResignation, "common/game/hex/patterns.txt", true)
+func createAbPlayer(color hex.Color, conn *websocket.Conn, secondsPerAction int, allowResignation bool, subtype string) hexplayer.HexPlayer {
+	return hexplayer.CreateAbPlayer(color, conn, time.Duration(secondsPerAction)*time.Second, allowResignation, "common/game/hex/patterns.txt", true, subtype)
 }
 
 func main() {
@@ -172,7 +172,7 @@ func main() {
 	http.HandleFunc("/ws/", makeHandler(wsHandler))
 
 	// TODO: DELETE / CHANGE
-	http.HandleFunc("/", makeHandler(playHandler))
+	//http.HandleFunc("/", makeHandler(playHandler))
 
 	// Register folder with static content (js, css)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("server/static"))))

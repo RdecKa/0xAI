@@ -53,12 +53,14 @@ ML_DOT_FILES = $(shell find $(ML_OUT_DIR) -type f -name "*.dot")
 ML_PS_FILES = $(ML_DOT_FILES:.dot=.ps)
 ML_SELECT_TREE = 2
 ML_SELECT_TREE_FILE = $(ML_OUT_DIR)tree$(ML_SELECT_TREE)code.go
+ML_LINEAR_REGRESSION_FILE = $(ML_OUT_DIR)linear0code.go
 ML_GEN_SAMPLE_FILE = $(ML_OUT_DIR)sample.go
 
 # ---> AB variables <---
 AB_DIR = 3-ab/ab/
 AB_GEN_SAMP_FILE = $(AB_DIR)sample.go
 AB_GEN_TREE_FILE = $(AB_DIR)treecode.go
+AB_GEN_LINEAR_FILE = $(AB_DIR)linearcode.go
 
 # ---> Server variables <---
 SERV_DIR = server/
@@ -133,6 +135,7 @@ mlcopycode:
 	# --> Copy generated Go files to AB directory <--
 	cp -f "$(ML_SELECT_TREE_FILE)" "$(AB_GEN_TREE_FILE)"
 	cp -f "$(ML_GEN_SAMPLE_FILE)" "$(AB_GEN_SAMP_FILE)"
+	cp -f "$(ML_LINEAR_REGRESSION_FILE)" "$(AB_GEN_LINEAR_FILE)"
 
 ml: mlrun mlcopycode
 

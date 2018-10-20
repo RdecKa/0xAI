@@ -17,7 +17,9 @@ const won = abInit
 // In addition to the selected action it returns the tree that was constructed
 // during the last AB search (if wanted).
 func AlphaBeta(state *hex.State, timeToRun time.Duration, createTree bool,
-	gridChan chan []uint32, resultChan chan [2][]int) (*hex.Action, *tree.Tree) {
+	gridChan chan []uint32, resultChan chan [2][]int,
+	getEstimatedValue func(s Sample) float64) (*hex.Action, *tree.Tree) {
+
 	var selectedAction, a *hex.Action
 	var rootNode, rn *tree.Node
 	var err error
@@ -31,7 +33,7 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, createTree bool,
 		fmt.Printf("Starting AB on depth %d\n", depthLimit)
 
 		transpositionTable := make(map[string]float64)
-		_, a, rn, err = alphaBeta(ctx, 0, depthLimit, state, nil, -abInit, abInit, gridChan, resultChan, transpositionTable, oldTransitionTable, createTree)
+		_, a, rn, err = alphaBeta(ctx, 0, depthLimit, state, nil, -abInit, abInit, gridChan, resultChan, transpositionTable, oldTransitionTable, createTree, getEstimatedValue)
 		oldTransitionTable = transpositionTable
 
 		if err != nil {
@@ -65,7 +67,7 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, createTree bool,
 func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State,
 	lastAction *hex.Action, alpha, beta float64, gridChan chan []uint32,
 	resultChan chan [2][]int, transpositionTable, oldTransitionTable map[string]float64,
-	createTree bool) (float64, *hex.Action, *tree.Node, error) {
+	createTree bool, getEstimatedValue func(s Sample) float64) (float64, *hex.Action, *tree.Node, error) {
 
 	// End recursion on timeout
 	select {
@@ -92,7 +94,7 @@ func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State,
 		return -won, lastAction, leaf, nil
 	}
 	if depth >= depthLimit {
-		val, err := eval(state, gridChan, resultChan)
+		val, err := eval(state, gridChan, resultChan, getEstimatedValue)
 		if err != nil {
 			return 0, nil, nil, err
 		}
@@ -124,7 +126,7 @@ func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State,
 
 		successor := state.GetSuccessorState(a).(hex.State)
 		value, _, childNode, err := alphaBeta(ctx, depth+1, depthLimit, &successor, a.(*hex.Action),
-			-beta, -alpha, gridChan, resultChan, transpositionTable, oldTransitionTable, createTree)
+			-beta, -alpha, gridChan, resultChan, transpositionTable, oldTransitionTable, createTree, getEstimatedValue)
 		if err != nil {
 			return 0, nil, nil, err
 		}
@@ -164,7 +166,8 @@ func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State,
 	return bestValue, retAction, node, nil
 }
 
-func eval(state *hex.State, gridChan chan []uint32, resultChan chan [2][]int) (float64, error) {
+func eval(state *hex.State, gridChan chan []uint32, resultChan chan [2][]int,
+	getEstimatedValue func(s Sample) float64) (float64, error) {
 	gridChan <- state.GetCopyGrid()
 	patCount := <-resultChan
 
@@ -188,7 +191,7 @@ func eval(state *hex.State, gridChan chan []uint32, resultChan chan [2][]int) (f
 		lp:            hex.AttrLastPlayer.GetAttributeValue(args),
 		dtc:           hex.AttrDistanceToCenter.GetAttributeValue(args),
 	}
-	val := sample.getEstimatedValue()
+	val := getEstimatedValue(sample)
 
 	// val is given from Red player's prospective
 	switch c := state.GetLastPlayer().Opponent(); c {
@@ -198,5 +201,18 @@ func eval(state *hex.State, gridChan chan []uint32, resultChan chan [2][]int) (f
 		return -val, nil
 	default:
 		return 0, fmt.Errorf("Invalid color %v", c)
+	}
+}
+
+// GetEstimateFunction returns a function that will be used for evaluating
+// states
+func GetEstimateFunction(subtype string) func(s Sample) float64 {
+	switch subtype {
+	case "abDT":
+		return getEstimatedValueDT
+	case "abLR":
+		return getEstimatedValueLR
+	default:
+		panic(fmt.Errorf("Invalid AB subtype: %s", subtype))
 	}
 }

@@ -13,25 +13,28 @@ import (
 // AbPlayer represents a computer player that uses alpha-beta pruning for
 // selecting moves
 type AbPlayer struct {
-	Color              hex.Color       // Player's color
-	Webso              *websocket.Conn // Websocket connecting server and client
-	timeToRun          time.Duration   // Time given to select an action
-	numWin             int             // Number of wins
-	state              *hex.State      // Current state in a game
-	safeWinCells       [][2]cell       // List of cells under the bridges on a winning path
-	lastOpponentAction *hex.Action     // Opponent's last action
-	allowResignation   bool            // Allow the player to resign if the game is lost
-	createTree         bool            // If true, create a search tree for debugging purposes
-	gridChan           chan []uint32   // Used for pattern checking
-	stopChan           chan struct{}   // -||-
-	resultChan         chan [2][]int   // -||-
+	Color              hex.Color                 // Player's color
+	Webso              *websocket.Conn           // Websocket connecting server and client
+	timeToRun          time.Duration             // Time given to select an action
+	numWin             int                       // Number of wins
+	state              *hex.State                // Current state in a game
+	safeWinCells       [][2]cell                 // List of cells under the bridges on a winning path
+	lastOpponentAction *hex.Action               // Opponent's last action
+	allowResignation   bool                      // Allow the player to resign if the game is lost
+	createTree         bool                      // If true, create a search tree for debugging purposes
+	gridChan           chan []uint32             // Used for pattern checking
+	stopChan           chan struct{}             // -||-
+	resultChan         chan [2][]int             // -||-
+	getEstimatedValue  func(s ab.Sample) float64 // Function used for evaluating states
 }
 
 // CreateAbPlayer creates a new player
-func CreateAbPlayer(c hex.Color, webso *websocket.Conn, t time.Duration, allowResignation bool, patFileName string, createTree bool) *AbPlayer {
+func CreateAbPlayer(c hex.Color, webso *websocket.Conn, t time.Duration,
+	allowResignation bool, patFileName string, createTree bool, subtype string) *AbPlayer {
+
 	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
 	ap := AbPlayer{c, webso, t, 0, nil, nil, nil, allowResignation,
-		createTree, gridChan, stopChan, resultChan}
+		createTree, gridChan, stopChan, resultChan, ab.GetEstimateFunction(subtype)}
 	return &ap
 }
 
@@ -63,7 +66,7 @@ func (ap *AbPlayer) NextAction() (*hex.Action, error) {
 
 	// Run Minimax with alpha-beta pruning
 	chosenAction, searchedTree := ab.AlphaBeta(ap.state, ap.timeToRun,
-		ap.createTree, ap.gridChan, ap.resultChan)
+		ap.createTree, ap.gridChan, ap.resultChan, ap.getEstimatedValue)
 
 	if chosenAction == nil {
 		if !ap.allowResignation {
