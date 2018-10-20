@@ -38,7 +38,7 @@ class DecisionTreeModel(Model):
                ", min_leaf=" + str(self.model.min_samples_leaf) + ")"
 
     def feature_importances(self):
-        return [self.model.feature_importances_]
+        return [(self.ID, self.model.feature_importances_)]
 
     def custom_output(self, model_index, outfolder):
         # Visualize trees

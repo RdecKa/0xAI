@@ -39,7 +39,7 @@ class LinearRegressionModel(Model):
     def feature_importances(self):
         s = []
         for submodel in self.submodels:
-            s.append(submodel[1].coef_)
+            s.append((self.ID+"."+str(submodel[0]), submodel[1].coef_))
         return s
 
     def custom_output(self, model_index, outfolder):

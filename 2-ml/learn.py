@@ -81,16 +81,16 @@ def main(argv):
         lr.LinearRegressionLearner(lr_models_args, feature_names),
     ]
 
-    # Create a plot
-    plt.figure(figsize=(10, 6))
-    plt.plot(y_test.tolist(), label="actual values", linewidth=0.7)
-    plt.ylim(-1.2, 1.2)
-
     for learner in learners:
         # Create file for statistics
         with open(outfolder + "stats_" + learner.short_name() + ".txt", "w") \
                 as stats_file:
             models = learner.get_models()
+
+            # Create a plot for feature importances
+            fig, ax = plt.subplots()
+            positions = np.arange(len(feature_names))
+
             for model_index in range(len(models)):
                 model = models[model_index]
 
@@ -105,28 +105,27 @@ def main(argv):
                 stats_file.write("Statistics for:" + str(model) + "\n")
 
                 feature_importances = model.feature_importances()
-                for ind, fi in enumerate(feature_importances):
-                    if len(fi) == 0:
+
+                for ind, feat in enumerate(feature_importances):
+                    if len(feat) == 0:
                         continue
+
+                    name = feat[0]
+                    fi = feat[1]
 
                     if isinstance(learner, dt.DecisionTreeLearner):
                         stats_file.write("Feature importances:\n")
                     else:
-                        stats_file.write("Feature coefficients:\n")
+                        stats_file.write("Feature coefficients (split " + name + "):\n")
 
                     s = ""
                     for (n, v) in zip(feature_names, fi):
                         s += "\t" + n + ": " + str(v) + "\n"
                     stats_file.write(s)
 
-                    # Create a plot for feature importances
-                    plt.figure(num=str(model)+"_"+str(ind))
-                    plt.bar(feature_names, fi)
-                    plt.gcf().subplots_adjust(bottom=0.35)
-                    plt.xticks(rotation='vertical')
-                    plt.savefig(outfolder + "features_" + model.get_ID()
-                                + "_" + str(ind) + ".pdf")
-                    plt.close()
+                    bar_width = (1 / (len(models) * len(feature_importances)))
+                    pos = positions + (model_index * len(feature_importances) + ind) * bar_width
+                    ax.bar(pos, fi, width=bar_width, label=name, tick_label=feature_names)
 
                 sc = model.score(X_test, y_test)
                 stats_file.write("SCORE:\n")
@@ -142,16 +141,15 @@ def main(argv):
                 # Output some custom properties for current model
                 model.custom_output(model_index, outfolder)
 
-                # Add results to plot of all models
-                plt.plot(y1, label="predicted values - " + model.name(),
-                         linewidth=0.7)
-
-    plt.xlabel("Samples")
-    plt.ylabel("Value")
-    plt.title("Comparison of predicted and actual values")
-    plt.legend(fontsize="x-small")
-    plt.savefig(outfolder + "plot_predictions.pdf")
-    plt.close()
+            plt.gcf().subplots_adjust(bottom=0.35, right=0.85)
+            plt.xticks(positions-bar_width/2, rotation='vertical')
+            plt.grid(True)
+            ax.set_title("Influence of attributes")
+            ax.legend(loc="center left", bbox_to_anchor=(1, 0.5), fontsize="x-small")
+            ax.set_xlabel("Attribute")
+            ax.set_ylabel("Influence")
+            plt.savefig(outfolder + "features_" + learner.short_name() + ".pdf")
+            plt.close()
 
 
 if __name__ == "__main__":
