@@ -3,6 +3,7 @@ import getopt
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 
 from sklearn.model_selection import train_test_split
 
@@ -50,6 +51,31 @@ def main(argv):
                             "red_p4": np.uint8, "blue_p4": np.uint8,
                             "lp": bool,
                             "dtc": np.uint8})
+
+    # Create a plot showing attribute distributions
+    plt.gcf().subplots_adjust(bottom=0.25)
+    sns.boxplot(data=df, color="darkorchid")
+    plt.xticks(rotation="vertical")
+    plt.savefig(outfolder + "attrs_boxplot.pdf")
+    plt.close()
+
+    # Create a plot showing relations between attributes
+    attrs = df.keys()
+    group1 = [a for a in attrs if "red_p" in a]
+    group2 = [a for a in attrs if "blue_p" in a]
+    group3 = [a for a in attrs if "occ_" in a]
+    group4 = [a for a in attrs if a not in group1 and a not in group2 and a not in group3]
+    list_of_groups = [group1, group2, group3, group4]
+
+    for a in range(len(list_of_groups)):
+        for b in range(a, len(list_of_groups)):
+            print("Creating a pairplot of:")
+            print(list_of_groups[a])
+            print(list_of_groups[b])
+            sns.pairplot(df, x_vars=list_of_groups[a], y_vars=list_of_groups[b],
+                         plot_kws={"alpha": 0.03, "s": 80})
+            plt.savefig(outfolder + "attrs_pairplot_" + str(a) + "_" + str(b) + ".pdf")
+            plt.close()
 
     y = df["value"]
     X = df.drop(columns=["value"])
@@ -142,12 +168,13 @@ def main(argv):
                 model.custom_output(model_index, outfolder)
 
             plt.gcf().subplots_adjust(bottom=0.35, right=0.85)
-            plt.xticks(positions-bar_width/2, rotation='vertical')
+            plt.xticks(positions-bar_width/2, rotation="vertical")
             plt.grid(True)
             ax.set_title("Influence of attributes")
             ax.legend(loc="center left", bbox_to_anchor=(1, 0.5), fontsize="x-small")
             ax.set_xlabel("Attribute")
             ax.set_ylabel("Influence")
+
             plt.yscale("linear")
             plt.savefig(outfolder + "features_" + learner.short_name() + "_lin.pdf")
             plt.yscale("symlog")
