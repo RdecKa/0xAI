@@ -24,17 +24,18 @@ CSS_COMPILER = sass
 START_TIME := $(shell date +"%Y%m%dT%H%M%S")
 PATTERNS_FILE = common/game/hex/patterns.txt
 OPEN_IN_BROWSER = xdg-open
+SIZE = 7
+OUT_DATA_DIR = data/$(SIZE)/
 
 # ---> MCTS variables <---
+TIME = 10
+WORKERS = 3
+TREASHOLD_N = 500
 MCTS_DIR = 1-mcts/
 MCTS_FILES := $(shell find $(MCTS_DIR) -type f -name "*.go")
 MCTS_MAIN = $(MCTS_DIR)main/main.go
-MCTS_OUT_DIR_PARENT = data/mcts/
+MCTS_OUT_DIR_PARENT = $(OUT_DATA_DIR)mcts/
 MCTS_OUT_DIR = $(MCTS_OUT_DIR_PARENT)run-$(START_TIME)/
-TIME = 10
-SIZE = 7
-WORKERS = 3
-TREASHOLD_N = 500
 
 # ---> Visual variables <---
 VISUAL_DATA_DIR = visual/mcts/
@@ -45,7 +46,7 @@ JSON = false
 
 # ---> ML variables <---
 ML_DIR = 2-ml/
-ML_OUT_DIR = data/ml/ml-$(START_TIME)/
+ML_OUT_DIR = $(OUT_DATA_DIR)ml/ml-$(START_TIME)/
 ML_MERGE_DATA_FILE = $(ML_OUT_DIR)data.in
 ML_INPUT_FILES = $(shell find $(MCTS_OUT_DIR) -type f -name "*.in")
 ML_MAIN = $(ML_DIR)learn.py
@@ -87,7 +88,7 @@ mctscomp: $(MCTS_FILES)
 
 mctsrun:
 # Make a new folder for output files
-	mkdir "$(MCTS_OUT_DIR)"
+	mkdir -p "$(MCTS_OUT_DIR)"
 
 	# --> Run MCTS program <--
 	main -output=$(MCTS_OUT_DIR) -json=$(JSON) -indent=$(INDENT) -time=$(TIME) -size=$(SIZE) -workers=$(WORKERS) -patterns=$(PATTERNS_FILE) -treasholdn=$(TREASHOLD_N)
@@ -112,7 +113,7 @@ mctsall: mctscomp mctsrun mctsjson mctsvisual
 
 # ---> ML targets <---
 mlcreatedir:
-	mkdir $(ML_OUT_DIR)
+	mkdir -p $(ML_OUT_DIR)
 
 mlmerge:
 	# --> Create a file to merge all learning samples: $(ML_MERGE_DATA_FILE) <--
