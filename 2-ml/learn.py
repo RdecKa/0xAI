@@ -27,16 +27,19 @@ def main(argv):
     # Read flags
     datafile = "sample_data/data.in"
     outfolder = "sample_out/"
+    data_analysis = True
     try:
-        opts, args = getopt.getopt(argv, "d:o:")
+        opts, args = getopt.getopt(argv, "ad:o:")
     except getopt.GetoptError:
         print("Error parsing the command line arguments")
         sys.exit(1)
     for o, a in opts:
         if o == "-d":
             datafile = a
-        if o == "-o":
+        elif o == "-o":
             outfolder = a
+        elif o == "-a":
+            data_analysis = False
 
     # Read data from file
     print("Reading data from file:", datafile)
@@ -52,30 +55,31 @@ def main(argv):
                             "lp": bool,
                             "dtc": np.uint8})
 
-    # Create a plot showing attribute distributions
-    plt.gcf().subplots_adjust(bottom=0.25)
-    sns.boxplot(data=df, color="darkorchid")
-    plt.xticks(rotation="vertical")
-    plt.savefig(outfolder + "attrs_boxplot.pdf")
-    plt.close()
+    if data_analysis:
+        # Create a plot showing attribute distributions
+        plt.gcf().subplots_adjust(bottom=0.25)
+        sns.boxplot(data=df, color="darkorchid")
+        plt.xticks(rotation="vertical")
+        plt.savefig(outfolder + "attrs_boxplot.pdf")
+        plt.close()
 
-    # Create a plot showing relations between attributes
-    attrs = df.keys()
-    group1 = [a for a in attrs if "red_p" in a]
-    group2 = [a for a in attrs if "blue_p" in a]
-    group3 = [a for a in attrs if "occ_" in a]
-    group4 = [a for a in attrs if a not in group1 and a not in group2 and a not in group3]
-    list_of_groups = [group1, group2, group3, group4]
+        # Create a plot showing relations between attributes
+        attrs = df.keys()
+        group1 = [a for a in attrs if "red_p" in a]
+        group2 = [a for a in attrs if "blue_p" in a]
+        group3 = [a for a in attrs if "occ_" in a]
+        group4 = [a for a in attrs if a not in group1 and a not in group2 and a not in group3]
+        list_of_groups = [group1, group2, group3, group4]
 
-    for a in range(len(list_of_groups)):
-        for b in range(a, len(list_of_groups)):
-            print("Creating a pairplot of:")
-            print(list_of_groups[a])
-            print(list_of_groups[b])
-            sns.pairplot(df, x_vars=list_of_groups[a], y_vars=list_of_groups[b],
-                         plot_kws={"alpha": 0.03, "s": 80})
-            plt.savefig(outfolder + "attrs_pairplot_" + str(a) + "_" + str(b) + ".pdf")
-            plt.close()
+        for a in range(len(list_of_groups)):
+            for b in range(a, len(list_of_groups)):
+                print("Creating a pairplot of:")
+                print(list_of_groups[a])
+                print(list_of_groups[b])
+                sns.pairplot(df, x_vars=list_of_groups[a], y_vars=list_of_groups[b],
+                             plot_kws={"alpha": 0.03, "s": 80})
+                plt.savefig(outfolder + "attrs_pairplot_" + str(a) + "_" + str(b) + ".pdf")
+                plt.close()
 
     y = df["value"]
     X = df.drop(columns=["value"])
