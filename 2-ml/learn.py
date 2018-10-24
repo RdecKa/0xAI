@@ -1,5 +1,6 @@
 import sys
 import getopt
+import math
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,6 +22,12 @@ def write_sample_file(outfolder, feature_names):
             sample_file.write(", " + f)
         sample_file.write(" int\n")
         sample_file.write("}")
+
+
+def sort_value(x):
+    minimum = x[2:]
+    minimum = math.inf if minimum == "inf" else int(minimum)
+    return minimum, x[0]
 
 
 def main(argv):
@@ -160,7 +167,11 @@ def main(argv):
                 sc = model.score(X_test, y_test)
                 stats_file.write("SCORE:\n")
                 s = ""
-                for key in sc:
+                if isinstance(learner, lr.LinearRegressionLearner):
+                    sorted_keys = sorted(sc, key=sort_value)
+                else:
+                    sorted_keys = sorted(sc)
+                for key in sorted_keys:
                     v = sc[key]
                     if v is None:
                         s += "{}: No testing samples\n".format(key)
