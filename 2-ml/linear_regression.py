@@ -25,33 +25,40 @@ class LinearRegressionModel(Model):
 
     class Submodel:
 
-        def __init__(self, minimum, maximum, model):
-            self.minimum = minimum
+        def __init__(self, color, maximum, model):
+            self.color = color
             self.maximum = maximum
             self.model = model
 
         def __str__(self):
-            return "({} - {} - {})".format(self.minimum, self.maximum, self.model)
+            return "({} - {} - {})".format(self.color, self.maximum, self.model)
 
         def get_ID(self):
-            return str(self.minimum) + "-" + str(self.maximum)
+            return self.color + "_" + str(self.maximum)
 
     def __init__(self, feature_names, ID, splits):
         super().__init__(None, feature_names)
         self.ID = "lrl_" + str(ID)
-        self.submodels = [None] * (len(splits)+1)
+        self.splits = splits
+        self.submodels = [[], []]
+        self.submodels[0] = [None] * (len(splits)+1)  # For red player
+        self.submodels[1] = [None] * (len(splits)+1)  # For blue player
         for split_index in range(len(splits)):
-            minimum = 0 if split_index == 0 else splits[split_index-1] + 1
             maximum = splits[split_index]
-            self.submodels[split_index] = \
-                self.Submodel(minimum, maximum, LinearRegression(normalize=True, n_jobs=-1))
-        self.submodels[-1] = \
-            self.Submodel(maximum+1, math.inf, LinearRegression(normalize=True, n_jobs=-1))
+            self.submodels[0][split_index] = \
+                self.Submodel("r", maximum, LinearRegression(normalize=True, n_jobs=-1))
+            self.submodels[1][split_index] = \
+                self.Submodel("b", maximum, LinearRegression(normalize=True, n_jobs=-1))
+        self.submodels[0][-1] = \
+            self.Submodel("r", math.inf, LinearRegression(normalize=True, n_jobs=-1))
+        self.submodels[1][-1] = \
+            self.Submodel("b", math.inf, LinearRegression(normalize=True, n_jobs=-1))
 
     def __str__(self):
         s = ""
-        for submodel in self.submodels:
-            s += str(submodel)
+        for c in range(2):
+            for submodel in self.submodels[c]:
+                s += str(submodel)
         return s
 
     @staticmethod
@@ -60,45 +67,71 @@ class LinearRegressionModel(Model):
 
     def feature_importances(self):
         s = []
-        for submodel in self.submodels:
-            s.append((self.ID + "." + submodel.get_ID(), submodel.model.coef_))
+        for c in range(2):
+            for submodel in self.submodels[c]:
+                if submodel is None:
+                    continue
+                s.append((self.ID + "." + submodel.get_ID(), submodel.model.coef_))
         return s
 
     def custom_output(self, model_index, outfolder):
         self.lr_to_go_code(model_index, outfolder)
 
     def lr_to_go_code(self, model_index, outfolder):
-        coefficients = {}
-        for submodel in self.submodels:
-            coefficients[submodel.get_ID()] = submodel.model.coef_
-
         with open(outfolder + "linear" + str(model_index) + "code.go", "w") as code_file:
+            def one_color_to_go_code(color):
+                if color == "r":
+                    submodels = self.submodels[0]
+                elif color == "b":
+                    submodels = self.submodels[1]
+                else:
+                    raise ValueError(color)
+
+                coefficients = {}
+                for ind in range(len(submodels)):
+                    submodel = submodels[ind]
+                    coefficients[submodel.get_ID()] = submodel.model.coef_
+
+                code_file.write("\t\tswitch {\n")
+
+                for ind in range(len(submodels)):
+                    submodel = submodels[ind]
+                    if ind == len(submodels) - 1:
+                        s = "\t\tdefault"
+                    else:
+                        s = "\t\tcase s.num_stones <= " + str(submodel.maximum)
+                    s += ":\n"
+                    s += (get_one_submodel(submodel.get_ID(), coefficients))
+                    code_file.write(s)
+
+                code_file.write("\t\t}\n")  # end of switch
+
             def get_one_factor(feature_name, coefficient):
                 return "({})*float64(s.{})".format(coefficient, feature_name)
 
-            def get_one_submodel(key):
+            def get_one_submodel(key, coefficients):
                 z = [(fn, c) for (fn, c) in zip(self.feature_names, coefficients[key]) if c != 0]
-                s = "\t\treturn {}".format(get_one_factor(*z[0]))
+                if len(z) == 0:
+                    # All coefficients are zero
+                    return "\t\t\treturn 0\n"
+
+                s = "\t\t\treturn {}".format(get_one_factor(*z[0]))
                 for (n, c) in z[1:]:
-                    s += " +\n\t\t\t{}".format(get_one_factor(n, c))
+                    s += " +\n\t\t\t\t{}".format(get_one_factor(n, c))
                 s += "\n"
                 return s
+
             code_file.write("// Package ab (Code generated by a Python script)\n")
             code_file.write("package ab\n\n")
             code_file.write("func getEstimatedValueLR(s Sample) float64 {\n")
-            code_file.write("\tswitch {\n")
 
-            for ind in range(len(self.submodels)):
-                submodel = self.submodels[ind]
-                if ind == len(self.submodels) - 1:
-                    s = "\tdefault"
-                else:
-                    s = "\tcase s.num_stones <= " + str(submodel.maximum)
-                s += ":\n"
-                s += (get_one_submodel(submodel.get_ID()))
-                code_file.write(s)
-            code_file.write("\t}")  # end of switch
-            code_file.write("\n}\n")
+            code_file.write("\tif s.lp == 0 {\n")
+            one_color_to_go_code("r")
+            code_file.write("\t} else {\n")
+            one_color_to_go_code("b")
+            code_file.write("\t}\n")
+
+            code_file.write("}\n")
 
     def group_func(self, X, ind_X):
         """
@@ -108,59 +141,69 @@ class LinearRegressionModel(Model):
         :param ind: index of the investigated sample
         :return: group ID (from 0 to len(self.submodels)-1)
         """
-        for ind in range(len(self.submodels)):  # Take advantage of submodels being ordered
-            submodel = self.submodels[ind]
+        color = 1 if X["lp"].loc[ind_X] else 0
+        for ind in range(len(self.submodels[color])):  # Take advantage of submodels being ordered
+            submodel = self.submodels[color][ind]
             if X["num_stones"].loc[ind_X] <= submodel.maximum:
-                return ind
-        return len(self.submodels) - 1
+                return ind, color
+        return len(self.submodels[color]) - 1, color
+
+    def group_func_train(self, X, ind_X):
+        color = 1 if X["lp"].loc[ind_X] else 0
+        for ind in range(len(self.splits)):
+            if X["num_stones"].loc[ind_X] <= self.splits[ind]:
+                return ind, color
+        return len(self.splits), color
 
     def fit(self, X, y):
-        data_in_subsets = X.groupby(lambda i: self.group_func(X, i))
+        data_in_subsets = X.groupby(lambda i: self.group_func_train(X, i))
 
-        for ind in range(len(self.submodels)):
-            if ind not in data_in_subsets.groups.keys():
-                # No samples that would fall in this group
-                self.submodels[ind] = None
-                continue
+        for c in range(2):
+            for ind in range(len(self.submodels[c])):
+                key = (ind, c)
+                if key not in data_in_subsets.groups.keys():
+                    # No samples that would fall in this group
+                    self.submodels[c][ind] = None
+                    continue
 
-            inp = X.loc[data_in_subsets.groups[ind]]
-            out = y.loc[data_in_subsets.groups[ind]]
-            self.submodels[ind].model.fit(inp, out)
+                inp = X.loc[data_in_subsets.groups[key]]
+                out = y.loc[data_in_subsets.groups[key]]
+                self.submodels[c][ind].model.fit(inp, out)
 
         # Keep only models that are not None
-        models = []
-        for submodel in self.submodels:
-            if submodel is not None:
-                models.append(submodel)
-        models[-1].maximum = math.inf  # Set the split of the last model to infinity
+        models = [[], []]
+        for c in range(2):
+            for submodel in self.submodels[c]:
+                if submodel is not None:
+                    models[c].append(submodel)
+        models[0][-1].maximum = math.inf  # Set the split of the last model to infinity
+        models[1][-1].maximum = math.inf
 
         self.submodels = models
 
     def predict(self, X):
-        y = [0] * len(X)
+        y = [0] * len(X.index)
         for (ind, X_ind) in enumerate(X.index):
-            group_id = self.group_func(X, X_ind)
-            y[ind] = self.submodels[group_id].model.predict([X.loc[X_ind]])
-
+            i, c = self.group_func(X, X_ind)
+            submodel = self.submodels[c][i]
+            y[ind] = submodel.model.predict([X.loc[X_ind]])
         return y
 
     def score(self, X, y):
         data_in_subsets = X.groupby(lambda i: self.group_func(X, i))
 
         s = {}
-        for ind in range(len(self.submodels)):
-            submodel = self.submodels[ind]
+        for c in range(2):
+            for ind in range(len(self.submodels[c])):
+                key = (ind, c)
+                submodel = self.submodels[c][ind]
+                if key not in data_in_subsets.groups.keys():
+                    # No samples of this group in test data
+                    s[submodel.get_ID()] = None
+                    continue
 
-            if ind not in data_in_subsets.groups.keys():
-                # No samples of this group in test data
-                s[submodel.get_ID()] = None
-                continue
+                inp = X.loc[data_in_subsets.groups[key]]
+                out = y.loc[data_in_subsets.groups[key]]
+                s[submodel.get_ID()] = (submodel.model.score(inp, out), len(inp))
 
-            inp = X.loc[data_in_subsets.groups[ind]]
-            out = y.loc[data_in_subsets.groups[ind]]
-            s[submodel.get_ID()] = (submodel.model.score(inp, out), len(inp))
-        for group in data_in_subsets.groups.keys():
-            if group not in range(len(self.submodels)):
-                inp = X.loc[data_in_subsets.groups[group]]
-                s[str(group)] = ("Unknown", len(inp))
         return s
