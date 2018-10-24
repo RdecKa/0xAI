@@ -23,14 +23,36 @@ class LinearRegressionLearner(Learner):
 
 class LinearRegressionModel(Model):
 
+    class Submodel:
+
+        def __init__(self, minimum, maximum, model):
+            self.minimum = minimum
+            self.maximum = maximum
+            self.model = model
+
+        def __str__(self):
+            return "({} - {} - {})".format(self.minimum, self.maximum, self.model)
+
+        def get_ID(self):
+            return str(self.minimum) + "-" + str(self.maximum)
+
     def __init__(self, feature_names, ID, splits):
         super().__init__(None, feature_names)
         self.ID = "lrl_" + str(ID)
-        self.submodels = [(split, LinearRegression(normalize=True, n_jobs=-1)) for split in splits]
-        self.submodels.append((math.inf, LinearRegression(normalize=True, n_jobs=-1)))
+        self.submodels = [None] * (len(splits)+1)
+        for split_index in range(len(splits)):
+            minimum = 0 if split_index == 0 else splits[split_index-1] + 1
+            maximum = splits[split_index]
+            self.submodels[split_index] = \
+                self.Submodel(minimum, maximum, LinearRegression(normalize=True, n_jobs=-1))
+        self.submodels[-1] = \
+            self.Submodel(maximum+1, math.inf, LinearRegression(normalize=True, n_jobs=-1))
 
     def __str__(self):
-        return str(self.submodels)
+        s = ""
+        for submodel in self.submodels:
+            s += str(submodel)
+        return s
 
     @staticmethod
     def name():
@@ -39,7 +61,7 @@ class LinearRegressionModel(Model):
     def feature_importances(self):
         s = []
         for submodel in self.submodels:
-            s.append((self.ID+"."+str(submodel[0]), submodel[1].coef_))
+            s.append((self.ID + "." + submodel.get_ID(), submodel.model.coef_))
         return s
 
     def custom_output(self, model_index, outfolder):
@@ -48,7 +70,7 @@ class LinearRegressionModel(Model):
     def lr_to_go_code(self, model_index, outfolder):
         coefficients = {}
         for submodel in self.submodels:
-            coefficients[submodel[0]] = submodel[1].coef_
+            coefficients[submodel.get_ID()] = submodel.model.coef_
 
         with open(outfolder + "linear" + str(model_index) + "code.go", "w") as code_file:
             def get_one_factor(feature_name, coefficient):
@@ -71,9 +93,9 @@ class LinearRegressionModel(Model):
                 if ind == len(self.submodels) - 1:
                     s = "\tdefault"
                 else:
-                    s = "\tcase s.num_stones <= " + str(submodel[0])
+                    s = "\tcase s.num_stones <= " + str(submodel.maximum)
                 s += ":\n"
-                s += (get_one_submodel(submodel[0]))
+                s += (get_one_submodel(submodel.get_ID()))
                 code_file.write(s)
             code_file.write("\t}")  # end of switch
             code_file.write("\n}\n")
@@ -86,9 +108,9 @@ class LinearRegressionModel(Model):
         :param ind: index of the investigated sample
         :return: group ID (from 0 to len(self.submodels)-1)
         """
-        for ind in range(len(self.submodels)):
+        for ind in range(len(self.submodels)):  # Take advantage of submodels being ordered
             submodel = self.submodels[ind]
-            if X["num_stones"].loc[ind_X] <= submodel[0]:
+            if X["num_stones"].loc[ind_X] <= submodel.maximum:
                 return ind
         return len(self.submodels) - 1
 
@@ -103,14 +125,14 @@ class LinearRegressionModel(Model):
 
             inp = X.loc[data_in_subsets.groups[ind]]
             out = y.loc[data_in_subsets.groups[ind]]
-            self.submodels[ind][1].fit(inp, out)
+            self.submodels[ind].model.fit(inp, out)
 
         # Keep only models that are not None
         models = []
         for submodel in self.submodels:
             if submodel is not None:
                 models.append(submodel)
-        models[-1] = (math.inf, models[-1][1])  # Set the split of the last model to infinity
+        models[-1].maximum = math.inf  # Set the split of the last model to infinity
 
         self.submodels = models
 
@@ -118,7 +140,7 @@ class LinearRegressionModel(Model):
         y = [0] * len(X)
         for (ind, X_ind) in enumerate(X.index):
             group_id = self.group_func(X, X_ind)
-            y[ind] = self.submodels[group_id][1].predict([X.loc[X_ind]])
+            y[ind] = self.submodels[group_id].model.predict([X.loc[X_ind]])
 
         return y
 
@@ -127,13 +149,18 @@ class LinearRegressionModel(Model):
 
         s = {}
         for ind in range(len(self.submodels)):
+            submodel = self.submodels[ind]
+
             if ind not in data_in_subsets.groups.keys():
                 # No samples of this group in test data
-                s[ind] = None
+                s[submodel.get_ID()] = None
                 continue
 
-            submodel = self.submodels[ind]
             inp = X.loc[data_in_subsets.groups[ind]]
             out = y.loc[data_in_subsets.groups[ind]]
-            s[submodel[0]] = (submodel[1].score(inp, out), len(inp))
+            s[submodel.get_ID()] = (submodel.model.score(inp, out), len(inp))
+        for group in data_in_subsets.groups.keys():
+            if group not in range(len(self.submodels)):
+                inp = X.loc[data_in_subsets.groups[group]]
+                s[str(group)] = ("Unknown", len(inp))
         return s

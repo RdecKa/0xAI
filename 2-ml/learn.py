@@ -132,7 +132,7 @@ def main(argv):
 
                 # Print statistics
                 stats_file.write("##########################################\n")
-                stats_file.write("Statistics for:" + str(model) + "\n")
+                stats_file.write("Statistics for: " + str(model) + "\n")
 
                 feature_importances = model.feature_importances()
 
@@ -163,9 +163,9 @@ def main(argv):
                 for key in sc:
                     v = sc[key]
                     if v is None:
-                        s += "{}: No samples\n".format(key)
+                        s += "{}: No testing samples\n".format(key)
                     else:
-                        s += "{}: {} ({} samples)\n".format(key, v[0], v[1])
+                        s += "{}: {} ({} testing samples)\n".format(key, v[0], v[1])
                 stats_file.write(s)
 
                 # Output some custom properties for current model
