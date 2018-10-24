@@ -59,7 +59,7 @@ def main(argv):
                             "red_p2": np.uint8, "blue_p2": np.uint8,
                             "red_p3": np.uint8, "blue_p3": np.uint8,
                             "red_p4": np.uint8, "blue_p4": np.uint8,
-                            "lp": bool,
+                            "lp": np.uint8,
                             "dtc": np.uint8})
 
     if data_analysis:
