@@ -182,10 +182,10 @@ class LinearRegressionModel(Model):
         self.submodels = models
 
     def predict(self, X):
-        y = [0] * len(X)
+        y = [0] * len(X.index)
         for (ind, X_ind) in enumerate(X.index):
-            ind, c = self.group_func(X, X_ind)
-            submodel = self.submodels[c][ind]
+            i, c = self.group_func(X, X_ind)
+            submodel = self.submodels[c][i]
             y[ind] = submodel.model.predict([X.loc[X_ind]])
         return y
 
