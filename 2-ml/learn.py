@@ -7,6 +7,7 @@ import numpy as np
 import seaborn as sns
 
 from sklearn.model_selection import train_test_split
+from matplotlib.ticker import FixedLocator, FormatStrFormatter
 
 import decision_tree as dt
 import linear_regression as lr
@@ -103,10 +104,10 @@ def main(argv):
                     # Append tuple: (key = tuple of attribute values, mean, standard deviation):
                     stats[num_stones].append((key, m, s))
 
-            fig1, ax1 = plt.subplots()
             means = []
             stds = []
             keys = []
+            sizes = []
             for key, value in stats.items():
                 if len(value) == 0:
                     continue
@@ -124,22 +125,47 @@ def main(argv):
                 means.append(mean)
                 stds.append(std)
                 keys.append(key)
+                sizes.append(size)
 
-            plt.plot(keys, means)
+            fig1, ax1 = plt.subplots()
+            color1 = "#0F2F8C"
+            color2 = "#A60303"
 
             means = np.array(means)
             stds = np.array(stds)
             lower_bounds = means - stds
             upper_bounds = means + stds
 
-            ax1.set_ylabel("Mean of standard deviations")
+            # Plot mean of standard deviations
+            ax1.plot(keys, means, color=color1)
+            ax1.fill_between(keys, lower_bounds, upper_bounds, alpha=0.3)
+            ax1.set_ylabel("Mean of standard deviations", color=color1)
             ax1.set_xlabel("Number of stones")
+            ax1.tick_params("y", colors=color1)
             ax1.set_title("Mean and std of stds of sample values in groups, " +
                           "created by samples\nhaving the same attribute values, " +
                           "then grouped by number of stones")
+
+            # Plot number of groups with a given number of stones
+            ax2 = ax1.twinx()
+            ax2.bar(keys, sizes, color=color2, alpha=0.15)
+            ax2.tick_params("y", colors=color2)
+            ax2.set_ylabel("Number of groups with a given number of stones", color=color2)
+
+            # Transform the yticks on the first axis to match with the second
+            y1_bot, y1_top = ax1.get_ylim()
+            y2_bot, y2_top = ax2.get_ylim()
+
+            def transform_ticks(yy):
+                return y1_bot + (yy-y2_bot)/(y2_top-y2_bot) * (y1_top-y1_bot)
+
+            new_y1_ticks = transform_ticks(ax2.get_yticks())
+            new_y1_ticks = np.append(new_y1_ticks, 0)
+            ax1.yaxis.set_major_locator(FixedLocator(new_y1_ticks))
+            ax1.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+
+            ax1.grid(True)
             plt.xticks(keys)
-            plt.grid(True)
-            plt.fill_between(keys, lower_bounds, upper_bounds, alpha=0.3)
             plt.savefig(outfolder + "std.pdf")
             plt.close()
 
