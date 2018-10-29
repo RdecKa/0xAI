@@ -78,24 +78,6 @@ def main(argv):
         plt.savefig(outfolder + "attrs_boxplot.pdf")
         plt.close()
 
-        # Create a plot showing relations between attributes
-        attrs = df.keys()
-        group1 = [a for a in attrs if "red_p" in a]
-        group2 = [a for a in attrs if "blue_p" in a]
-        group3 = [a for a in attrs if "occ_" in a]
-        group4 = [a for a in attrs if a not in group1 and a not in group2 and a not in group3]
-        list_of_groups = [group1, group2, group3, group4]
-
-        for a in range(len(list_of_groups)):
-            for b in range(a, len(list_of_groups)):
-                print("Creating a pairplot of:")
-                print(list_of_groups[a])
-                print(list_of_groups[b])
-                sns.pairplot(df, x_vars=list_of_groups[a], y_vars=list_of_groups[b],
-                             plot_kws={"alpha": 0.03, "s": 80})
-                plt.savefig(outfolder + "attrs_pairplot_" + str(a) + "_" + str(b) + ".pdf")
-                plt.close()
-
         # Check how similar values do samples with the same attributes have
         data_same_attributes = df.groupby([a for a in feature_names])
 
@@ -115,21 +97,69 @@ def main(argv):
                 ind = data_same_attributes.groups[key]
                 if len(ind) > 1:
                     val = df.loc[ind]
-                    # print(ind)
                     m = val["value"].mean()
                     s = val["value"].std()
                     num_stones = key[num_stones_index]
-                    # Append tuple: (key = tuple of attribute values, mean, standard deviation)
+                    # Append tuple: (key = tuple of attribute values, mean, standard deviation):
                     stats[num_stones].append((key, m, s))
 
+            fig1, ax1 = plt.subplots()
+            means = []
+            stds = []
+            keys = []
             for key, value in stats.items():
                 if len(value) == 0:
                     continue
-                comp_file.write("num_stones: " + str(key) + "\n")
+
                 std_devs = [x[2] for x in value]
-                comp_file.write("\tNumber of groups with same attributes: {}\n".format(len(std_devs)))
-                comp_file.write("\tAverage standard deviation: {}\n".format(np.mean(std_devs)))
-                comp_file.write("\tStandard deviation of standard deviations: {}\n".format(np.std(std_devs)))
+                size = len(std_devs)
+                mean = np.mean(std_devs)
+                std = np.std(std_devs)
+
+                comp_file.write("num_stones: " + str(key) + "\n")
+                comp_file.write("\tNumber of groups with same attributes: {}\n".format(size))
+                comp_file.write("\tAverage standard deviation: {}\n".format(mean))
+                comp_file.write("\tStandard deviation of standard deviations: {}\n".format(std))
+
+                means.append(mean)
+                stds.append(std)
+                keys.append(key)
+
+            plt.plot(keys, means)
+
+            means = np.array(means)
+            stds = np.array(stds)
+            lower_bounds = means - stds
+            upper_bounds = means + stds
+
+            ax1.set_ylabel("Mean of standard deviations")
+            ax1.set_xlabel("Number of stones")
+            ax1.set_title("Mean and std of stds of sample values in groups, " +
+                          "created by samples\nhaving the same attribute values, " +
+                          "then grouped by number of stones")
+            plt.xticks(keys)
+            plt.grid(True)
+            plt.fill_between(keys, lower_bounds, upper_bounds, alpha=0.3)
+            plt.savefig(outfolder + "std.pdf")
+            plt.close()
+
+        # Create a plot showing relations between attributes
+        attrs = df.keys()
+        group1 = [a for a in attrs if "red_p" in a]
+        group2 = [a for a in attrs if "blue_p" in a]
+        group3 = [a for a in attrs if "occ_" in a]
+        group4 = [a for a in attrs if a not in group1 and a not in group2 and a not in group3]
+        list_of_groups = [group1, group2, group3, group4]
+
+        for a in range(len(list_of_groups)):
+            for b in range(a, len(list_of_groups)):
+                print("Creating a pairplot of:")
+                print("\t" + str(list_of_groups[a]))
+                print("\t" + str(list_of_groups[b]))
+                sns.pairplot(df, x_vars=list_of_groups[a], y_vars=list_of_groups[b],
+                             plot_kws={"alpha": 0.03, "s": 80})
+                plt.savefig(outfolder + "attrs_pairplot_" + str(a) + "_" + str(b) + ".pdf")
+                plt.close()
 
     # Split
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1,
