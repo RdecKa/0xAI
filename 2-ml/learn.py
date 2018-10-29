@@ -62,7 +62,15 @@ def main(argv):
                             "lp": np.uint8,
                             "dtc": np.uint8})
 
+    y = df["value"]
+    X = df.drop(columns=["value"])
+
+    feature_names = X.columns
+    write_sample_file(outfolder, feature_names)
+
     if data_analysis:
+        print("Analysing data ...")
+
         # Create a plot showing attribute distributions
         plt.gcf().subplots_adjust(bottom=0.25)
         sns.boxplot(data=df, color="darkorchid")
@@ -88,11 +96,40 @@ def main(argv):
                 plt.savefig(outfolder + "attrs_pairplot_" + str(a) + "_" + str(b) + ".pdf")
                 plt.close()
 
-    y = df["value"]
-    X = df.drop(columns=["value"])
+        # Check how similar values do samples with the same attributes have
+        data_same_attributes = df.groupby([a for a in feature_names])
 
-    feature_names = X.columns
-    write_sample_file(outfolder, feature_names)
+        stats = {}
+        for v in df.num_stones.unique():
+            stats[v] = []
+        num_stones_index = feature_names.get_loc("num_stones")
+
+        with open(outfolder + "same_attr_comparison.txt", "w") as comp_file:
+            stds = [sd for sd in data_same_attributes["value"].std() if not np.isnan(sd)]
+            comp_file.write("Number of unique groups: {}\n".format(len(stds)))
+            comp_file.write("\tAverage standard deviation: {}\n".format(np.mean(stds)))
+            comp_file.write("\tStandard deviation of standard deviations: {}\n".format(np.std(stds)))
+            comp_file.write("\n")
+
+            for key in data_same_attributes.groups.keys():
+                ind = data_same_attributes.groups[key]
+                if len(ind) > 1:
+                    val = df.loc[ind]
+                    # print(ind)
+                    m = val["value"].mean()
+                    s = val["value"].std()
+                    num_stones = key[num_stones_index]
+                    # Append tuple: (key = tuple of attribute values, mean, standard deviation)
+                    stats[num_stones].append((key, m, s))
+
+            for key, value in stats.items():
+                if len(value) == 0:
+                    continue
+                comp_file.write("num_stones: " + str(key) + "\n")
+                std_devs = [x[2] for x in value]
+                comp_file.write("\tNumber of groups with same attributes: {}\n".format(len(std_devs)))
+                comp_file.write("\tAverage standard deviation: {}\n".format(np.mean(std_devs)))
+                comp_file.write("\tStandard deviation of standard deviations: {}\n".format(np.std(std_devs)))
 
     # Split
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1,
@@ -119,6 +156,7 @@ def main(argv):
     ]
 
     for learner in learners:
+        print("Making learner:" + str(learner) + " ...")
         # Create file for statistics
         with open(outfolder + "stats_" + learner.short_name() + ".txt", "w") \
                 as stats_file:
@@ -130,6 +168,7 @@ def main(argv):
 
             for model_index in range(len(models)):
                 model = models[model_index]
+                print("Training model: " + str(model) + " ...")
 
                 # Train
                 model.fit(X_train, y_train)
