@@ -14,8 +14,12 @@ import (
 // ------------------
 
 type record struct {
-	numChecked int          // number of already checked boards with the corresponding number of stones
-	candidates []*tree.Node // candidates for continuing MCTS
+	// number of already checked boards with the corresponding number of stones
+	numChecked int
+	// number of stones that this record stores candidates for
+	numStones int
+	// candidates for continuing MCTS
+	candidates []*tree.Node
 }
 
 func (r *record) addCandidate(c *tree.Node) {
@@ -32,16 +36,18 @@ func (r *record) oneChecked() {
 
 // CandidateList stores the list of candidates for continuing MCTS
 type CandidateList struct {
-	list       []*record // Index in the array represents the number of stones on the board
-	sortedList []*record // List of pointers to the same structs as list, but this list is ordered by record.numChecked
+	// Index in the array represents the number of stones on the board
+	list []*record
+	// List of pointers to the same structs as list, but this list is ordered by record.numChecked
+	sortedList []*record
 }
 
 func (cl *CandidateList) String() string {
 	stones := "# Stones    "
 	checked := "# Checked   "
 	cands := "# Candidates"
-	for i, c := range cl.list {
-		stones += fmt.Sprintf(" %5d", i)
+	for _, c := range cl.list {
+		stones += fmt.Sprintf(" %5d", c.numStones)
 		checked += fmt.Sprintf(" %5d", c.numChecked)
 		cands += fmt.Sprintf(" %5d", len(c.candidates))
 	}
@@ -54,6 +60,7 @@ func NewCandidateList(boardSize int) *CandidateList {
 	for i := range list {
 		list[i] = &record{
 			numChecked: 0,
+			numStones:  i,
 			candidates: make([]*tree.Node, 0),
 		}
 	}
@@ -87,7 +94,7 @@ func (cl *CandidateList) AddCandidates(newCandidates []*tree.Node) {
 // correct place again.
 func (cl *CandidateList) GetNextCandidateToExpand() *tree.Node {
 	sort.Sort(cl)
-	i := 0
+	i := 1 // record on index 0 never has any candidates
 	for i < len(cl.sortedList) && len(cl.sortedList[i].candidates) == 0 {
 		// If the sublist has no candidates, check the next sublist
 		i++
@@ -118,7 +125,9 @@ func (cl *CandidateList) Len() int {
 	return len(cl.sortedList)
 }
 func (cl *CandidateList) Less(i, j int) bool {
-	return cl.sortedList[i].numChecked <= cl.sortedList[j].numChecked
+	cI, cJ := cl.sortedList[i], cl.sortedList[j]
+	// Weight records by number of stones
+	return cI.numChecked*cI.numStones <= cJ.numChecked*cJ.numStones
 }
 func (cl *CandidateList) Swap(i, j int) {
 	cl.sortedList[i], cl.sortedList[j] = cl.sortedList[j], cl.sortedList[i]

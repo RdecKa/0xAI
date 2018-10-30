@@ -130,17 +130,15 @@ func worker(id int, timeToRun time.Duration, boardSize int, treasholdN uint, out
 	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
 	outputFile.WriteString(hex.GetHeaderCSV())
 	for {
-		logFile.WriteString(fmt.Sprintf("Worker %d waiting for a task\n", id))
 		select {
 		case mc = <-wc.assign:
-			logFile.WriteString(fmt.Sprintf("Worker %d executing task\n", id))
 			outputFile.WriteString(fmt.Sprintf("# Search ID %d\n", taskID))
 			outputFileDet.WriteString(fmt.Sprintf("# Search ID %d started from:\n%v\n", taskID, mc.GetInitialNode()))
 			expCand, err := RunMCTS(mc, id, timeToRun, boardSize, treasholdN, outputFile, logFile, gridChan, resultChan)
 			if err != nil {
 				wc.e <- err
 			}
-			logFile.WriteString(fmt.Sprintf("Worker %d finished a task\n", id))
+			logFile.WriteString(fmt.Sprintf("Worker %d finished task %d\n", id, taskID))
 			wc.gather <- expCand
 			taskID++
 		case <-wc.quit:
