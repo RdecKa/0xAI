@@ -32,6 +32,11 @@ func (mnv *mctsNodeValue) updateNodeValues(score float64) {
 	mnv.q += (score - mnv.q) / float64(mnv.n)
 }
 
+// GetState returns the game.State that is stored in current mctsNodeValue
+func (mnv *mctsNodeValue) GetState() game.State {
+	return mnv.state
+}
+
 // ----------------
 // |     MCTS     |
 // ----------------

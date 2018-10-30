@@ -24,7 +24,6 @@ type workerChan struct {
 // Iterations of MCTS are run on board of size boardSize for timeToRun. mc is
 // the initialised search that is completed first.
 func RunMCTSinParallel(numWorkers, boardSize int, treasholdN uint, timeToRun time.Duration, outputFolder, patFileName string, mc *MCTS) {
-	var expCand []*tree.Node // Array of possible candidates for continuing MCTS
 	var err error
 
 	assign := make(chan *MCTS, numWorkers)
@@ -77,38 +76,36 @@ func RunMCTSinParallel(numWorkers, boardSize int, treasholdN uint, timeToRun tim
 		go worker(w, timeToRun, boardSize, treasholdN, f, fDet, logFile, patFileName, &wc)
 	}
 
+	candidateList := NewCandidateList(boardSize)
+
 	numExpansions := 1
 	finished, quitted := false, false
 	tasksAssigned, tasksFinished := 1, 0
 	for !finished {
-		logFile.WriteString(fmt.Sprintf("Queue len: %d\n", len(expCand)))
+		logFile.WriteString(fmt.Sprintf("Queue:\n%v", candidateList))
 		select {
 		case <-kill:
 			quitted = true
 		case newCandidates := <-gather:
 			// Get a returned value from a worker
 			tasksFinished++
-			probExpand := 0.03 / ((1.0/float64(boardSize*boardSize))*float64(numExpansions) + 1)
-			logFile.WriteString(fmt.Sprintf("Probabilty: %f\n", probExpand))
-			newCandidates = sampleArrayOfNodes(newCandidates, probExpand)
-			expCand = append(expCand, newCandidates...)
+			candidateList.AddCandidates(newCandidates)
 			numExpansions++
 
 			if !quitted {
 				// Add as many new tasks as there are free spots in the assign
 				// channel (if there are at least that many tasks)
 				for t := len(assign); t < numWorkers; t++ {
-					if len(expCand) <= 0 {
+					newTask := candidateList.GetNextCandidateToExpand()
+					if newTask == nil {
 						break
 					}
 					tasksAssigned++
-					newTask := rand.Intn(len(expCand))
-					assign <- mc.ContinueMCTSFromNode(expCand[newTask])
-					expCand = append(expCand[:newTask], expCand[newTask+1:]...)
+					assign <- mc.ContinueMCTSFromNode(newTask)
 				}
 			}
 
-			if (len(expCand) == 0 || quitted) && tasksAssigned == tasksFinished {
+			if tasksAssigned == tasksFinished && (candidateList.IsEmpty() || quitted) {
 				logFile.WriteString(fmt.Sprintln("All tasks finished (or QUIT signal received)!"))
 				for w := 0; w < numWorkers; w++ {
 					quit <- struct{}{}
