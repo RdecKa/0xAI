@@ -91,3 +91,48 @@ func TestGenSample4(t *testing.T) {
 
 	test(t, 8, actions, expectedRed, expectedBlue)
 }
+
+func TestGenSample5(t *testing.T) {
+	actions := []*Action{
+		NewAction(3, 0, Red),
+		NewAction(0, 2, Blue),
+		NewAction(1, 4, Red),
+		NewAction(2, 1, Blue),
+		NewAction(2, 2, Red),
+	}
+	expectedRed := "0.500000,5,4,3,2,3,3,1,0,1,0,2,1,0,0,0,0,0"
+	expectedBlue := "-0.500000,5,3,2,3,4,2,1,0,0,0,3,1,0,1,0,1,0"
+
+	test(t, 5, actions, expectedRed, expectedBlue)
+}
+
+func TestGenSample6(t *testing.T) {
+	actions := []*Action{
+		NewAction(3, 0, Red),
+		NewAction(0, 2, Blue),
+		NewAction(1, 4, Red),
+		NewAction(2, 1, Blue),
+		NewAction(2, 2, Red),
+		NewAction(4, 4, Blue),
+	}
+	expectedRed := "-0.500000,6,4,3,3,4,3,1,0,1,0,3,1,0,0,0,1,4"
+	expectedBlue := "0.500000,6,4,3,3,4,3,1,0,0,0,3,1,0,1,0,0,4"
+
+	test(t, 5, actions, expectedRed, expectedBlue)
+}
+
+func TestGenSample7(t *testing.T) {
+	actions := []*Action{
+		NewAction(3, 0, Red),
+		NewAction(0, 2, Blue),
+		NewAction(1, 4, Red),
+		NewAction(2, 1, Blue),
+		NewAction(2, 2, Red),
+		NewAction(4, 4, Blue),
+		NewAction(0, 10, Red),
+	}
+	expectedRed := "0.500000,7,5,4,3,4,4,1,0,1,0,3,1,0,0,0,0,5"
+	expectedBlue := "-0.500000,7,4,3,4,5,3,1,0,0,0,4,1,0,1,0,1,5"
+
+	test(t, 11, actions, expectedRed, expectedBlue)
+}
