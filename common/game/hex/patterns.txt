@@ -1,18 +1,20 @@
-### number of stones
+### 0 number of stones
 ---
 *
-### number of bridges
+### 1 number of bridges (separated by orientation)
 ---
 ? *
  . .
   * ?
+### 2
 ---
 * .
  . *
+### 3
 ---
 ? . *
  * . ?
-### a more complex pattern
+### 4 a more complex pattern
 ---
 ? * *
  . . .
@@ -41,7 +43,7 @@
 ? . . *
  * . . *
   * . . ?
-### attacked bridges
+### 5 attacked bridges
 exclude
 ---
 ? *
@@ -51,27 +53,82 @@ exclude
 ? *
  . /
   * ?
+### 6
+exclude
 ---
 * /
  . *
 ---
 * .
  / *
+### 7
+exclude
 ---
 ? / *
  * . ?
 ---
 ? . *
  * / ?
-### bridges that are completely blocked
+### 8 bridges that are completely blocked
 exclude
 ---
 ? *
  / /
   * ?
+### 9
+exclude
 ---
 * /
  / *
+### 10
+exclude
 ---
 ? / *
  * / ?
+### 11 two connected cells
+---
+* *
+### 12
+---
+*
+ *
+### 13
+---
+? *
+ * ?
+### 14 three connected cells (straight)
+---
+* * *
+### 15
+---
+*
+ *
+  *
+### 16
+---
+? ? *
+ ? * ?
+  * ? ?
+### 17 three connected cells (curve)
+---
+* *
+ ? *
+---
+* ?
+ * *
+### 18
+---
+? * *
+ * ? ?
+---
+? ? *
+ * * ?
+### 19
+---
+? *
+ * ?
+  * ?
+---
+? *
+ ? *
+  * ?

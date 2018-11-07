@@ -53,6 +53,7 @@ def main(argv):
     print("Reading data from file:", datafile)
     df = pd.read_csv(datafile, comment="#",
                      dtype={"value": np.float64, "num_stones": np.uint8,
+                            "lp": np.uint8, "dtc": np.uint8,
                             "occ_red_rows": np.uint8, "occ_red_cols": np.uint8,
                             "occ_blue_rows": np.uint8, "occ_blue_cols": np.uint8,
                             "red_p0": np.uint8, "blue_p0": np.uint8,
@@ -60,8 +61,22 @@ def main(argv):
                             "red_p2": np.uint8, "blue_p2": np.uint8,
                             "red_p3": np.uint8, "blue_p3": np.uint8,
                             "red_p4": np.uint8, "blue_p4": np.uint8,
-                            "lp": np.uint8,
-                            "dtc": np.uint8})
+                            "red_p5": np.uint8, "blue_p5": np.uint8,
+                            "red_p6": np.uint8, "blue_p6": np.uint8,
+                            "red_p7": np.uint8, "blue_p7": np.uint8,
+                            "red_p8": np.uint8, "blue_p8": np.uint8,
+                            "red_p9": np.uint8, "blue_p9": np.uint8,
+                            "red_p10": np.uint8, "blue_p10": np.uint8,
+                            "red_p11": np.uint8, "blue_p11": np.uint8,
+                            "red_p12": np.uint8, "blue_p12": np.uint8,
+                            "red_p13": np.uint8, "blue_p13": np.uint8,
+                            "red_p14": np.uint8, "blue_p14": np.uint8,
+                            "red_p15": np.uint8, "blue_p15": np.uint8,
+                            "red_p16": np.uint8, "blue_p16": np.uint8,
+                            "red_p17": np.uint8, "blue_p17": np.uint8,
+                            "red_p18": np.uint8, "blue_p18": np.uint8,
+                            "red_p19": np.uint8, "blue_p19": np.uint8,
+                            })
 
     y = df["value"]
     X = df.drop(columns=["value"])

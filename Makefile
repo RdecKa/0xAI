@@ -70,7 +70,7 @@ SERV_BIN_NAME = server
 
 ################################################################################
 
-all: mcts mlall serv
+all: mcts ml serv
 
 clean:
 	$(GO_CLEAN) $(GO_CLEAN_FILES)
