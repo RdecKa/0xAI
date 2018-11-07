@@ -1,6 +1,10 @@
 package hexplayer
 
-import "github.com/RdecKa/bachleor-thesis/common/game/hex"
+import (
+	"fmt"
+
+	"github.com/RdecKa/bachleor-thesis/common/game/hex"
+)
 
 // ------------------
 // |     PlayerType     |
@@ -10,9 +14,11 @@ type PlayerType byte
 
 // enum for player types
 const (
-	HumanType PlayerType = 0
-	MctsType  PlayerType = 1
-	AbType    PlayerType = 2
+	Unknown   PlayerType = 0
+	HumanType PlayerType = 1
+	MctsType  PlayerType = 2
+	AbDtType  PlayerType = 3
+	AbLrType  PlayerType = 4
 )
 
 // HexPlayer represents a player of hex that can be either human or computer.
@@ -24,4 +30,36 @@ type HexPlayer interface {
 	GetColor() hex.Color              // Gets the color of the player
 	GetNumberOfWins() int             // Returns the number of wins
 	GetType() PlayerType              // Returns the type of the player
+}
+
+func GetPlayerTypeFromString(t string) PlayerType {
+	switch t {
+	case "human":
+		return HumanType
+	case "mcts":
+		return MctsType
+	case "abDT":
+		return AbDtType
+	case "abLR":
+		return AbLrType
+	default:
+		fmt.Println(fmt.Errorf("Invalid type '%s'", t))
+		return Unknown
+	}
+}
+
+func GetStringFromPlayerType(t PlayerType) string {
+	switch t {
+	case HumanType:
+		return "human"
+	case MctsType:
+		return "mcts"
+	case AbDtType:
+		return "abDT"
+	case AbLrType:
+		return "abLR"
+	default:
+		fmt.Println(fmt.Errorf("Invalid type '%s'", t))
+		return ""
+	}
 }

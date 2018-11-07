@@ -9,6 +9,10 @@ import (
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
 )
 
+type cell struct {
+	x, y int
+}
+
 // findSafeCells returns all the bridges on the winning path.
 func findSafeCells(winPath [][2]int, boardSize int, playerColor hex.Color) [][2]cell {
 	safeCells := make([][2]cell, 0)

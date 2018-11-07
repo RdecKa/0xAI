@@ -14,6 +14,7 @@ import (
 // selecting moves
 type AbPlayer struct {
 	Color              hex.Color                 // Player's color
+	subtype            PlayerType                // Player's subtype (DT/LR)
 	Webso              *websocket.Conn           // Websocket connecting server and client
 	timeToRun          time.Duration             // Time given to select an action
 	numWin             int                       // Number of wins
@@ -30,11 +31,12 @@ type AbPlayer struct {
 
 // CreateAbPlayer creates a new player
 func CreateAbPlayer(c hex.Color, webso *websocket.Conn, t time.Duration,
-	allowResignation bool, patFileName string, createTree bool, subtype string) *AbPlayer {
+	allowResignation bool, patFileName string, createTree bool, subtype PlayerType) *AbPlayer {
 
 	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
-	ap := AbPlayer{c, webso, t, 0, nil, nil, nil, allowResignation,
-		createTree, gridChan, stopChan, resultChan, ab.GetEstimateFunction(subtype)}
+	ap := AbPlayer{c, subtype, webso, t, 0, nil, nil, nil, allowResignation,
+		createTree, gridChan, stopChan, resultChan,
+		ab.GetEstimateFunction(GetStringFromPlayerType(subtype))}
 	return &ap
 }
 
@@ -132,5 +134,5 @@ func (ap AbPlayer) GetNumberOfWins() int {
 
 // GetType returns the type of the player
 func (ap AbPlayer) GetType() PlayerType {
-	return AbType
+	return ap.subtype
 }

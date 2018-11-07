@@ -90,15 +90,24 @@ func playNGames(boardSize int, players [2]hexplayer.HexPlayer, passiveClient hex
 
 // Play accepts an array of two players and number of games to be played. It
 // runs numGames games of Hex between the given players.
-func Play(boardSize int, players [2]hexplayer.HexPlayer, numGames int, conn *websocket.Conn) {
-	defer conn.Close()
+func Play(boardSize int, players [2]hexplayer.HexPlayer, numGames int, conn *websocket.Conn, resultChan chan [2]int) {
+	if conn != nil {
+		defer conn.Close()
+	}
+
 	var passiveClient hexplayer.HexPlayer
 	if conn != nil && players[0].GetType() != hexplayer.HumanType && players[1].GetType() != hexplayer.HumanType {
 		// Create a passive player to show the game in browser
 		passiveClient = hexplayer.CreateHumanPlayer(conn, hex.None)
 	}
+
 	results := playNGames(boardSize, players, passiveClient, numGames)
-	fmt.Printf("*** Final results ***:\n")
-	fmt.Printf("\tPlayer one: %d\n", results[0])
-	fmt.Printf("\tPlayer two: %d\n", results[1])
+
+	if resultChan == nil {
+		fmt.Printf("*** Final results ***:\n")
+		fmt.Printf("\tPlayer one: %d\n", results[0])
+		fmt.Printf("\tPlayer two: %d\n", results[1])
+	} else {
+		resultChan <- results
+	}
 }

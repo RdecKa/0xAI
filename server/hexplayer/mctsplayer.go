@@ -24,10 +24,6 @@ type MCTSplayer struct {
 	allowResignation   bool
 }
 
-type cell struct {
-	x, y int
-}
-
 // CreateMCTSplayer creates a new player
 func CreateMCTSplayer(c hex.Color, ef float64, t time.Duration, mbe uint, ar bool) *MCTSplayer {
 	mp := MCTSplayer{c, ef, t, mbe, nil, nil, nil, 0, nil, ar}

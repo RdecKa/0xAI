@@ -11,18 +11,21 @@ import (
 	"time"
 
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
+	"github.com/RdecKa/bachleor-thesis/server/cmpr"
 	"github.com/RdecKa/bachleor-thesis/server/hexgame"
 	"github.com/RdecKa/bachleor-thesis/server/hexplayer"
 	"github.com/gorilla/websocket"
 )
 
-var validPath = regexp.MustCompile("^/((play|select|static|ws)/([a-zA-Z0-9/.]*))?$")
+var validPath = regexp.MustCompile("^/((play|select|static|ws|test)/([a-zA-Z0-9/.]*))?$")
 
 var templates = template.Must(template.New("").Delims("[[", "]]").ParseFiles(
 	"server/tmpl/play.html",
 	"server/tmpl/select.html"))
 
 const addr = "localhost:8080"
+const patternFile = "common/game/hex/patterns.txt"
+const resultsDir = "data/cmpr/"
 
 const defaultBoardSize = 7
 const defaultNumGames = 1
@@ -116,7 +119,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var rFunc, bFunc func(hex.Color, *websocket.Conn, int, bool, string) hexplayer.HexPlayer
+	var rFunc, bFunc func(hex.Color, *websocket.Conn, int, bool, hexplayer.PlayerType) hexplayer.HexPlayer
 
 	if okRed && red[0] == "human" {
 		rFunc = createHumanPlayer
@@ -137,11 +140,11 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	if rFunc == nil || bFunc == nil {
 		log.Println("Wrong or missing arguments for players. Using default.")
 		wa = false
-		pair[0] = createHumanPlayer(hex.Red, conn, redTime, wa, red[0])
-		pair[1] = createMCTSplayer(hex.Blue, conn, blueTime, wa, blue[0])
+		pair[0] = createHumanPlayer(hex.Red, conn, redTime, wa, hexplayer.GetPlayerTypeFromString(red[0]))
+		pair[1] = createMCTSplayer(hex.Blue, conn, blueTime, wa, hexplayer.GetPlayerTypeFromString(blue[0]))
 	} else {
-		pair[0] = rFunc(hex.Red, conn, redTime, wa, red[0])
-		pair[1] = bFunc(hex.Blue, conn, blueTime, wa, blue[0])
+		pair[0] = rFunc(hex.Red, conn, redTime, wa, hexplayer.GetPlayerTypeFromString(red[0]))
+		pair[1] = bFunc(hex.Blue, conn, blueTime, wa, hexplayer.GetPlayerTypeFromString(blue[0]))
 	}
 
 	c := conn
@@ -149,27 +152,38 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		c = nil
 	}
 
-	go hexgame.Play(boardSize, pair, numGames, c)
+	go hexgame.Play(boardSize, pair, numGames, c, nil)
 }
 
-func createHumanPlayer(color hex.Color, conn *websocket.Conn, _ int, _ bool, _ string) hexplayer.HexPlayer {
+func testHandler(w http.ResponseWriter, r *http.Request) {
+	matches := []cmpr.MatchSetup{
+		cmpr.CreateMatch(7, 2, hexplayer.MctsType, hexplayer.AbDtType, 1, 1, patternFile),
+		cmpr.CreateMatch(7, 2, hexplayer.MctsType, hexplayer.AbLrType, 1, 1, patternFile),
+		cmpr.CreateMatch(7, 2, hexplayer.AbDtType, hexplayer.AbLrType, 1, 1, patternFile),
+	}
+	t := time.Now()
+	resultsFileName := resultsDir + t.Format("20060102T150405") + ".txt"
+	cmpr.RunAll(matches, resultsFileName)
+}
+
+func createHumanPlayer(color hex.Color, conn *websocket.Conn, _ int, _ bool, _ hexplayer.PlayerType) hexplayer.HexPlayer {
 	return hexplayer.CreateHumanPlayer(conn, color)
 }
 
-func createMCTSplayer(color hex.Color, _ *websocket.Conn, secondsPerAction int, allowResignation bool, _ string) hexplayer.HexPlayer {
+func createMCTSplayer(color hex.Color, _ *websocket.Conn, secondsPerAction int, allowResignation bool, _ hexplayer.PlayerType) hexplayer.HexPlayer {
 	return hexplayer.CreateMCTSplayer(color, math.Sqrt(2), time.Duration(secondsPerAction)*time.Second, 10, allowResignation)
 }
 
-func createAbPlayer(color hex.Color, conn *websocket.Conn, secondsPerAction int, allowResignation bool, subtype string) hexplayer.HexPlayer {
-	return hexplayer.CreateAbPlayer(color, conn, time.Duration(secondsPerAction)*time.Second, allowResignation, "common/game/hex/patterns.txt", true, subtype)
+func createAbPlayer(color hex.Color, conn *websocket.Conn, secondsPerAction int, allowResignation bool, subtype hexplayer.PlayerType) hexplayer.HexPlayer {
+	return hexplayer.CreateAbPlayer(color, conn, time.Duration(secondsPerAction)*time.Second, allowResignation, patternFile, false, subtype)
 }
 
 func main() {
 	// Register handlers
 	http.HandleFunc("/play/", makeHandler(playHandler))
 	http.HandleFunc("/select/", makeHandler(selectHandler))
-
 	http.HandleFunc("/ws/", makeHandler(wsHandler))
+	http.HandleFunc("/test/", makeHandler(testHandler))
 
 	// TODO: DELETE / CHANGE
 	//http.HandleFunc("/", makeHandler(playHandler))
