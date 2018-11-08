@@ -251,7 +251,7 @@ def main(argv):
                 stats_file.write("##########################################\n")
                 stats_file.write("Statistics for: " + str(model) + "\n")
 
-                feature_importances = model.feature_importances()
+                feature_importances = model.feature_importances(feature_names)
 
                 for ind, feat in enumerate(feature_importances):
                     if len(feat) == 0:

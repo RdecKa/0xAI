@@ -37,7 +37,7 @@ class DecisionTreeModel(Model):
         return "dt (max_depth=" + str(self.model.max_depth) + \
                ", min_leaf=" + str(self.model.min_samples_leaf) + ")"
 
-    def feature_importances(self):
+    def feature_importances(self, _):
         return [(self.ID, self.model.feature_importances_)]
 
     def custom_output(self, model_index, outfolder):

@@ -1,6 +1,7 @@
 import math
 
 from sklearn.linear_model import LinearRegression
+from sklearn.feature_selection import VarianceThreshold
 
 from learner import Learner
 from model import Model
@@ -29,6 +30,7 @@ class LinearRegressionModel(Model):
             self.color = color
             self.maximum = maximum
             self.model = model
+            self.used_features = []
 
         def __str__(self):
             return "({} - {} - {})".format(self.color, self.maximum, self.model)
@@ -65,13 +67,18 @@ class LinearRegressionModel(Model):
     def name():
         return "lr"
 
-    def feature_importances(self):
+    def feature_importances(self, feature_names):
         s = []
         for c in range(2):
             for submodel in self.submodels[c]:
                 if submodel is None:
                     continue
-                s.append((self.ID + "." + submodel.get_ID(), submodel.model.coef_))
+                fi = [0] * len(feature_names)
+                for (ind, fn) in enumerate(feature_names):
+                    if fn in submodel.used_features:
+                        i = submodel.used_features.index(fn)
+                        fi[ind] = submodel.model.coef_[i]
+                s.append((self.ID + "." + submodel.get_ID(), fi))
         return s
 
     def custom_output(self, model_index, outfolder):
@@ -101,7 +108,7 @@ class LinearRegressionModel(Model):
                     else:
                         s = "\t\tcase s.num_stones <= " + str(submodel.maximum)
                     s += ":\n"
-                    s += (get_one_submodel(submodel.get_ID(), coefficients))
+                    s += (get_one_submodel(submodel, coefficients))
                     code_file.write(s)
 
                 code_file.write("\t\t}\n")  # end of switch
@@ -109,8 +116,9 @@ class LinearRegressionModel(Model):
             def get_one_factor(feature_name, coefficient):
                 return "({})*float64(s.{})".format(coefficient, feature_name)
 
-            def get_one_submodel(key, coefficients):
-                z = [(fn, c) for (fn, c) in zip(self.feature_names, coefficients[key]) if c != 0]
+            def get_one_submodel(submodel, coefficients):
+                key = submodel.get_ID()
+                z = [(fn, c) for (fn, c) in zip(submodel.used_features, coefficients[key]) if c != 0]
                 if len(z) == 0:
                     # All coefficients are zero
                     return "\t\t\treturn 0\n"
@@ -157,6 +165,7 @@ class LinearRegressionModel(Model):
 
     def fit(self, X, y):
         data_in_subsets = X.groupby(lambda i: self.group_func_train(X, i))
+        all_features = [a for a in X]
 
         for c in range(2):
             for ind in range(len(self.submodels[c])):
@@ -168,6 +177,21 @@ class LinearRegressionModel(Model):
 
                 inp = X.loc[data_in_subsets.groups[key]]
                 out = y.loc[data_in_subsets.groups[key]]
+
+                if len(inp) > 1:
+                    # Remove redundant features (when all samples in the group
+                    # have the same value of an attribute)
+                    feature_selector = VarianceThreshold()
+                    feature_selector.fit(inp)
+
+                    # Get indices of attributes that are kept:
+                    imp_feat_ind = feature_selector.get_support(True)
+                    imp_feat = [all_features[i] for i in imp_feat_ind]
+                    inp = inp[imp_feat]
+                    self.submodels[c][ind].used_features = imp_feat
+                else:
+                    self.submodels[c][ind].used_features = all_features
+
                 self.submodels[c][ind].model.fit(inp, out)
 
         # Keep only models that are not None
@@ -186,7 +210,7 @@ class LinearRegressionModel(Model):
         for (ind, X_ind) in enumerate(X.index):
             i, c = self.group_func(X, X_ind)
             submodel = self.submodels[c][i]
-            y[ind] = submodel.model.predict([X.loc[X_ind]])
+            y[ind] = submodel.model.predict([X.loc[X_ind, submodel.used_features]])
         return y
 
     def score(self, X, y):
@@ -202,7 +226,7 @@ class LinearRegressionModel(Model):
                     s[submodel.get_ID()] = None
                     continue
 
-                inp = X.loc[data_in_subsets.groups[key]]
+                inp = X.loc[data_in_subsets.groups[key], submodel.used_features]
                 out = y.loc[data_in_subsets.groups[key]]
                 s[submodel.get_ID()] = (submodel.model.score(inp, out), len(inp))
 
