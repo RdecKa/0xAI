@@ -18,7 +18,7 @@ const won = abInit
 // during the last AB search (if wanted).
 func AlphaBeta(state *hex.State, timeToRun time.Duration, createTree bool,
 	gridChan chan []uint32, resultChan chan [2][]int,
-	getEstimatedValue func(s Sample) float64) (*hex.Action, *tree.Tree) {
+	getEstimatedValue func(s *Sample) float64) (*hex.Action, *tree.Tree) {
 
 	var selectedAction, a *hex.Action
 	var rootNode, rn *tree.Node
@@ -67,7 +67,7 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, createTree bool,
 func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State,
 	lastAction *hex.Action, alpha, beta float64, gridChan chan []uint32,
 	resultChan chan [2][]int, transpositionTable, oldTransitionTable map[string]float64,
-	createTree bool, getEstimatedValue func(s Sample) float64) (float64, *hex.Action, *tree.Node, error) {
+	createTree bool, getEstimatedValue func(s *Sample) float64) (float64, *hex.Action, *tree.Node, error) {
 
 	// End recursion on timeout
 	select {
@@ -167,7 +167,7 @@ func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State,
 }
 
 func eval(state *hex.State, gridChan chan []uint32, resultChan chan [2][]int,
-	getEstimatedValue func(s Sample) float64) (float64, error) {
+	getEstimatedValue func(s *Sample) float64) (float64, error) {
 	gridChan <- state.GetCopyGrid()
 	patCount := <-resultChan
 
@@ -224,7 +224,7 @@ func eval(state *hex.State, gridChan chan []uint32, resultChan chan [2][]int,
 		blue_p18: hex.AttrPatCountBlue18.GetAttributeValue(args),
 		blue_p19: hex.AttrPatCountBlue19.GetAttributeValue(args),
 	}
-	val := getEstimatedValue(sample)
+	val := getEstimatedValue(&sample)
 
 	// val is given from Red player's prospective
 	switch c := state.GetLastPlayer().Opponent(); c {
@@ -239,7 +239,7 @@ func eval(state *hex.State, gridChan chan []uint32, resultChan chan [2][]int,
 
 // GetEstimateFunction returns a function that will be used for evaluating
 // states
-func GetEstimateFunction(subtype string) func(s Sample) float64 {
+func GetEstimateFunction(subtype string) func(s *Sample) float64 {
 	switch subtype {
 	case "abDT":
 		return getEstimatedValueDT

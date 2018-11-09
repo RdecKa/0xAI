@@ -13,20 +13,20 @@ import (
 // AbPlayer represents a computer player that uses alpha-beta pruning for
 // selecting moves
 type AbPlayer struct {
-	Color              hex.Color                 // Player's color
-	subtype            PlayerType                // Player's subtype (DT/LR)
-	Webso              *websocket.Conn           // Websocket connecting server and client
-	timeToRun          time.Duration             // Time given to select an action
-	numWin             int                       // Number of wins
-	state              *hex.State                // Current state in a game
-	safeWinCells       [][2]cell                 // List of cells under the bridges on a winning path
-	lastOpponentAction *hex.Action               // Opponent's last action
-	allowResignation   bool                      // Allow the player to resign if the game is lost
-	createTree         bool                      // If true, create a search tree for debugging purposes
-	gridChan           chan []uint32             // Used for pattern checking
-	stopChan           chan struct{}             // -||-
-	resultChan         chan [2][]int             // -||-
-	getEstimatedValue  func(s ab.Sample) float64 // Function used for evaluating states
+	Color              hex.Color                  // Player's color
+	subtype            PlayerType                 // Player's subtype (DT/LR)
+	Webso              *websocket.Conn            // Websocket connecting server and client
+	timeToRun          time.Duration              // Time given to select an action
+	numWin             int                        // Number of wins
+	state              *hex.State                 // Current state in a game
+	safeWinCells       [][2]cell                  // List of cells under the bridges on a winning path
+	lastOpponentAction *hex.Action                // Opponent's last action
+	allowResignation   bool                       // Allow the player to resign if the game is lost
+	createTree         bool                       // If true, create a search tree for debugging purposes
+	gridChan           chan []uint32              // Used for pattern checking
+	stopChan           chan struct{}              // -||-
+	resultChan         chan [2][]int              // -||-
+	getEstimatedValue  func(s *ab.Sample) float64 // Function used for evaluating states
 }
 
 // CreateAbPlayer creates a new player
