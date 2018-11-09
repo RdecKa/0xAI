@@ -9,7 +9,9 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func playOneGame(boardSize int, players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlayer, startingPlayer int) error {
+// playOneGame returns 0 if the first player (of players) won and 1 if the
+// second player won
+func playOneGame(boardSize int, players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlayer, startingPlayer int) (int, error) {
 	// Init game
 	for p := 0; p < 3; p++ {
 		var err error
@@ -20,7 +22,7 @@ func playOneGame(boardSize int, players [2]hexplayer.HexPlayer, passiveClient he
 		}
 
 		if err != nil {
-			return err
+			return -1, err
 		}
 	}
 	state := hex.NewState(byte(boardSize), players[startingPlayer].GetColor())
@@ -33,11 +35,11 @@ func playOneGame(boardSize int, players [2]hexplayer.HexPlayer, passiveClient he
 		nextAction, err := players[turn].NextAction()
 		if err != nil {
 			fmt.Println(err)
-			return err
+			return -1, err
 		}
 		if nextAction == nil {
 			// Player has resigned
-			fmt.Printf("Player %d resigned!\n", turn+1)
+			fmt.Printf("Player %v resigned!\n", players[turn].GetColor())
 			break
 		}
 		if passiveClient != nil {
@@ -66,31 +68,37 @@ func playOneGame(boardSize int, players [2]hexplayer.HexPlayer, passiveClient he
 	}
 
 	fmt.Printf("%v", state)
-	return nil
+	return 1 - turn, nil
 }
 
-func playNGames(boardSize int, players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlayer, numGames int) [2]int {
+func playNGames(boardSize int, players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlayer, numGames int) [2][2]int {
 	startingPlayer := 0
+	results := [2][2]int{}
+	// results[0][0]: players[0] won, player[0] started a game
+	// results[0][1]: players[0] won, player[1] started a game
+	// results[1][0]: players[1] won, player[0] started a game
+	// results[1][1]: players[1] won, player[1] started a game
 	for g := 0; g < numGames; g++ {
-		err := playOneGame(boardSize, players, passiveClient, startingPlayer)
+		winPlayer, err := playOneGame(boardSize, players, passiveClient, startingPlayer)
 		if err != nil {
 			fmt.Println("Game canceled: " + err.Error())
 			continue
 		}
 
+		results[winPlayer][startingPlayer]++
 		fmt.Printf("Results after %d games:\n", g+1)
-		fmt.Printf("\tPlayer one: %d\n", players[0].GetNumberOfWins())
-		fmt.Printf("\tPlayer two: %d\n", players[1].GetNumberOfWins())
+		fmt.Printf("\tPlayer %v: %d\n", players[0].GetColor(), players[0].GetNumberOfWins())
+		fmt.Printf("\tPlayer %v: %d\n", players[1].GetColor(), players[1].GetNumberOfWins())
 
 		// Switch roles
 		startingPlayer = 1 - startingPlayer
 	}
-	return [2]int{players[0].GetNumberOfWins(), players[1].GetNumberOfWins()}
+	return results
 }
 
 // Play accepts an array of two players and number of games to be played. It
 // runs numGames games of Hex between the given players.
-func Play(boardSize int, players [2]hexplayer.HexPlayer, numGames int, conn *websocket.Conn, resultChan chan [2]int) {
+func Play(boardSize int, players [2]hexplayer.HexPlayer, numGames int, conn *websocket.Conn, resultChan chan [2][2]int) {
 	if conn != nil {
 		defer conn.Close()
 	}

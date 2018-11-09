@@ -13,42 +13,65 @@ import (
 
 // MatchSetup contains information needed for comparing two players
 type MatchSetup struct {
-	boardSize  int
-	numGames   int
-	redPlayer  hexplayer.HexPlayer
-	bluePlayer hexplayer.HexPlayer
-	timeRed    int
-	timeBlue   int
+	boardSize   int
+	numGames    int
+	player1type hexplayer.PlayerType
+	player2type hexplayer.PlayerType
+	time1       int
+	time2       int
+	patternFile string
 }
 
 // CreateMatch sets up the comparison of two players
+//	bs: boardsize
+//	ng: number of games to be played (actual number of games is twice that much,
+// 		because roles are switched after ng games)
+// 	p1, p2: player types
+// 	t1, t2: time limits for both players
+// 	patternFile: file with patterns in hex grid
 func CreateMatch(bs, ng int, p1, p2 hexplayer.PlayerType, t1, t2 int, patternFile string) MatchSetup {
-	rp := createPlayer(p1, hex.Red, t1, patternFile)
-	bp := createPlayer(p2, hex.Blue, t2, patternFile)
 	return MatchSetup{
-		boardSize:  bs,
-		numGames:   ng,
-		redPlayer:  rp,
-		bluePlayer: bp,
-		timeRed:    t1,
-		timeBlue:   t2,
+		boardSize:   bs,
+		numGames:    ng,
+		player1type: p1,
+		player2type: p2,
+		time1:       t1,
+		time2:       t2,
+		patternFile: patternFile,
 	}
 }
 
 // Run runs a set of matches between two players
-func (ms MatchSetup) Run() [2]int {
-	players := [2]hexplayer.HexPlayer{ms.redPlayer, ms.bluePlayer}
-	resultChan := make(chan [2]int, 1)
+func (ms MatchSetup) Run() [2][2][2]int {
+	resultChan := make(chan [2][2]int, 1)
+
+	// player1 = Red, player2 = Blue
+	players := [2]hexplayer.HexPlayer{
+		createPlayer(ms.player1type, hex.Red, ms.time1, ms.patternFile),
+		createPlayer(ms.player2type, hex.Blue, ms.time2, ms.patternFile),
+	}
 	hexgame.Play(ms.boardSize, players, ms.numGames, nil, resultChan)
-	results := <-resultChan
-	return results
+	results1 := <-resultChan
+
+	// player1 = Blue, player2 = Red
+	players = [2]hexplayer.HexPlayer{
+		createPlayer(ms.player2type, hex.Red, ms.time2, ms.patternFile),
+		createPlayer(ms.player1type, hex.Blue, ms.time1, ms.patternFile),
+	}
+	hexgame.Play(ms.boardSize, players, ms.numGames, nil, resultChan)
+	results2 := <-resultChan
+
+	return [2][2][2]int{
+		results1,
+		results2,
+	}
 }
 
 func (ms MatchSetup) String() string {
-	s := fmt.Sprintf("Red player: %v (%ds)\nBlue player: %v (%ds)\n",
-		hexplayer.GetStringFromPlayerType(ms.redPlayer.GetType()), ms.timeRed,
-		hexplayer.GetStringFromPlayerType(ms.bluePlayer.GetType()), ms.timeBlue)
-	s += fmt.Sprintf("Board size: %d\nNumber of games: %d\n", ms.boardSize, ms.numGames)
+	s := fmt.Sprintf("Player 1: %v (%ds)\nPlayer 2: %v (%ds)\n",
+		hexplayer.GetStringFromPlayerType(ms.player1type), ms.time1,
+		hexplayer.GetStringFromPlayerType(ms.player2type), ms.time2)
+	s += fmt.Sprintf("Board size: %d\nNumber of games: %d (×2)\n", ms.boardSize, ms.numGames)
 	return s
 }
 
@@ -65,9 +88,19 @@ func RunAll(matches []MatchSetup, resultsFileName string) {
 		f.WriteString(ms.String())
 		f.WriteString("--------------------\n")
 		results := ms.Run()
-		f.WriteString(fmt.Sprintf("Final results for set #%d:\n", i))
-		f.WriteString(fmt.Sprintf("Red: %d\n", results[0]))
-		f.WriteString(fmt.Sprintf("Blue: %d\n\n", results[1]))
+		f.WriteString(fmt.Sprintf("FINAL RESULTS for set #%d:\n", i))
+
+		r1 := results[0]
+		f.WriteString("---> Roles: Player 1 = Red, Player 2 = Blue\n")
+		f.WriteString("First move:  P1  P2\n")
+		f.WriteString(fmt.Sprintf("Player 1:   %3d %3d\n", r1[0][0], r1[0][1]))
+		f.WriteString(fmt.Sprintf("Player 2:   %3d %3d\n", r1[1][0], r1[1][1]))
+
+		r2 := results[1]
+		f.WriteString("---> Roles: Player 1 = Blue, Player 2 = Red\n")
+		f.WriteString("First move:  P1  P2\n")
+		f.WriteString(fmt.Sprintf("Player 1:   %3d %3d\n", r2[1][1], r2[1][0]))
+		f.WriteString(fmt.Sprintf("Player 2:   %3d %3d\n\n", r2[0][1], r2[0][0]))
 	}
 	f.WriteString("Testing finished.\n")
 }
