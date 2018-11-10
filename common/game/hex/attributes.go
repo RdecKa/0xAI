@@ -305,8 +305,8 @@ func (a AttrLastActionDistanceToCenter) GetAttributeName() string {
 // GetAttributeValue returns the value of an attribute
 func (a AttrLastActionDistanceToCenter) GetAttributeValue(args *[]interface{}) int {
 	s := (*args)[0].(State)
-	lastAction := s.GetLastAction()
-	x, y := lastAction.GetCoordinates()
+	actionInQuestion := (*args)[2].(*Action)
+	x, y := actionInQuestion.GetCoordinates()
 	size := s.GetSize()
 	var centerX, centerY int
 	if size%2 == 1 {
@@ -328,7 +328,15 @@ func (a AttrLastActionDistanceToCenter) GetAttributeValue(args *[]interface{}) i
 		}
 		// (centerX, centerY) is the central position that is closest to (x, y)
 	}
-	return getDistanceBetween(centerX, centerY, x, y)
+
+	// If the player who is evaluating the state is not the player who's turn it
+	// is, negate the value
+	playerEvaluating := s.lastAction.c
+	dist := getDistanceBetween(centerX, centerY, x, y)
+	if playerEvaluating == actionInQuestion.c {
+		return dist
+	}
+	return -dist
 }
 
 // getDistanceBetween returns the distance between points (x1, y1) and (x2, y2)
