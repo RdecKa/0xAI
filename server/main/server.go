@@ -152,7 +152,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		c = nil
 	}
 
-	go hexgame.Play(boardSize, pair, numGames, c, nil)
+	go hexgame.Play(boardSize, pair, numGames, c, nil, nil)
 }
 
 func testHandler(w http.ResponseWriter, r *http.Request) {

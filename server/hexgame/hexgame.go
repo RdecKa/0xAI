@@ -2,6 +2,7 @@ package hexgame
 
 import (
 	"fmt"
+	"math"
 	"runtime"
 
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
@@ -11,7 +12,7 @@ import (
 
 // playOneGame returns 0 if the first player (of players) won and 1 if the
 // second player won
-func playOneGame(boardSize int, players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlayer, startingPlayer int) (int, error) {
+func playOneGame(boardSize int, players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlayer, startingPlayer int) (int, int, error) {
 	// Init game
 	for p := 0; p < 3; p++ {
 		var err error
@@ -22,12 +23,13 @@ func playOneGame(boardSize int, players [2]hexplayer.HexPlayer, passiveClient he
 		}
 
 		if err != nil {
-			return -1, err
+			return -1, -1, err
 		}
 	}
 	state := hex.NewState(byte(boardSize), players[startingPlayer].GetColor())
 	turn := startingPlayer
 	var prevAction *hex.Action
+	gameLength := 0
 
 	// Play game
 	for g, _ := state.IsGoalState(true); !g; g, _ = state.IsGoalState(true) {
@@ -35,7 +37,7 @@ func playOneGame(boardSize int, players [2]hexplayer.HexPlayer, passiveClient he
 		nextAction, err := players[turn].NextAction()
 		if err != nil {
 			fmt.Println(err)
-			return -1, err
+			return -1, -1, err
 		}
 		if nextAction == nil {
 			// Player has resigned
@@ -49,11 +51,14 @@ func playOneGame(boardSize int, players [2]hexplayer.HexPlayer, passiveClient he
 		state = &s
 		prevAction = nextAction
 		turn = 1 - turn
+		gameLength++
 		fmt.Printf("%v", state)
 
 		// Call garbage collector
 		runtime.GC()
 	}
+
+	fmt.Printf("Game length: %d\n", gameLength)
 
 	// Game results
 	for p := 0; p < 2; p++ {
@@ -68,24 +73,30 @@ func playOneGame(boardSize int, players [2]hexplayer.HexPlayer, passiveClient he
 	}
 
 	fmt.Printf("%v", state)
-	return 1 - turn, nil
+	return 1 - turn, gameLength, nil
 }
 
-func playNGames(boardSize int, players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlayer, numGames int) [2][2]int {
+func playNGames(boardSize int, players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlayer, numGames int) ([2][2]int, [2][2][]int) {
 	startingPlayer := 0
+	gameLengthList := [2][2][]int{}
+	gameLengthList[0][0] = make([]int, 0)
+	gameLengthList[0][1] = make([]int, 0)
+	gameLengthList[1][0] = make([]int, 0)
+	gameLengthList[1][1] = make([]int, 0)
 	results := [2][2]int{}
 	// results[0][0]: players[0] won, player[0] started a game
 	// results[0][1]: players[0] won, player[1] started a game
 	// results[1][0]: players[1] won, player[0] started a game
 	// results[1][1]: players[1] won, player[1] started a game
 	for g := 0; g < numGames; g++ {
-		winPlayer, err := playOneGame(boardSize, players, passiveClient, startingPlayer)
+		winPlayer, gameLength, err := playOneGame(boardSize, players, passiveClient, startingPlayer)
 		if err != nil {
 			fmt.Println("Game canceled: " + err.Error())
 			continue
 		}
 
 		results[winPlayer][startingPlayer]++
+		gameLengthList[winPlayer][startingPlayer] = append(gameLengthList[winPlayer][startingPlayer], gameLength)
 		fmt.Printf("Results after %d games:\n", g+1)
 		fmt.Printf("\tPlayer %v: %d\n", players[0].GetColor(), players[0].GetNumberOfWins())
 		fmt.Printf("\tPlayer %v: %d\n", players[1].GetColor(), players[1].GetNumberOfWins())
@@ -93,12 +104,14 @@ func playNGames(boardSize int, players [2]hexplayer.HexPlayer, passiveClient hex
 		// Switch roles
 		startingPlayer = 1 - startingPlayer
 	}
-	return results
+	return results, gameLengthList
 }
 
 // Play accepts an array of two players and number of games to be played. It
 // runs numGames games of Hex between the given players.
-func Play(boardSize int, players [2]hexplayer.HexPlayer, numGames int, conn *websocket.Conn, resultChan chan [2][2]int) {
+func Play(boardSize int, players [2]hexplayer.HexPlayer, numGames int,
+	conn *websocket.Conn, resultChanWins chan [2][2]int, resultChanLengths chan [2][2][2]float64) {
+
 	if conn != nil {
 		defer conn.Close()
 	}
@@ -109,13 +122,46 @@ func Play(boardSize int, players [2]hexplayer.HexPlayer, numGames int, conn *web
 		passiveClient = hexplayer.CreateHumanPlayer(conn, hex.None)
 	}
 
-	results := playNGames(boardSize, players, passiveClient, numGames)
+	results, gameLengthList := playNGames(boardSize, players, passiveClient, numGames)
+	lengths := [2][2][2]float64{}
+	for wp := range gameLengthList {
+		for sp := range gameLengthList[wp] {
+			avgLen := avg(gameLengthList[wp][sp])
+			stdLen := std(gameLengthList[wp][sp], avgLen)
+			lengths[wp][sp] = [2]float64{avgLen, stdLen}
+		}
+	}
 
-	if resultChan == nil {
+	if resultChanWins == nil {
 		fmt.Printf("*** Final results ***:\n")
 		fmt.Printf("\tPlayer one: %d\n", results[0])
 		fmt.Printf("\tPlayer two: %d\n", results[1])
 	} else {
-		resultChan <- results
+		resultChanWins <- results
+		resultChanLengths <- lengths
 	}
+}
+
+func avg(lst []int) float64 {
+	if len(lst) == 0 {
+		return 0
+	}
+	s := 0
+	for _, el := range lst {
+		s += el
+	}
+	return float64(s) / float64(len(lst))
+}
+
+func std(lst []int, avg float64) float64 {
+	if len(lst) == 0 {
+		return 0.0
+	}
+
+	std := 0.0
+	for _, el := range lst {
+		std += math.Pow(float64(el)-avg, 2)
+	}
+	std /= float64(len(lst)) // This is variance
+	return math.Sqrt(std)    // Square root to get the standard deviation
 }

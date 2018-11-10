@@ -101,7 +101,7 @@ func (ap *AbPlayer) NextAction() (*hex.Action, error) {
 
 	// Check if player has a virtual connection
 	if exists, solution := ap.state.IsGoalState(false); exists {
-		fmt.Println("AB Player has a virtual connection!")
+		fmt.Println(GetStringFromPlayerType(ap.subtype) + " player has a virtual connection!")
 		winPath := solution.([][2]int)
 		ap.safeWinCells = findSafeCells(winPath, ap.state.GetSize(), ap.Color)
 	}
