@@ -42,16 +42,18 @@ func CreateMatch(bs, ng int, p1, p2 hexplayer.PlayerType, t1, t2 int, patternFil
 }
 
 // Run runs a set of matches between two players
-func (ms MatchSetup) Run() ([2][2][2]int, [2][2][2][2]float64) {
+func (ms MatchSetup) Run(outDir string) ([2][2][2]int, [2][2][2][2]float64) {
 	resultChanWins := make(chan [2][2]int, 1)
 	resultChanLength := make(chan [2][2][2]float64, 1)
+	outDir += "games/"
+	os.Mkdir(outDir, os.ModePerm)
 
 	// player1 = Red, player2 = Blue
 	players := [2]hexplayer.HexPlayer{
 		createPlayer(ms.player1type, hex.Red, ms.time1, ms.patternFile),
 		createPlayer(ms.player2type, hex.Blue, ms.time2, ms.patternFile),
 	}
-	hexgame.Play(ms.boardSize, players, ms.numGames, nil, resultChanWins, resultChanLength)
+	hexgame.Play(ms.boardSize, players, ms.numGames, nil, resultChanWins, resultChanLength, outDir)
 	results1 := <-resultChanWins
 	lengths1 := <-resultChanLength
 
@@ -60,7 +62,7 @@ func (ms MatchSetup) Run() ([2][2][2]int, [2][2][2][2]float64) {
 		createPlayer(ms.player2type, hex.Red, ms.time2, ms.patternFile),
 		createPlayer(ms.player1type, hex.Blue, ms.time1, ms.patternFile),
 	}
-	hexgame.Play(ms.boardSize, players, ms.numGames, nil, resultChanWins, resultChanLength)
+	hexgame.Play(ms.boardSize, players, ms.numGames, nil, resultChanWins, resultChanLength, outDir)
 	results2 := <-resultChanWins
 	lengths2 := <-resultChanLength
 
@@ -84,8 +86,8 @@ func (ms MatchSetup) String() string {
 }
 
 // RunAll runs all sets of matches given as argument
-func RunAll(matches []MatchSetup, resultsFileName string) {
-	f, err := os.Create(resultsFileName)
+func RunAll(matches []MatchSetup, outDir string) {
+	f, err := os.Create(outDir + "test_results.txt")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -95,7 +97,7 @@ func RunAll(matches []MatchSetup, resultsFileName string) {
 		f.WriteString("--------------------\n")
 		f.WriteString(ms.String())
 		f.WriteString("--------------------\n")
-		results, lengths := ms.Run()
+		results, lengths := ms.Run(outDir)
 		f.WriteString(fmt.Sprintf("FINAL RESULTS for set #%d:\n", i))
 
 		r1 := results[0]

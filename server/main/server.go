@@ -1,11 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"math"
 	"net/http"
 	_ "net/http/pprof"
+	"os"
 	"regexp"
 	"strconv"
 	"time"
@@ -25,7 +27,8 @@ var templates = template.Must(template.New("").Delims("[[", "]]").ParseFiles(
 
 const addr = "localhost:8080"
 const patternFile = "common/game/hex/patterns.txt"
-const resultsDir = "data/cmpr/"
+
+var resultsDir = "data/cmpr/"
 
 const defaultBoardSize = 7
 const defaultNumGames = 1
@@ -152,7 +155,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		c = nil
 	}
 
-	go hexgame.Play(boardSize, pair, numGames, c, nil, nil)
+	go hexgame.Play(boardSize, pair, numGames, c, nil, nil, resultsDir)
 }
 
 func testHandler(w http.ResponseWriter, r *http.Request) {
@@ -161,9 +164,8 @@ func testHandler(w http.ResponseWriter, r *http.Request) {
 		cmpr.CreateMatch(7, 2, hexplayer.MctsType, hexplayer.AbLrType, 1, 1, patternFile),
 		cmpr.CreateMatch(7, 2, hexplayer.AbDtType, hexplayer.AbLrType, 1, 1, patternFile),
 	}
-	t := time.Now()
-	resultsFileName := resultsDir + t.Format("20060102T150405") + ".txt"
-	cmpr.RunAll(matches, resultsFileName)
+
+	cmpr.RunAll(matches, resultsDir)
 }
 
 func createHumanPlayer(color hex.Color, conn *websocket.Conn, _ int, _ bool, _ hexplayer.PlayerType) hexplayer.HexPlayer {
@@ -179,6 +181,13 @@ func createAbPlayer(color hex.Color, conn *websocket.Conn, secondsPerAction int,
 }
 
 func main() {
+	t := time.Now()
+	resultsDir += t.Format("20060102T150405") + "/"
+	err := os.MkdirAll(resultsDir, os.ModePerm)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	// Register handlers
 	http.HandleFunc("/play/", makeHandler(playHandler))
 	http.HandleFunc("/select/", makeHandler(selectHandler))

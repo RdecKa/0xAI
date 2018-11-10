@@ -30,14 +30,14 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, createTree bool,
 
 	boardSize := state.GetSize()
 	for depthLimit := 2; depthLimit < boardSize*boardSize; depthLimit += 2 {
-		fmt.Printf("Starting AB on depth %d\n", depthLimit)
+		// fmt.Printf("Starting AB on depth %d\n", depthLimit)
 
 		transpositionTable := make(map[string]float64)
 		_, a, rn, err = alphaBeta(ctx, 0, depthLimit, state, nil, nil, -abInit, abInit, gridChan, resultChan, transpositionTable, oldTransitionTable, createTree, getEstimatedValue)
 		oldTransitionTable = transpositionTable
 
 		if err != nil {
-			fmt.Println(err)
+			// fmt.Println(err)
 			break
 		}
 
@@ -49,7 +49,7 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, createTree bool,
 
 		selectedAction = a
 		rootNode = rn
-		fmt.Printf("Selected action: %v\n", selectedAction)
+		// fmt.Printf("Selected action: %v\n", selectedAction)
 	}
 
 	// Cancel the Context

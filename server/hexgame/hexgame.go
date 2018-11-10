@@ -3,6 +3,7 @@ package hexgame
 import (
 	"fmt"
 	"math"
+	"os"
 	"runtime"
 
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
@@ -12,7 +13,11 @@ import (
 
 // playOneGame returns 0 if the first player (of players) won and 1 if the
 // second player won
-func playOneGame(boardSize int, players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlayer, startingPlayer int) (int, int, error) {
+func playOneGame(boardSize int, players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlayer,
+	startingPlayer int, outFile *os.File) (int, int, error) {
+
+	fmt.Println("---------------------------------------------")
+
 	// Init game
 	for p := 0; p < 3; p++ {
 		var err error
@@ -41,7 +46,7 @@ func playOneGame(boardSize int, players [2]hexplayer.HexPlayer, passiveClient he
 		}
 		if nextAction == nil {
 			// Player has resigned
-			fmt.Printf("Player %v resigned!\n", players[turn].GetColor())
+			outFile.WriteString(fmt.Sprintf("Player %v resigned!\n", players[turn].GetColor()))
 			break
 		}
 		if passiveClient != nil {
@@ -52,13 +57,13 @@ func playOneGame(boardSize int, players [2]hexplayer.HexPlayer, passiveClient he
 		prevAction = nextAction
 		turn = 1 - turn
 		gameLength++
-		fmt.Printf("%v", state)
+		outFile.WriteString(fmt.Sprintf("%v", state))
 
 		// Call garbage collector
 		runtime.GC()
 	}
 
-	fmt.Printf("Game length: %d\n", gameLength)
+	outFile.WriteString(fmt.Sprintf("Game length: %d\n", gameLength))
 
 	// Game results
 	for p := 0; p < 2; p++ {
@@ -76,7 +81,8 @@ func playOneGame(boardSize int, players [2]hexplayer.HexPlayer, passiveClient he
 	return 1 - turn, gameLength, nil
 }
 
-func playNGames(boardSize int, players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlayer, numGames int) ([2][2]int, [2][2][]int) {
+func playNGames(boardSize int, players [2]hexplayer.HexPlayer, passiveClient hexplayer.HexPlayer,
+	numGames int, outFile *os.File) ([2][2]int, [2][2][]int) {
 	startingPlayer := 0
 	gameLengthList := [2][2][]int{}
 	gameLengthList[0][0] = make([]int, 0)
@@ -89,7 +95,7 @@ func playNGames(boardSize int, players [2]hexplayer.HexPlayer, passiveClient hex
 	// results[1][0]: players[1] won, player[0] started a game
 	// results[1][1]: players[1] won, player[1] started a game
 	for g := 0; g < numGames; g++ {
-		winPlayer, gameLength, err := playOneGame(boardSize, players, passiveClient, startingPlayer)
+		winPlayer, gameLength, err := playOneGame(boardSize, players, passiveClient, startingPlayer, outFile)
 		if err != nil {
 			fmt.Println("Game canceled: " + err.Error())
 			continue
@@ -110,7 +116,8 @@ func playNGames(boardSize int, players [2]hexplayer.HexPlayer, passiveClient hex
 // Play accepts an array of two players and number of games to be played. It
 // runs numGames games of Hex between the given players.
 func Play(boardSize int, players [2]hexplayer.HexPlayer, numGames int,
-	conn *websocket.Conn, resultChanWins chan [2][2]int, resultChanLengths chan [2][2][2]float64) {
+	conn *websocket.Conn, resultChanWins chan [2][2]int,
+	resultChanLengths chan [2][2][2]float64, outDir string) {
 
 	if conn != nil {
 		defer conn.Close()
@@ -122,7 +129,14 @@ func Play(boardSize int, players [2]hexplayer.HexPlayer, numGames int,
 		passiveClient = hexplayer.CreateHumanPlayer(conn, hex.None)
 	}
 
-	results, gameLengthList := playNGames(boardSize, players, passiveClient, numGames)
+	outFile, err := os.Create(fmt.Sprintf("%sgames_%s_%s_%d.txt", outDir,
+		hexplayer.GetStringFromPlayerType(players[0].GetType()),
+		hexplayer.GetStringFromPlayerType(players[1].GetType()), numGames))
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	results, gameLengthList := playNGames(boardSize, players, passiveClient, numGames, outFile)
 	lengths := [2][2][2]float64{}
 	for wp := range gameLengthList {
 		for sp := range gameLengthList[wp] {
@@ -132,12 +146,14 @@ func Play(boardSize int, players [2]hexplayer.HexPlayer, numGames int,
 		}
 	}
 
-	if resultChanWins == nil {
-		fmt.Printf("*** Final results ***:\n")
-		fmt.Printf("\tPlayer one: %d\n", results[0])
-		fmt.Printf("\tPlayer two: %d\n", results[1])
-	} else {
+	outFile.WriteString("\n*** Final results ***:\n")
+	outFile.WriteString(fmt.Sprintf("Player %s: %d\n", players[0].GetColor().String(), results[0]))
+	outFile.WriteString(fmt.Sprintf("Player %s: %d\n", players[1].GetColor().String(), results[1]))
+
+	if resultChanWins != nil {
 		resultChanWins <- results
+	}
+	if resultChanLengths != nil {
 		resultChanLengths <- lengths
 	}
 }
