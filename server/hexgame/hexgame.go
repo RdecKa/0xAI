@@ -130,16 +130,16 @@ func Play(boardSize int, players [2]hexplayer.HexPlayer, numGames int,
 	}
 
 	outFile, err := os.Create(fmt.Sprintf("%sgames_%s_%s_%d.txt", outDir,
-		hexplayer.GetStringFromPlayerType(players[0].GetType()),
-		hexplayer.GetStringFromPlayerType(players[1].GetType()), numGames))
+		players[0].GetType().String(),
+		players[1].GetType().String(), numGames))
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	outFile.WriteString(fmt.Sprintf("%s: %s\n", players[0].GetColor().String(),
-		hexplayer.GetStringFromPlayerType(players[0].GetType())))
+		players[0].GetType().String()))
 	outFile.WriteString(fmt.Sprintf("%s: %s\n", players[1].GetColor().String(),
-		hexplayer.GetStringFromPlayerType(players[1].GetType())))
+		players[1].GetType().String()))
 
 	results, gameLengthList := playNGames(boardSize, players, passiveClient, numGames, outFile)
 	lengths := [2][2][2]float64{}

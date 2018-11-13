@@ -42,45 +42,23 @@ func CreateMatch(bs, ng int, p1, p2 hexplayer.PlayerType, t1, t2 int, patternFil
 }
 
 // Run runs a set of matches between two players
-func (ms MatchSetup) Run(outDir string) ([2][2][2]int, [2][2][2][2]float64) {
+func (ms MatchSetup) Run(outDir string, players [2]hexplayer.HexPlayer) ([2][2]int, [2][2][2]float64) {
 	resultChanWins := make(chan [2][2]int, 1)
 	resultChanLength := make(chan [2][2][2]float64, 1)
 	outDir += "games/"
 	os.Mkdir(outDir, os.ModePerm)
 
-	// player1 = Red, player2 = Blue
-	players := [2]hexplayer.HexPlayer{
-		createPlayer(ms.player1type, hex.Red, ms.time1, ms.patternFile),
-		createPlayer(ms.player2type, hex.Blue, ms.time2, ms.patternFile),
-	}
 	hexgame.Play(ms.boardSize, players, ms.numGames, nil, resultChanWins, resultChanLength, outDir)
-	results1 := <-resultChanWins
-	lengths1 := <-resultChanLength
+	results := <-resultChanWins
+	lengths := <-resultChanLength
 
-	// player1 = Blue, player2 = Red
-	players = [2]hexplayer.HexPlayer{
-		createPlayer(ms.player2type, hex.Red, ms.time2, ms.patternFile),
-		createPlayer(ms.player1type, hex.Blue, ms.time1, ms.patternFile),
-	}
-	hexgame.Play(ms.boardSize, players, ms.numGames, nil, resultChanWins, resultChanLength, outDir)
-	results2 := <-resultChanWins
-	lengths2 := <-resultChanLength
-
-	r := [2][2][2]int{
-		results1,
-		results2,
-	}
-	l := [2][2][2][2]float64{
-		lengths1,
-		lengths2,
-	}
-	return r, l
+	return results, lengths
 }
 
 func (ms MatchSetup) String() string {
 	s := fmt.Sprintf("Player 1: %v (%ds)\nPlayer 2: %v (%ds)\n",
-		hexplayer.GetStringFromPlayerType(ms.player1type), ms.time1,
-		hexplayer.GetStringFromPlayerType(ms.player2type), ms.time2)
+		ms.player1type.String(), ms.time1,
+		ms.player2type.String(), ms.time2)
 	s += fmt.Sprintf("Board size: %d\nNumber of games: %d (×2)\n", ms.boardSize, ms.numGames)
 	return s
 }
@@ -94,41 +72,55 @@ func RunAll(matches []MatchSetup, outDir string) {
 	defer f.Close()
 
 	f.WriteString(fmt.Sprintf("Testing started at %s.\n\n", time.Now().Format("15.04.05 (2006/01/02)")))
-	for i, ms := range matches {
+	for _, ms := range matches {
 		f.WriteString("--------------------\n")
 		f.WriteString(ms.String())
 		f.WriteString("--------------------\n")
-		results, lengths := ms.Run(outDir)
-		f.WriteString(fmt.Sprintf("FINAL RESULTS for set #%d:\n", i))
 
-		r1 := results[0]
-		l1 := lengths[0]
-		f.WriteString("\n---> Roles: Player 1 = Red, Player 2 = Blue\n")
-		f.WriteString("Number of wins:\n")
-		f.WriteString("\tFirst move:  P1  P2\n")
-		f.WriteString(fmt.Sprintf("\tPlayer 1:   %3d %3d\n", r1[0][0], r1[0][1]))
-		f.WriteString(fmt.Sprintf("\tPlayer 2:   %3d %3d\n\n", r1[1][0], r1[1][1]))
+		var players [2][2]hexplayer.HexPlayer
+		// player1 = Red, player2 = Blue
+		players[0] = [2]hexplayer.HexPlayer{
+			createPlayer(ms.player1type, hex.Red, ms.time1, ms.patternFile),
+			createPlayer(ms.player2type, hex.Blue, ms.time2, ms.patternFile),
+		}
+		// player1 = Blue, player2 = Red
+		players[1] = [2]hexplayer.HexPlayer{
+			createPlayer(ms.player2type, hex.Red, ms.time2, ms.patternFile),
+			createPlayer(ms.player1type, hex.Blue, ms.time1, ms.patternFile),
+		}
 
-		f.WriteString("Game length (avg, std):\n")
-		f.WriteString("\tFirst move: P1               P2\n")
-		f.WriteString(fmt.Sprintf("\tPlayer 1: (%6.2f, %6.2f) (%6.2f, %6.2f)\n",
-			l1[0][0][0], l1[0][0][1], l1[0][1][0], l1[0][1][1]))
-		f.WriteString(fmt.Sprintf("\tPlayer 2: (%6.2f, %6.2f) (%6.2f, %6.2f)\n",
-			l1[1][0][0], l1[1][0][1], l1[1][1][0], l1[1][1][1]))
+		for p := 0; p <= 1; p++ {
+			pls := players[p]
+			results, lengths := ms.Run(outDir, pls)
 
-		r2 := results[1]
-		l2 := lengths[1]
-		f.WriteString("\n---> Roles: Player 1 = Blue, Player 2 = Red\n")
-		f.WriteString("First move:  P1  P2\n")
-		f.WriteString(fmt.Sprintf("\tPlayer 1:   %3d %3d\n", r2[1][1], r2[1][0]))
-		f.WriteString(fmt.Sprintf("\tPlayer 2:   %3d %3d\n\n", r2[0][1], r2[0][0]))
+			var p1p1, p1p2, p2p1, p2p2 int
+			var f1f1, f1f2, f2f1, f2f2 [2]float64
+			if p == 0 {
+				p1p1, f1f1 = results[0][0], lengths[0][0]
+				p1p2, f1f2 = results[0][1], lengths[0][1]
+				p2p1, f2f1 = results[1][0], lengths[1][0]
+				p2p2, f2f2 = results[1][1], lengths[1][1]
+			} else {
+				p1p1, f1f1 = results[1][1], lengths[1][1]
+				p1p2, f1f2 = results[1][0], lengths[1][0]
+				p2p1, f2f1 = results[0][1], lengths[0][1]
+				p2p2, f2f2 = results[0][0], lengths[0][0]
+			}
 
-		f.WriteString("Game length (avg, std):\n")
-		f.WriteString("\tFirst move: P1               P2\n")
-		f.WriteString(fmt.Sprintf("\tPlayer 1: (%6.2f, %6.2f) (%6.2f, %6.2f)\n",
-			l2[1][1][0], l2[1][1][1], l2[1][0][0], l2[1][0][1]))
-		f.WriteString(fmt.Sprintf("\tPlayer 2: (%6.2f, %6.2f) (%6.2f, %6.2f)\n",
-			l2[0][1][0], l2[0][1][1], l2[0][0][0], l2[0][0][1]))
+			f.WriteString(fmt.Sprintf("\n---> Roles: Player 1 = %s, Player 2 = %s\n",
+				pls[0].GetType().String(), pls[1].GetType().String()))
+			f.WriteString("Number of wins:\n")
+			f.WriteString("\tFirst move:  P1  P2\n")
+			f.WriteString(fmt.Sprintf("\tPlayer 1:   %3d %3d\n", p1p1, p1p2))
+			f.WriteString(fmt.Sprintf("\tPlayer 2:   %3d %3d\n\n", p2p1, p2p2))
+
+			f.WriteString("Game length (avg, std):\n")
+			f.WriteString("\tFirst move: P1               P2\n")
+			f.WriteString(fmt.Sprintf("\tPlayer 1: (%6.2f, %6.2f) (%6.2f, %6.2f)\n",
+				f1f1[0], f1f1[1], f1f2[0], f1f2[1]))
+			f.WriteString(fmt.Sprintf("\tPlayer 2: (%6.2f, %6.2f) (%6.2f, %6.2f)\n",
+				f2f1[0], f2f1[1], f2f2[0], f2f2[1]))
+		}
 	}
 	f.WriteString(fmt.Sprintf("\nTesting finished at %s.\n", time.Now().Format("15.04.05 (2006/01/02)")))
 }
@@ -144,7 +136,7 @@ func createPlayer(t hexplayer.PlayerType, c hex.Color, tl int, patternFile strin
 		return hexplayer.CreateAbPlayer(c, nil, time.Duration(tl)*time.Second,
 			true, patternFile, false, hexplayer.AbLrType)
 	default:
-		fmt.Println(fmt.Errorf("Invalid type '%s'", hexplayer.GetStringFromPlayerType(t)))
+		fmt.Println(fmt.Errorf("Invalid type '%s'", t.String()))
 		return nil
 	}
 }

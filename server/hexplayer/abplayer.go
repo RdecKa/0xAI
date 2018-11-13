@@ -36,7 +36,7 @@ func CreateAbPlayer(c hex.Color, webso *websocket.Conn, t time.Duration,
 	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
 	ap := AbPlayer{c, subtype, webso, t, 0, nil, nil, nil, allowResignation,
 		createTree, gridChan, stopChan, resultChan,
-		ab.GetEstimateFunction(GetStringFromPlayerType(subtype))}
+		ab.GetEstimateFunction(subtype.String())}
 	return &ap
 }
 
@@ -101,7 +101,7 @@ func (ap *AbPlayer) NextAction() (*hex.Action, error) {
 
 	// Check if player has a virtual connection
 	if exists, solution := ap.state.IsGoalState(false); exists {
-		fmt.Println(GetStringFromPlayerType(ap.subtype) + " player has a virtual connection!")
+		fmt.Println(ap.subtype.String() + " player has a virtual connection!")
 		winPath := solution.([][2]int)
 		ap.safeWinCells = findSafeCells(winPath, ap.state.GetSize(), ap.Color)
 	}

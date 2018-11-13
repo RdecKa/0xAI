@@ -48,7 +48,7 @@ func GetPlayerTypeFromString(t string) PlayerType {
 	}
 }
 
-func GetStringFromPlayerType(t PlayerType) string {
+func (t PlayerType) String() string {
 	switch t {
 	case HumanType:
 		return "human"
