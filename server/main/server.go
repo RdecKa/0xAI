@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"html/template"
 	"log"
@@ -19,7 +20,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var validPath = regexp.MustCompile("^/((play|select|static|ws|test)/([a-zA-Z0-9/.]*))?$")
+var validPath = regexp.MustCompile("^/((play|select|static|ws)/([a-zA-Z0-9/.]*))?$")
 
 var templates = template.Must(template.New("").Delims("[[", "]]").ParseFiles(
 	"server/tmpl/play.html",
@@ -158,16 +159,6 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	go hexgame.Play(boardSize, pair, numGames, c, nil, nil, resultsDir)
 }
 
-func testHandler(w http.ResponseWriter, r *http.Request) {
-	matches := []cmpr.MatchSetup{
-		cmpr.CreateMatch(7, 2, hexplayer.MctsType, hexplayer.AbDtType, 1, 1, patternFile),
-		cmpr.CreateMatch(7, 2, hexplayer.MctsType, hexplayer.AbLrType, 1, 1, patternFile),
-		cmpr.CreateMatch(7, 2, hexplayer.AbDtType, hexplayer.AbLrType, 1, 1, patternFile),
-	}
-
-	cmpr.RunAll(matches, resultsDir)
-}
-
 func createHumanPlayer(color hex.Color, conn *websocket.Conn, _ int, _ bool, _ hexplayer.PlayerType) hexplayer.HexPlayer {
 	return hexplayer.CreateHumanPlayer(conn, color)
 }
@@ -180,6 +171,16 @@ func createAbPlayer(color hex.Color, conn *websocket.Conn, secondsPerAction int,
 	return hexplayer.CreateAbPlayer(color, conn, time.Duration(secondsPerAction)*time.Second, allowResignation, patternFile, true, subtype)
 }
 
+func comparePlayers() {
+	matches := []cmpr.MatchSetup{
+		cmpr.CreateMatch(7, 2, hexplayer.MctsType, hexplayer.AbDtType, 1, 1, patternFile),
+		cmpr.CreateMatch(7, 2, hexplayer.MctsType, hexplayer.AbLrType, 1, 1, patternFile),
+		cmpr.CreateMatch(7, 2, hexplayer.AbDtType, hexplayer.AbLrType, 1, 1, patternFile),
+	}
+
+	cmpr.RunAll(matches, resultsDir)
+}
+
 func main() {
 	t := time.Now()
 	resultsDir += t.Format("20060102T150405") + "/"
@@ -188,11 +189,18 @@ func main() {
 		fmt.Println(err)
 	}
 
+	pOnlyCompare := flag.Bool("cmpr", false, "Run test matches between players")
+	flag.Parse()
+	if *pOnlyCompare {
+		fmt.Println("Running comparisons")
+		comparePlayers()
+		return
+	}
+
 	// Register handlers
 	http.HandleFunc("/play/", makeHandler(playHandler))
 	http.HandleFunc("/select/", makeHandler(selectHandler))
 	http.HandleFunc("/ws/", makeHandler(wsHandler))
-	http.HandleFunc("/test/", makeHandler(testHandler))
 
 	// TODO: DELETE / CHANGE
 	//http.HandleFunc("/", makeHandler(playHandler))

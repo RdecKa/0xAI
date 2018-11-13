@@ -39,7 +39,6 @@ func CreateHumanPlayer(conn *websocket.Conn, color hex.Color) *HumanPlayer {
 // client and waits for replay.
 func (hp HumanPlayer) InitGame(boardSize int, firstPlayer hex.Color) error {
 	m := []byte(fmt.Sprintf("INIT SIZE:%v COLOR:%v", boardSize, hp.Color))
-	fmt.Printf("Sending message: %s ...\n", m)
 	hp.Webso.WriteMessage(websocket.TextMessage, m)
 
 	_, m, err := hp.Webso.ReadMessage()
@@ -55,9 +54,7 @@ func (hp HumanPlayer) InitGame(boardSize int, firstPlayer hex.Color) error {
 // PrevAction accepts last opponent's action
 func (hp HumanPlayer) PrevAction(prevAction *hex.Action) {
 	m := []byte(fmt.Sprintf("MOVE %v", prevAction))
-	fmt.Printf("Sending message: %s ...\n", m)
 	hp.Webso.WriteMessage(websocket.TextMessage, m)
-	fmt.Println("Message sent.")
 }
 
 // NextAction returns an action to be performed.
@@ -67,7 +64,6 @@ func (hp HumanPlayer) NextAction() (*hex.Action, error) {
 		hp.Webso.WriteMessage(websocket.TextMessage, []byte("ERROR "+err.Error()))
 		return nil, err
 	}
-	fmt.Printf("Received message: %s\n", m)
 
 	c := strings.Split(string(m), ",")
 	if len(c) != 2 {
@@ -100,7 +96,6 @@ func (hp *HumanPlayer) EndGame(lastAction *hex.Action, won bool) {
 		hp.numWin++
 	}
 	m := []byte(fmt.Sprintf("END %d %s", r, lastAction))
-	fmt.Printf("Sending message: %s ...\n", m)
 	hp.Webso.WriteMessage(websocket.TextMessage, m)
 
 	// Wait for the human to stop analysing the game
@@ -109,7 +104,6 @@ func (hp *HumanPlayer) EndGame(lastAction *hex.Action, won bool) {
 		hp.Webso.WriteMessage(websocket.TextMessage, []byte("ERROR "+err.Error()))
 		return
 	}
-	fmt.Printf("Received message: %s\n", m)
 }
 
 // GetColor returns the color of the player

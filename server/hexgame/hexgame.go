@@ -136,6 +136,11 @@ func Play(boardSize int, players [2]hexplayer.HexPlayer, numGames int,
 		fmt.Println(err)
 	}
 
+	outFile.WriteString(fmt.Sprintf("%s: %s\n", players[0].GetColor().String(),
+		hexplayer.GetStringFromPlayerType(players[0].GetType())))
+	outFile.WriteString(fmt.Sprintf("%s: %s\n", players[1].GetColor().String(),
+		hexplayer.GetStringFromPlayerType(players[1].GetType())))
+
 	results, gameLengthList := playNGames(boardSize, players, passiveClient, numGames, outFile)
 	lengths := [2][2][2]float64{}
 	for wp := range gameLengthList {

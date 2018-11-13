@@ -93,6 +93,7 @@ func RunAll(matches []MatchSetup, outDir string) {
 	}
 	defer f.Close()
 
+	f.WriteString(fmt.Sprintf("Testing started at %s.\n\n", time.Now().Format("15.04.05 (2006/01/02)")))
 	for i, ms := range matches {
 		f.WriteString("--------------------\n")
 		f.WriteString(ms.String())
@@ -129,7 +130,7 @@ func RunAll(matches []MatchSetup, outDir string) {
 		f.WriteString(fmt.Sprintf("\tPlayer 2: (%6.2f, %6.2f) (%6.2f, %6.2f)\n",
 			l2[0][1][0], l2[0][1][1], l2[0][0][0], l2[0][0][1]))
 	}
-	f.WriteString("\nTesting finished.\n")
+	f.WriteString(fmt.Sprintf("\nTesting finished at %s.\n", time.Now().Format("15.04.05 (2006/01/02)")))
 }
 
 func createPlayer(t hexplayer.PlayerType, c hex.Color, tl int, patternFile string) hexplayer.HexPlayer {
