@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"math"
 )
 
 // MarshalJSON implements Marshaler interface
@@ -14,7 +15,15 @@ func (anv NodeValue) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	buffer.WriteString(fmt.Sprintf("\"state\":%s,\"val\":%f,\"com\":\"%s\"", jsonValue, anv.value, anv.comment))
+	var val string
+	if math.IsInf(anv.value, 1) {
+		val = "\"inf\""
+	} else if math.IsInf(anv.value, -1) {
+		val = "\"-inf\""
+	} else {
+		val = fmt.Sprintf("%f", anv.value)
+	}
+	buffer.WriteString(fmt.Sprintf("\"state\":%s,\"val\":%s,\"com\":\"%s\"", jsonValue, val, anv.comment))
 	buffer.WriteString("}")
 	return buffer.Bytes(), nil
 }

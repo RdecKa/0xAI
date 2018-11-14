@@ -89,7 +89,7 @@ func (ap *AbPlayer) NextAction() (*hex.Action, error) {
 	if ap.createTree {
 		jsonText, err := json.Marshal(searchedTree)
 		if err != nil {
-			fmt.Print(fmt.Errorf("Error creating JSON of searchedTree"))
+			fmt.Print(fmt.Errorf("Error creating JSON of searchedTree: %s", err))
 		} else {
 			message := fmt.Sprintf("ABJSON %s", jsonText)
 			ap.Webso.WriteMessage(websocket.TextMessage, []byte(message))

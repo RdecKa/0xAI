@@ -3,15 +3,16 @@ package ab
 import (
 	"context"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
 	"github.com/RdecKa/bachleor-thesis/common/tree"
 )
 
-const maxValue = 1e100
-const abInit = 1e90
-const won = abInit
+var maxValue = math.Inf(0)
+var abInit = maxValue
+var won = abInit
 
 // AlphaBeta runs search with AB pruning to select the next action to be taken.
 // In addition to the selected action it returns the tree that was constructed
@@ -139,7 +140,7 @@ func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State,
 		}
 		value = -value
 
-		if value > bestValue {
+		if value > bestValue || bestState == nil {
 			bestValue = value
 			bestState = &successor
 		}
