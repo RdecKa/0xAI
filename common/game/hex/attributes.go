@@ -27,7 +27,9 @@ var (
 	AttrNumStones          = AttrNumberStones{}
 	AttrLastPlayer         = AttrLastPlayerTurn{true}
 	AttrLastPlayerOpponent = AttrLastPlayerTurn{false}
-	AttrDistanceToCenter   = AttrLastActionDistanceToCenter{}
+
+	AttrDistanceToCenterRed  = AttrSumOfDistancesToCenter{Red}
+	AttrDistanceToCenterBlue = AttrSumOfDistancesToCenter{Blue}
 
 	AttrOccRedRows  = AttrOccupiedRowsCols{Red, true}
 	AttrOccRedCols  = AttrOccupiedRowsCols{Red, false}
@@ -87,7 +89,9 @@ var (
 var GenSamAttributes = [][2]game.Attribute{
 	[2]game.Attribute{AttrNumStones, nil},
 	[2]game.Attribute{AttrLastPlayer, AttrLastPlayerOpponent},
-	[2]game.Attribute{AttrDistanceToCenter, nil},
+
+	[2]game.Attribute{AttrDistanceToCenterRed, AttrDistanceToCenterBlue},
+	[2]game.Attribute{AttrDistanceToCenterBlue, AttrDistanceToCenterRed},
 
 	[2]game.Attribute{AttrOccRedRows, AttrOccBlueCols},
 	[2]game.Attribute{AttrOccRedCols, AttrOccBlueRows},
@@ -289,54 +293,40 @@ func (a AttrLastPlayerTurn) GetAttributeValue(args *[]interface{}) int {
 	panic(fmt.Errorf("Invalid color %v", lp))
 }
 
-// ------------------------------------------
-// |     AttrLastActionDistanceToCenter     |
-// ------------------------------------------
+// --------------------------------------
+// |     AttrSumOfDistancesToCenter     |
+// --------------------------------------
 
-// AttrLastActionDistanceToCenter tells how far from the center was the last
-// stone placed
-type AttrLastActionDistanceToCenter struct{}
+// AttrSumOfDistancesToCenter returns the sum of distances to the center of all
+// stones of one color
+type AttrSumOfDistancesToCenter struct {
+	color Color
+}
 
 // GetAttributeName returns the name of an attribute
-func (a AttrLastActionDistanceToCenter) GetAttributeName() string {
-	return "dtc"
+func (a AttrSumOfDistancesToCenter) GetAttributeName() string {
+	return "sdtc_" + a.color.String()
 }
 
 // GetAttributeValue returns the value of an attribute
-func (a AttrLastActionDistanceToCenter) GetAttributeValue(args *[]interface{}) int {
-	s := (*args)[0].(State)
-	actionInQuestion := (*args)[2].(*Action)
-	x, y := actionInQuestion.GetCoordinates()
-	size := s.GetSize()
-	var centerX, centerY int
-	if size%2 == 1 {
-		// Board has only one central position
-		centerX = size / 2
-		centerY = centerX
-	} else {
-		// Board has four central positions
-		centerSmall, centerBig := size/2-1, size/2
-		if x <= centerSmall {
-			centerX = centerSmall
-		} else {
-			centerX = centerBig
-		}
-		if y <= centerSmall {
-			centerY = centerSmall
-		} else {
-			centerY = centerBig
-		}
-		// (centerX, centerY) is the central position that is closest to (x, y)
-	}
+func (a AttrSumOfDistancesToCenter) GetAttributeValue(args *[]interface{}) int {
+	sum := 0
+	state := (*args)[0].(State)
+	size := state.GetSize()
+	board := state.GetCopyGrid()
 
-	// If the player who is evaluating the state is not the player who's turn it
-	// is, negate the value
-	playerEvaluating := s.lastAction.c
-	dist := getDistanceBetween(centerX, centerY, x, y)
-	if playerEvaluating == actionInQuestion.c {
-		return dist
+	for rowIndex, row := range board {
+		r := row
+		for colIndex := 0; colIndex < size; colIndex++ {
+			c := GetColorFromBits(r & 3)
+			if c == a.color {
+				cx, cy := getClosestCenterCoordinates(size, colIndex, rowIndex)
+				sum += getDistanceBetween(cx, cy, colIndex, rowIndex)
+			}
+			r = r >> 2
+		}
 	}
-	return -dist
+	return sum
 }
 
 // getDistanceBetween returns the distance between points (x1, y1) and (x2, y2)
@@ -350,4 +340,31 @@ func abs(a int) int {
 		return a
 	}
 	return -a
+}
+
+// getClosestCenterCoordinates returns coordinates of the central cell in the
+// board if the boardSize is odd. If boardSize is even, function returns one of
+// the four central positions (the one that is the closest to cell (x, y))
+func getClosestCenterCoordinates(boardSize, x, y int) (int, int) {
+	var centerX, centerY int
+	if boardSize%2 == 1 {
+		// Board has only one central position
+		centerX = boardSize / 2
+		centerY = centerX
+	} else {
+		// Board has four central positions
+		centerSmall, centerBig := boardSize/2-1, boardSize/2
+		if x <= centerSmall {
+			centerX = centerSmall
+		} else {
+			centerX = centerBig
+		}
+		if y <= centerSmall {
+			centerY = centerSmall
+		} else {
+			centerY = centerBig
+		}
+		// (centerX, centerY) is the central position that is closest to (x, y)
+	}
+	return centerX, centerY
 }

@@ -126,7 +126,7 @@ mlmerge:
 
 mlrun: mlcreatedir mlmerge
 	# --> Run ML program <--
-	$(PYTHON_COMMAND) $(ML_MAIN) -d $(ML_MERGE_DATA_FILE) -o $(ML_OUT_DIR)
+	$(PYTHON_COMMAND) $(ML_MAIN) -d $(ML_MERGE_DATA_FILE) -o $(ML_OUT_DIR) -a
 
 mltrees:
 	# --> Visualize trees <--

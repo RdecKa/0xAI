@@ -34,7 +34,7 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, createTree bool,
 		// fmt.Printf("Starting AB on depth %d\n", depthLimit)
 
 		transpositionTable := make(map[string]float64)
-		_, a, rn, err = alphaBeta(ctx, 0, depthLimit, state, nil, nil, -abInit, abInit, gridChan, resultChan, transpositionTable, oldTransitionTable, createTree, getEstimatedValue)
+		_, a, rn, err = alphaBeta(ctx, 0, depthLimit, state, nil, -abInit, abInit, gridChan, resultChan, transpositionTable, oldTransitionTable, createTree, getEstimatedValue)
 		oldTransitionTable = transpositionTable
 
 		if err != nil {
@@ -66,8 +66,8 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, createTree bool,
 }
 
 func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State,
-	lastAction, actionInQuestion *hex.Action, alpha, beta float64, gridChan chan []uint32,
-	resultChan chan [2][]int, transpositionTable, oldTransitionTable map[string]float64,
+	lastAction *hex.Action, alpha, beta float64, gridChan chan []uint32, resultChan chan [2][]int,
+	transpositionTable, oldTransitionTable map[string]float64,
 	createTree bool, getEstimatedValue func(s *Sample) float64) (float64, *hex.Action, *tree.Node, error) {
 
 	// End recursion on timeout
@@ -78,12 +78,6 @@ func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State,
 	}
 
 	var leaf *tree.Node
-
-	aiq := actionInQuestion
-	if aiq == nil {
-		// aiq is nil only in the top level of AB search
-		aiq = lastAction
-	}
 
 	if val, ok := transpositionTable[state.GetMapKey()]; ok {
 		// Current state was already investigated
@@ -101,7 +95,7 @@ func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State,
 		return -won, lastAction, leaf, nil
 	}
 	if depth >= depthLimit {
-		val, err := eval(state, gridChan, resultChan, aiq, getEstimatedValue)
+		val, err := eval(state, gridChan, resultChan, getEstimatedValue)
 		if err != nil {
 			return 0, nil, nil, err
 		}
@@ -133,7 +127,7 @@ func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State,
 
 		successor := state.GetSuccessorState(a).(hex.State)
 		value, _, childNode, err := alphaBeta(ctx, depth+1, depthLimit,
-			&successor, a.(*hex.Action), aiq, -beta, -alpha, gridChan, resultChan,
+			&successor, a.(*hex.Action), -beta, -alpha, gridChan, resultChan,
 			transpositionTable, oldTransitionTable, createTree, getEstimatedValue)
 		if err != nil {
 			return 0, nil, nil, err
@@ -175,19 +169,17 @@ func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State,
 }
 
 // eval returns the estimated value of a sample
-// Note: actionInQuestion is an action from the top level of the tree. This is
-// 	the actual action that the player will make in this round if the best
-// 	possible outcome of the game comes from the branch with this action.
 func eval(state *hex.State, gridChan chan []uint32, resultChan chan [2][]int,
-	actionInQuestion *hex.Action, getEstimatedValue func(s *Sample) float64) (float64, error) {
+	getEstimatedValue func(s *Sample) float64) (float64, error) {
 	gridChan <- state.GetCopyGrid()
 	patCount := <-resultChan
 
-	args := &[]interface{}{*state, patCount, actionInQuestion}
+	args := &[]interface{}{*state, patCount}
 	sample := Sample{
 		num_stones: hex.AttrNumStones.GetAttributeValue(args),
 		lp:         hex.AttrLastPlayer.GetAttributeValue(args),
-		dtc:        hex.AttrDistanceToCenter.GetAttributeValue(args),
+		sdtc_r:     hex.AttrDistanceToCenterRed.GetAttributeValue(args),
+		sdtc_b:     hex.AttrDistanceToCenterBlue.GetAttributeValue(args),
 
 		occ_red_rows:  hex.AttrOccRedRows.GetAttributeValue(args),
 		occ_red_cols:  hex.AttrOccRedCols.GetAttributeValue(args),
