@@ -173,9 +173,18 @@ func createAbPlayer(color hex.Color, conn *websocket.Conn, secondsPerAction int,
 
 func comparePlayers() {
 	matches := []cmpr.MatchSetup{
-		cmpr.CreateMatch(7, 2, hexplayer.MctsType, hexplayer.AbDtType, 1, 1, patternFile),
-		cmpr.CreateMatch(7, 2, hexplayer.MctsType, hexplayer.AbLrType, 1, 1, patternFile),
-		cmpr.CreateMatch(7, 2, hexplayer.AbDtType, hexplayer.AbLrType, 1, 1, patternFile),
+		cmpr.CreateMatch(11, 10, hexplayer.MctsType, hexplayer.AbDtType, 5, 5, patternFile),
+		cmpr.CreateMatch(11, 10, hexplayer.MctsType, hexplayer.AbDtType, 1, 5, patternFile),
+
+		cmpr.CreateMatch(11, 10, hexplayer.MctsType, hexplayer.AbLrType, 5, 5, patternFile),
+		cmpr.CreateMatch(11, 10, hexplayer.MctsType, hexplayer.AbLrType, 1, 5, patternFile),
+
+		cmpr.CreateMatch(11, 10, hexplayer.AbDtType, hexplayer.AbLrType, 5, 5, patternFile),
+		cmpr.CreateMatch(11, 10, hexplayer.AbDtType, hexplayer.AbLrType, 1, 1, patternFile),
+
+		cmpr.CreateMatch(11, 10, hexplayer.AbDtType, hexplayer.AbDtType, 5, 5, patternFile),
+		cmpr.CreateMatch(11, 10, hexplayer.AbLrType, hexplayer.AbLrType, 5, 5, patternFile),
+		cmpr.CreateMatch(11, 10, hexplayer.MctsType, hexplayer.MctsType, 5, 5, patternFile),
 	}
 
 	cmpr.RunAll(matches, resultsDir)

@@ -59,7 +59,7 @@ func (ms MatchSetup) String() string {
 	s := fmt.Sprintf("Player 1: %v (%ds)\nPlayer 2: %v (%ds)\n",
 		ms.player1type.String(), ms.time1,
 		ms.player2type.String(), ms.time2)
-	s += fmt.Sprintf("Board size: %d\nNumber of games: %d (×2)\n", ms.boardSize, ms.numGames)
+	s += fmt.Sprintf("Board size: %d\nNumber of games: %d (x2)\n", ms.boardSize, ms.numGames)
 	return s
 }
 

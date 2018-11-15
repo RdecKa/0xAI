@@ -198,7 +198,9 @@ class LinearRegressionModel(Model):
         models = [[], []]
         for c in range(2):
             for submodel in self.submodels[c]:
-                if submodel is not None:
+                if submodel is not None and submodel.maximum > 0:
+                    # AB will never have to evaluate a board with 0 stones so a
+                    # model with maximum of 0 can be discarded
                     models[c].append(submodel)
         models[0][-1].maximum = math.inf  # Set the split of the last model to infinity
         models[1][-1].maximum = math.inf

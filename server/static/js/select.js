@@ -11,8 +11,8 @@ function selectPlayers() {
 			selection: {Red: {type:null, time:0}, Blue: {type:null, time:0}},
 			watchInBrowser: true,
 			watchInBrowserDisabled: false,
-			boardSize: 7,
-			numGames: 10
+			boardSize: 11,
+			numGames: 4
 		},
 		methods: {
 			clickPlayHandler: function () {

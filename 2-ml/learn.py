@@ -218,7 +218,7 @@ def main(argv):
 
     # Create linear regression models
     lr_models_args = [
-        [0, 1, 2, 3, 4, 5, 7, 10, 15, 22, 30],
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 18, 22, 28, 36, 46, 58, 70, 85, 100],
     ]
 
     learners = [

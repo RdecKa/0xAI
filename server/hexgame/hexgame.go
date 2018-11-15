@@ -5,6 +5,7 @@ import (
 	"math"
 	"os"
 	"runtime"
+	"time"
 
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
 	"github.com/RdecKa/bachleor-thesis/server/hexplayer"
@@ -129,7 +130,8 @@ func Play(boardSize int, players [2]hexplayer.HexPlayer, numGames int,
 		passiveClient = hexplayer.CreateHumanPlayer(conn, hex.None)
 	}
 
-	outFile, err := os.Create(fmt.Sprintf("%sgames_%s_%s_%d.txt", outDir,
+	outFile, err := os.Create(fmt.Sprintf("%sgames_%s_%s_%s_%d.txt",
+		outDir, time.Now().Format("150405"),
 		players[0].GetType().String(),
 		players[1].GetType().String(), numGames))
 	if err != nil {
