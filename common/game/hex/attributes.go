@@ -59,6 +59,10 @@ var (
 	AttrPatCountRed17 = AttrPatternCount{Red, 17}
 	AttrPatCountRed18 = AttrPatternCount{Red, 18}
 	AttrPatCountRed19 = AttrPatternCount{Red, 19}
+	AttrPatCountRed20 = AttrPatternCount{Red, 20}
+	AttrPatCountRed21 = AttrPatternCount{Red, 21}
+	AttrPatCountRed22 = AttrPatternCount{Red, 22}
+	AttrPatCountRed23 = AttrPatternCount{Red, 23}
 
 	AttrPatCountBlue0  = AttrPatternCount{Blue, 0}
 	AttrPatCountBlue1  = AttrPatternCount{Blue, 1}
@@ -80,6 +84,10 @@ var (
 	AttrPatCountBlue17 = AttrPatternCount{Blue, 17}
 	AttrPatCountBlue18 = AttrPatternCount{Blue, 18}
 	AttrPatCountBlue19 = AttrPatternCount{Blue, 19}
+	AttrPatCountBlue20 = AttrPatternCount{Blue, 20}
+	AttrPatCountBlue21 = AttrPatternCount{Blue, 21}
+	AttrPatCountBlue22 = AttrPatternCount{Blue, 22}
+	AttrPatCountBlue23 = AttrPatternCount{Blue, 23}
 )
 
 // GenSamAttributes contains the attributes that are included in the sample
@@ -124,6 +132,10 @@ var GenSamAttributes = [][2]game.Attribute{
 	[2]game.Attribute{AttrPatCountRed17, AttrPatCountBlue17},
 	[2]game.Attribute{AttrPatCountRed18, AttrPatCountBlue19},
 	[2]game.Attribute{AttrPatCountRed19, AttrPatCountBlue18},
+	[2]game.Attribute{AttrPatCountRed20, AttrPatCountBlue20},
+	[2]game.Attribute{AttrPatCountRed21, AttrPatCountBlue21},
+	[2]game.Attribute{AttrPatCountRed22, AttrPatCountBlue23},
+	[2]game.Attribute{AttrPatCountRed23, AttrPatCountBlue22},
 
 	[2]game.Attribute{AttrPatCountBlue0, AttrPatCountRed0},
 	[2]game.Attribute{AttrPatCountBlue1, AttrPatCountRed3},
@@ -145,6 +157,10 @@ var GenSamAttributes = [][2]game.Attribute{
 	[2]game.Attribute{AttrPatCountBlue17, AttrPatCountRed17},
 	[2]game.Attribute{AttrPatCountBlue18, AttrPatCountRed19},
 	[2]game.Attribute{AttrPatCountBlue19, AttrPatCountRed18},
+	[2]game.Attribute{AttrPatCountBlue20, AttrPatCountRed20},
+	[2]game.Attribute{AttrPatCountBlue21, AttrPatCountRed21},
+	[2]game.Attribute{AttrPatCountBlue22, AttrPatCountRed23},
+	[2]game.Attribute{AttrPatCountBlue23, AttrPatCountRed22},
 }
 
 // ----------------------------

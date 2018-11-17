@@ -77,6 +77,10 @@ def main(argv):
                             "red_p17": np.uint8, "blue_p17": np.uint8,
                             "red_p18": np.uint8, "blue_p18": np.uint8,
                             "red_p19": np.uint8, "blue_p19": np.uint8,
+                            "red_p20": np.uint8, "blue_p20": np.uint8,
+                            "red_p21": np.uint8, "blue_p21": np.uint8,
+                            "red_p22": np.uint8, "blue_p22": np.uint8,
+                            "red_p23": np.uint8, "blue_p23": np.uint8,
                             })
 
     y = df["value"]

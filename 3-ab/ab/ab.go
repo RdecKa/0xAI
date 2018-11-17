@@ -209,6 +209,10 @@ func eval(state *hex.State, gridChan chan []uint32, resultChan chan [2][]int,
 		red_p17: hex.AttrPatCountRed17.GetAttributeValue(args),
 		red_p18: hex.AttrPatCountRed18.GetAttributeValue(args),
 		red_p19: hex.AttrPatCountRed19.GetAttributeValue(args),
+		red_p20: hex.AttrPatCountRed20.GetAttributeValue(args),
+		red_p21: hex.AttrPatCountRed21.GetAttributeValue(args),
+		red_p22: hex.AttrPatCountRed22.GetAttributeValue(args),
+		red_p23: hex.AttrPatCountRed23.GetAttributeValue(args),
 
 		blue_p0:  hex.AttrPatCountBlue0.GetAttributeValue(args),
 		blue_p1:  hex.AttrPatCountBlue1.GetAttributeValue(args),
@@ -230,6 +234,10 @@ func eval(state *hex.State, gridChan chan []uint32, resultChan chan [2][]int,
 		blue_p17: hex.AttrPatCountBlue17.GetAttributeValue(args),
 		blue_p18: hex.AttrPatCountBlue18.GetAttributeValue(args),
 		blue_p19: hex.AttrPatCountBlue19.GetAttributeValue(args),
+		blue_p20: hex.AttrPatCountBlue20.GetAttributeValue(args),
+		blue_p21: hex.AttrPatCountBlue21.GetAttributeValue(args),
+		blue_p22: hex.AttrPatCountBlue22.GetAttributeValue(args),
+		blue_p23: hex.AttrPatCountBlue23.GetAttributeValue(args),
 	}
 	val := getEstimatedValue(&sample)
 
