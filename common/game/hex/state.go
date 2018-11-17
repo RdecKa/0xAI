@@ -218,6 +218,7 @@ func (s State) GetNumOfStones() (int, int, int) {
 }
 
 // GetTransitionAction returns an action that leads from State s to State sg.
+// Deprecated: Use hex.State.GetLastAction if possible
 func (s State) GetTransitionAction(sg game.State) game.Action {
 	s2 := sg.(State)
 	for r := 0; r < s.GetSize(); r++ {

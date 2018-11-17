@@ -96,7 +96,7 @@ func (mp *MCTSplayer) NextAction() (*hex.Action, error) {
 		// Resign
 		return nil, nil
 	}
-	bestAction := mp.state.GetTransitionAction(bestState).(*hex.Action)
+	bestAction := bestState.(hex.State).GetLastAction()
 
 	// Update mp.state
 	s := bestState.(hex.State)
