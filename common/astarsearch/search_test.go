@@ -21,12 +21,30 @@ func benchmarkAStarSearchOnHexGrid(actions []*hex.Action, size byte, b *testing.
 	}
 }
 
+/*
+. . . . . . .
+ . . . . . . .
+  . . . . . . .
+   . . . . . . .
+    . . . . . . .
+     . . . . . . .
+      . . . . . . .
+*/
 func Benchmark0(b *testing.B) {
 	actions := []*hex.Action{}
 
 	benchmarkAStarSearchOnHexGrid(actions, 7, b)
 }
 
+/*
+. . . . . r r
+ . . . b . . .
+  . . . . . . .
+   . . b . r r .
+    . . . b . . .
+     . b . . . . .
+      . . . . . . .
+*/
 func Benchmark1(b *testing.B) {
 	actions := []*hex.Action{
 		hex.NewAction(5, 0, hex.Red),
@@ -42,6 +60,15 @@ func Benchmark1(b *testing.B) {
 	benchmarkAStarSearchOnHexGrid(actions, 7, b)
 }
 
+/*
+. . b . . r .
+ . . b . r . .
+  . . b b . . .
+   r . b . . . .
+    . b . b . r .
+     . b . . r r .
+      . b b r r r r
+*/
 func Benchmark2(b *testing.B) {
 	actions := []*hex.Action{
 		hex.NewAction(0, 3, hex.Red),
@@ -69,6 +96,15 @@ func Benchmark2(b *testing.B) {
 	benchmarkAStarSearchOnHexGrid(actions, 7, b)
 }
 
+/*
+. . b b b r .
+ . r b b r . .
+  . . b b r . .
+   r . b . . b .
+    . b . b . r r
+     . b . . r r r
+      . b b r r r r
+*/
 func Benchmark3(b *testing.B) {
 	actions := []*hex.Action{
 		hex.NewAction(0, 3, hex.Red),

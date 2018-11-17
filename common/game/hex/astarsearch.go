@@ -107,40 +107,27 @@ func (s searchState) GetSuccessorStates(veryEnd bool) []astarsearch.State {
 		}
 	} else {
 		// Add direct neighbours
-		for _, n := range neighbours {
+		directNeighboursEmpty := make([]bool, 6)
+		for in, n := range neighbours {
 			x, y := s.x+n[0], s.y+n[1]
-			if s.gameState.IsCellValid(x, y) && s.gameState.getColorOn(byte(x), byte(y)) == s.c {
-				successors = append(successors, searchState{x, y, s.c, s.gameState, &s})
+			if s.gameState.IsCellValid(x, y) {
+				c := s.gameState.getColorOn(byte(x), byte(y))
+				if c == s.c {
+					successors = append(successors, searchState{x, y, s.c, s.gameState, &s})
+				} else if c == None {
+					directNeighboursEmpty[in] = true
+				}
 			}
 		}
 		if !veryEnd {
 			// Add virtual connections
-			for _, v := range virtualConnections {
-				// Check if the two cells between current cell (s.x, s.y) and (x, y)
-				// are empty
-				var x1, x2, y1, y2 int // Relative coordinates of these two cells
-				if v[0]%2 == 0 {       // difference in x coordinates is 2 or -2
-					x1, x2 = v[0]/2, v[0]/2
-				} else { // difference in x coordinates is 1 or -1
-					x1, x2 = v[0], 0
-				}
-
-				if v[1]%2 == 0 { // difference in y coordinates is 2 or -2
-					y1, y2 = v[1]/2, v[1]/2
-				} else {
-					y1, y2 = 0, v[1] // difference in y coordinates is 1 or -1
-				}
-
-				// Change relative coordinates to absolute coordinates
-				x1, x2, y1, y2 = s.x+x1, s.x+x2, s.y+y1, s.y+y2
-
-				if s.gameState.IsCellValid(x1, y1) && s.gameState.getColorOn(byte(x1), byte(y1)) != None ||
-					s.gameState.IsCellValid(x2, y2) && s.gameState.getColorOn(byte(x2), byte(y2)) != None {
+			for ivc, vc := range virtualConnections {
+				if !directNeighboursEmpty[(ivc+5)%6] || !directNeighboursEmpty[ivc] {
 					continue // At least one of these cells is not empty
 				}
 				// Both cells in between are empty
 
-				x, y := s.x+v[0], s.y+v[1]
+				x, y := s.x+vc[0], s.y+vc[1]
 
 				if s.gameState.IsEndingCell(x, y, s.c) ||
 					s.gameState.IsCellValid(x, y) && s.gameState.getColorOn(byte(x), byte(y)) == s.c {
