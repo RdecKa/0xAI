@@ -23,23 +23,20 @@ import (
 //		Lowest two bits represent the cell with index 0. Because of using 32
 //		bits for a row, maximal size of the grid is 16x16.
 //	lastAction is the action that led to the current position on board
-//	isInitialState tells whether the board is completely empty (at the beginning
-//		of the game)
 //
 // A goal of the red player is to connect top-most and bottom-most row while a
 // goal of the blue player is to connect left-most and right-most column
 type State struct {
-	size           byte
-	grid           []uint32
-	lastAction     *Action
-	isInitialState bool
+	size       byte
+	grid       []uint32
+	lastAction *Action
 }
 
 // NewState returns new State with a grid of given size and an invalid action as
 // lastAction
 func NewState(size byte, firstPlayer Color) *State {
 	grid := make([]uint32, size)
-	return &State{size, grid, NewAction(size, size, firstPlayer.Opponent()), true} // Opponent is set as last player, so firstPlayer starts
+	return &State{size, grid, NewAction(size, size, firstPlayer.Opponent())} // Opponent is set as last player, so firstPlayer starts
 }
 
 func (s State) String() string {
@@ -106,7 +103,7 @@ func (s *State) cloneNoAction() game.State {
 	for i, v := range s.grid {
 		newGrid[i] = v
 	}
-	return State{s.size, newGrid, nil, s.isInitialState}
+	return State{s.size, newGrid, nil}
 }
 
 // IsCellValid returns true if a cell (x, y) is on the grid, and false otherwise
@@ -140,7 +137,6 @@ func (s State) GetSuccessorState(action game.Action) game.State {
 	newState := s.cloneNoAction().(State)
 	newState.lastAction = action.(*Action)
 	newState.setCell(a.x, a.y, a.c)
-	newState.isInitialState = false
 	return newState
 }
 
