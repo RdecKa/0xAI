@@ -54,8 +54,10 @@ Vue.component("hex-cell", {
  * @param colIndex index of a column that contains the cell
  */
 function getPointsForPolygon(rowIndex, colIndex) {
-	let centerX = (colIndex  + rowIndex / 2) * unitX;
-	let centerY = rowIndex * unitY;
+	let rr = rowIndex+1
+	let cc = colIndex+0.5
+	let centerX = (cc  + rr / 2) * unitX;
+	let centerY = rr * unitY;
 
 	let points = [
 		[centerX,             centerY - hexSide],     // top

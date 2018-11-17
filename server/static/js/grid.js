@@ -14,14 +14,16 @@ function hexGrid(socket, abSearchTree) {
 			playersTurn: false,
 			passivePlayer: false,
 			abSearchTree: abSearchTree,
+			topRowColor: colors.RED,
+			leftRowColor: colors.BLUE,
 		},
 		computed: {
 			boardWidth: function () {
-				let width = Math.floor(1.5 * this.size) * unitX + 2 * margin;
+				let width = 1.5 * (this.size + 1) * unitX + 2 * margin;
 				return width + "px";
 			},
 			boardHeight: function () {
-				let height = (this.size - 1) * unitY + 2 * hexSide + 2 * margin;
+				let height = (this.size + 1) * unitY + 2 * hexSide + 2 * margin;
 				return height + "px";
 			}
 		},

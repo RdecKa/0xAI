@@ -108,7 +108,7 @@ func RunAll(matches []MatchSetup, outDir string) {
 			}
 
 			f.WriteString(fmt.Sprintf("\n---> Roles: Player 1 = %s, Player 2 = %s\n",
-				pls[0].GetColor().String(), pls[1].GetColor().String()))
+				pls[p].GetColor().String(), pls[1-p].GetColor().String()))
 			f.WriteString("Number of wins:\n")
 			f.WriteString("\tFirst move:  P1  P2\n")
 			f.WriteString(fmt.Sprintf("\tPlayer 1:   %3d %3d\n", p1p1, p1p2))

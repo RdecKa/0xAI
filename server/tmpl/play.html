@@ -15,7 +15,17 @@
 <body>
 	<div id="hex-grid" class="col col-2">
 		<svg :width="boardWidth" :height="boardHeight">
+			<hex-cell v-for="c in size"
+				:x="c-1"
+				:y="-1"
+				:color="topRowColor"
+			></hex-cell>
 			<g v-for="(row, ri) in grid" :key="ri">
+				<hex-cell
+					:x="-1"
+					:y="ri"
+					:color="leftRowColor"
+				></hex-cell>
 				<hex-cell v-for="(cell, ci) in row"
 					:key="ci"
 					:x="ci"
@@ -25,7 +35,17 @@
 					:playersturn="playersTurn"
 					@clickreceived="onClickReceived"
 				></hex-cell>
+				<hex-cell
+					:x="size"
+					:y="ri"
+					:color="leftRowColor"
+				></hex-cell>
 			</g>
+			<hex-cell v-for="c in size"
+				:x="c-1"
+				:y="size"
+				:color="topRowColor"
+			></hex-cell>
 		</svg>
 	</div>
 	<div id="absearch" class="col col-2">
