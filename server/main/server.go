@@ -26,10 +26,12 @@ var templates = template.Must(template.New("").Delims("[[", "]]").ParseFiles(
 	"server/tmpl/play.html",
 	"server/tmpl/select.html"))
 
+var startTimeFormat = time.Now().Format("20060102T150405/")
+
 const addr = "localhost:8080"
 const patternFile = "common/game/hex/patterns.txt"
-
-var resultsDir = "data/cmpr/"
+const cmprDir = "data/cmpr/"
+const playDir = "data/play/"
 
 const defaultBoardSize = 7
 const defaultNumGames = 1
@@ -156,7 +158,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		c = nil
 	}
 
-	go hexgame.Play(boardSize, pair, numGames, c, nil, nil, resultsDir)
+	go hexgame.Play(boardSize, pair, numGames, c, nil, nil, playDir+startTimeFormat)
 }
 
 func createHumanPlayer(color hex.Color, conn *websocket.Conn, _ int, _ bool, _ hexplayer.PlayerType) hexplayer.HexPlayer {
@@ -187,23 +189,28 @@ func comparePlayers() {
 		cmpr.CreateMatch(11, 10, hexplayer.MctsType, hexplayer.MctsType, 5, 5, patternFile),
 	}
 
-	cmpr.RunAll(matches, resultsDir)
+	cmpr.RunAll(matches, cmprDir+startTimeFormat)
 }
 
 func main() {
-	t := time.Now()
-	resultsDir += t.Format("20060102T150405") + "/"
-	err := os.MkdirAll(resultsDir, os.ModePerm)
-	if err != nil {
-		fmt.Println(err)
-	}
-
 	pOnlyCompare := flag.Bool("cmpr", false, "Run test matches between players")
 	flag.Parse()
+
 	if *pOnlyCompare {
 		fmt.Println("Running comparisons")
+
+		err := os.MkdirAll(cmprDir+startTimeFormat, os.ModePerm)
+		if err != nil {
+			fmt.Println(err)
+		}
+
 		comparePlayers()
 		return
+	}
+
+	err := os.MkdirAll(playDir+startTimeFormat, os.ModePerm)
+	if err != nil {
+		fmt.Println(err)
 	}
 
 	// Register handlers
