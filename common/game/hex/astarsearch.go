@@ -7,17 +7,19 @@ import (
 )
 
 // Cells in a rectangular grid that are neighbours in a hexagonal grid
+// DO NOT MIX THE ORDER
 var neighbours = [6][]int{
 	[]int{0, -1},
 	[]int{1, -1},
-	[]int{-1, 0},
 	[]int{1, 0},
-	[]int{-1, 1},
 	[]int{0, 1},
+	[]int{-1, 1},
+	[]int{-1, 0},
 }
 
 // Cells in a rectangular grid (x, y) that are virtually connected to cell
 // (0, 0), if and only if the two cells between (0, 0) and (x, y) are empty
+// DO NOT MIX THE ORDER
 var virtualConnections = [6][]int{
 	[]int{-1, -1},
 	[]int{1, -2},

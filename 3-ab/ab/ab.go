@@ -178,8 +178,11 @@ func eval(state *hex.State, gridChan chan []uint32, resultChan chan [2][]int,
 	sample := Sample{
 		num_stones: hex.AttrNumStones.GetAttributeValue(args),
 		lp:         hex.AttrLastPlayer.GetAttributeValue(args),
-		sdtc_r:     hex.AttrDistanceToCenterRed.GetAttributeValue(args),
-		sdtc_b:     hex.AttrDistanceToCenterBlue.GetAttributeValue(args),
+
+		sdtc_r: hex.AttrDistanceToCenterRed.GetAttributeValue(args),
+		sdtc_b: hex.AttrDistanceToCenterBlue.GetAttributeValue(args),
+		rec_r:  hex.AttrReachableRed.GetAttributeValue(args),
+		rec_b:  hex.AttrReachableBlue.GetAttributeValue(args),
 
 		occ_red_rows:  hex.AttrOccRedRows.GetAttributeValue(args),
 		occ_red_cols:  hex.AttrOccRedCols.GetAttributeValue(args),

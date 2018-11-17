@@ -54,6 +54,7 @@ def main(argv):
     df = pd.read_csv(datafile, comment="#",
                      dtype={"value": np.float64, "num_stones": np.uint8,
                             "lp": np.uint8, "sdtc_r": np.uint16, "sdtc_b": np.uint16,
+                            "rec_r": np.uint16, "rec_b": np.uint16,
                             "occ_red_rows": np.uint8, "occ_red_cols": np.uint8,
                             "occ_blue_rows": np.uint8, "occ_blue_cols": np.uint8,
                             "red_p0": np.uint8, "blue_p0": np.uint8,

@@ -31,6 +31,9 @@ var (
 	AttrDistanceToCenterRed  = AttrSumOfDistancesToCenter{Red}
 	AttrDistanceToCenterBlue = AttrSumOfDistancesToCenter{Blue}
 
+	AttrReachableRed  = AttrNumberOfReachableEmptyCells{Red}
+	AttrReachableBlue = AttrNumberOfReachableEmptyCells{Blue}
+
 	AttrOccRedRows  = AttrOccupiedRowsCols{Red, true}
 	AttrOccRedCols  = AttrOccupiedRowsCols{Red, false}
 	AttrOccBlueRows = AttrOccupiedRowsCols{Blue, true}
@@ -92,6 +95,9 @@ var GenSamAttributes = [][2]game.Attribute{
 
 	[2]game.Attribute{AttrDistanceToCenterRed, AttrDistanceToCenterBlue},
 	[2]game.Attribute{AttrDistanceToCenterBlue, AttrDistanceToCenterRed},
+
+	[2]game.Attribute{AttrReachableRed, AttrReachableBlue},
+	[2]game.Attribute{AttrReachableBlue, AttrReachableRed},
 
 	[2]game.Attribute{AttrOccRedRows, AttrOccBlueCols},
 	[2]game.Attribute{AttrOccRedCols, AttrOccBlueRows},
@@ -327,6 +333,27 @@ func (a AttrSumOfDistancesToCenter) GetAttributeValue(args *[]interface{}) int {
 		}
 	}
 	return sum
+}
+
+// ------------------------------------------
+// |     AttrNumberOfReachableEmptyCells     |
+// ------------------------------------------
+
+// AttrNumberOfReachableEmptyCells returns the number of empty cells that are
+// directly or via virtual connections connected to player's occupied cells.
+type AttrNumberOfReachableEmptyCells struct {
+	color Color
+}
+
+// GetAttributeName returns the name of an attribute
+func (a AttrNumberOfReachableEmptyCells) GetAttributeName() string {
+	return "rec_" + a.color.String()
+}
+
+// GetAttributeValue returns the value of an attribute
+func (a AttrNumberOfReachableEmptyCells) GetAttributeValue(args *[]interface{}) int {
+	state := (*args)[0].(State)
+	return state.GetNumberOfReachableEmptyCellsForPlayer(a.color)
 }
 
 // getDistanceBetween returns the distance between points (x1, y1) and (x2, y2)

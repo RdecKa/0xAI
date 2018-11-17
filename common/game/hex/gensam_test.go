@@ -43,8 +43,8 @@ func TestGenSample1(t *testing.T) {
 	}
 	redP := "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
 	blueP := "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
-	expectedRed := "-0.500000,2,1,1,1,1,1,1,1," + redP + "," + blueP
-	expectedBlue := "0.500000,2,0,1,1,1,1,1,1," + blueP + "," + redP
+	expectedRed := "-0.500000,2,1,1,1,11,10,1,1,1,1," + redP + "," + blueP
+	expectedBlue := "0.500000,2,0,1,1,10,11,1,1,1,1," + blueP + "," + redP
 
 	test(t, 6, actions, expectedRed, expectedBlue)
 }
@@ -74,8 +74,8 @@ func TestGenSample2(t *testing.T) {
 	rt := "4,0,0,0,1,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0" // Red attributes transposed
 	bb := "4,2,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" // Blue attributes
 	bt := "4,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" // Blue attributes transposed
-	expectedRed := "-0.500000,8,1,7,5,4,3,5,3," + rr + "," + bb
-	expectedBlue := "0.500000,8,0,5,7,3,5,3,4," + bt + "," + rt
+	expectedRed := "-0.500000,8,1,7,5,17,23,4,3,5,3," + rr + "," + bb
+	expectedBlue := "0.500000,8,0,5,7,23,17,3,5,3,4," + bt + "," + rt
 
 	test(t, 8, actions, expectedRed, expectedBlue)
 }
@@ -106,8 +106,8 @@ func TestGenSample3(t *testing.T) {
 	rt := "5,0,0,0,0,0,0,0,0,0,0,1,1,2,0,0,0,0,1,2"
 	bb := "4,0,1,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0"
 	bt := "4,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0"
-	expectedRed := "0.500000,9,0,4,5,4,4,3,4," + rr + "," + bb
-	expectedBlue := "-0.500000,9,1,5,4,4,3,4,4," + bt + "," + rt
+	expectedRed := "0.500000,9,0,4,5,16,20,4,4,3,4," + rr + "," + bb
+	expectedBlue := "-0.500000,9,1,5,4,20,16,4,3,4,4," + bt + "," + rt
 
 	test(t, 8, actions, expectedRed, expectedBlue)
 }
@@ -139,8 +139,8 @@ func TestGenSample4(t *testing.T) {
 	rt := "5,0,0,0,0,2,0,0,0,0,0,1,0,1,0,0,0,0,0,0"
 	bb := "5,1,1,0,0,0,0,2,0,0,1,0,0,0,0,0,0,0,0,0"
 	bt := "5,0,1,1,0,2,0,0,1,0,0,0,0,0,0,0,0,0,0,0"
-	expectedRed := "-0.500000,10,1,5,8,5,4,4,5," + rr + "," + bb
-	expectedBlue := "0.500000,10,0,8,5,5,4,4,5," + bt + "," + rt
+	expectedRed := "-0.500000,10,1,5,8,20,19,5,4,4,5," + rr + "," + bb
+	expectedBlue := "0.500000,10,0,8,5,19,20,5,4,4,5," + bt + "," + rt
 
 	test(t, 8, actions, expectedRed, expectedBlue)
 }
@@ -164,8 +164,8 @@ func TestGenSample5(t *testing.T) {
 	rt := "3,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0"
 	bb := "2,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
 	bt := "2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
-	expectedRed := "0.500000,5,0,4,3,4,3,2,3," + rr + "," + bb
-	expectedBlue := "-0.500000,5,1,3,4,3,2,3,4," + bt + "," + rt
+	expectedRed := "0.500000,5,0,4,3,12,8,4,3,2,3," + rr + "," + bb
+	expectedBlue := "-0.500000,5,1,3,4,8,12,3,2,3,4," + bt + "," + rt
 
 	test(t, 5, actions, expectedRed, expectedBlue)
 }
@@ -190,8 +190,8 @@ func TestGenSample6(t *testing.T) {
 	rt := "3,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0"
 	bb := "3,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
 	bt := "3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
-	expectedRed := "-0.500000,6,1,4,7,4,3,3,4," + rr + "," + bb
-	expectedBlue := "0.500000,6,0,7,4,4,3,3,4," + bt + "," + rt
+	expectedRed := "-0.500000,6,1,4,7,12,11,4,3,3,4," + rr + "," + bb
+	expectedBlue := "0.500000,6,0,7,4,11,12,4,3,3,4," + bt + "," + rt
 
 	test(t, 5, actions, expectedRed, expectedBlue)
 }
@@ -223,8 +223,8 @@ func TestGenSample7(t *testing.T) {
 	rt := "4,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0"
 	bb := "3,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
 	bt := "3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
-	expectedRed := "0.500000,7,0,23,17,5,4,3,4," + rr + "," + bb
-	expectedBlue := "-0.500000,7,1,17,23,4,3,4,5," + bt + "," + rt
+	expectedRed := "0.500000,7,0,23,17,21,20,5,4,3,4," + rr + "," + bb
+	expectedBlue := "-0.500000,7,1,17,23,20,21,4,3,4,5," + bt + "," + rt
 
 	test(t, 11, actions, expectedRed, expectedBlue)
 }

@@ -217,6 +217,57 @@ func (s State) GetNumOfStones() (int, int, int) {
 	return red, blue, empty
 }
 
+// GetNumberOfReachableEmptyCellsForPlayer counts number of empty cells that are
+// reachable from any of player's occupied cells either directly or via a
+// virtual connection
+func (s *State) GetNumberOfReachableEmptyCellsForPlayer(color Color) int {
+	dirtyState := s.cloneNoAction().(State)
+	sum := 0
+	for rowIndex, row := range s.grid {
+		r := row
+		for colIndex := 0; colIndex < int(s.size); colIndex++ {
+			c := GetColorFromBits(r & 3)
+			if c == color {
+				sum += s.getNumberOfReachableCellsFromOneCell(colIndex, rowIndex, color, &dirtyState)
+			}
+			r = r >> 2
+		}
+	}
+	return sum
+}
+
+// getNumberOfReachableCellsFromOneCell counts number of empty cells that are
+// reachable from cell (x, y).
+// Be careful: this function changes dirtyState
+func (s *State) getNumberOfReachableCellsFromOneCell(x, y int, color Color, dirtyState *State) int {
+	sum := 0
+	directNeighboursEmpty := make([]bool, 6)
+
+	for in, n := range neighbours {
+		xx, yy := x+n[0], y+n[1]
+		if s.IsCellValid(xx, yy) && s.IsCellEmpty(byte(xx), byte(yy)) {
+			directNeighboursEmpty[in] = true
+			if dirtyState.IsCellEmpty(byte(xx), byte(yy)) {
+				sum++
+				dirtyState.setCell(byte(xx), byte(yy), color)
+			}
+		}
+	}
+
+	for ivc, vc := range virtualConnections {
+		xx, yy := x+vc[0], y+vc[1]
+		// At first check if the two cells under the bridge are empty (using
+		// directNeighboursEmpty)
+		if directNeighboursEmpty[(ivc+5)%6] && directNeighboursEmpty[ivc] &&
+			dirtyState.IsCellValid(xx, yy) && dirtyState.IsCellEmpty(byte(xx), byte(yy)) {
+			sum++
+			dirtyState.setCell(byte(xx), byte(yy), color)
+		}
+	}
+
+	return sum
+}
+
 // GetTransitionAction returns an action that leads from State s to State sg.
 // Deprecated: Use hex.State.GetLastAction if possible
 func (s State) GetTransitionAction(sg game.State) game.Action {
