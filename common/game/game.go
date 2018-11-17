@@ -10,7 +10,7 @@ type State interface {
 	GetPossibleActions() []Action
 	GetSuccessorState(Action) State
 	IsGoalState(bool) (bool, interface{})
-	EvaluateGoalState() float64
+	EvaluateGoalState(bool) float64
 	Same(State) bool
 	GenSample(float64, chan []uint32, chan [2][]int) string // Returns a string representing state attributes for supervised machine learning
 }

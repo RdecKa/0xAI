@@ -23,7 +23,10 @@ type workerChan struct {
 // numWorkers workers - each of them runs one instance of MCTS at once.
 // Iterations of MCTS are run on board of size boardSize for timeToRun. mc is
 // the initialised search that is completed first.
-func RunMCTSinParallel(numWorkers, boardSize int, treasholdN uint, timeToRun time.Duration, outputFolder, patFileName string, mc *MCTS) {
+// If gameLengthImportant is true, then a goal state with a shorter path to
+// victory gets a higher estimated value than a goal state with a longer path.
+func RunMCTSinParallel(numWorkers, boardSize int, treasholdN uint, timeToRun time.Duration,
+	outputFolder, patFileName string, mc *MCTS, gameLengthImportant bool) {
 	var err error
 
 	assign := make(chan *MCTS, numWorkers)
@@ -73,7 +76,8 @@ func RunMCTSinParallel(numWorkers, boardSize int, treasholdN uint, timeToRun tim
 		defer fDet.Close()
 
 		// Start a worker process
-		go worker(w, timeToRun, boardSize, treasholdN, f, fDet, logFile, patFileName, &wc)
+		go worker(w, timeToRun, boardSize, treasholdN, f, fDet, logFile,
+			patFileName, &wc, gameLengthImportant)
 	}
 
 	candidateList := NewCandidateList(boardSize)
@@ -123,8 +127,12 @@ func RunMCTSinParallel(numWorkers, boardSize int, treasholdN uint, timeToRun tim
 	}
 }
 
-// worker waits for tasks and executes them in an infinite loop
-func worker(id int, timeToRun time.Duration, boardSize int, treasholdN uint, outputFile, outputFileDet, logFile *os.File, patFileName string, wc *workerChan) {
+// worker waits for tasks and executes them in an infinite loop until the quit
+// signal
+func worker(id int, timeToRun time.Duration, boardSize int, treasholdN uint,
+	outputFile, outputFileDet, logFile *os.File, patFileName string,
+	wc *workerChan, gameLengthImportant bool) {
+
 	var mc *MCTS
 	taskID := 0
 	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
@@ -134,7 +142,8 @@ func worker(id int, timeToRun time.Duration, boardSize int, treasholdN uint, out
 		case mc = <-wc.assign:
 			outputFile.WriteString(fmt.Sprintf("# Search ID %d\n", taskID))
 			outputFileDet.WriteString(fmt.Sprintf("# Search ID %d started from:\n%v\n", taskID, mc.GetInitialNode()))
-			expCand, err := RunMCTS(mc, id, timeToRun, boardSize, treasholdN, outputFile, logFile, gridChan, resultChan)
+			expCand, err := RunMCTS(mc, id, timeToRun, boardSize, treasholdN,
+				outputFile, logFile, gridChan, resultChan, gameLengthImportant)
 			if err != nil {
 				wc.e <- err
 			}

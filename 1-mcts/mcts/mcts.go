@@ -79,7 +79,12 @@ func (mcts *MCTS) GetInitialNode() *tree.Node {
 }
 
 // RunMCTS executes iterations of MCTS for timeToRun, given initialised MCTS
-func RunMCTS(mc *MCTS, workerID int, timeToRun time.Duration, boardSize int, treasholdN uint, outputFile, logFile *os.File, gridChan chan []uint32, resultChan chan [2][]int) ([]*tree.Node, error) {
+// If gameLengthImportant is true, then a goal state with a shorter path to
+// victory gets a higher estimated value than a goal state with a longer path.
+func RunMCTS(mc *MCTS, workerID int, timeToRun time.Duration, boardSize int, treasholdN uint,
+	outputFile, logFile *os.File, gridChan chan []uint32, resultChan chan [2][]int,
+	gameLengthImportant bool) ([]*tree.Node, error) {
+
 	timer := time.NewTimer(timeToRun)
 
 	timeOut := false
@@ -88,7 +93,7 @@ func RunMCTS(mc *MCTS, workerID int, timeToRun time.Duration, boardSize int, tre
 		case <-timer.C:
 			timeOut = true
 		default:
-			mc.RunIteration()
+			mc.RunIteration(gameLengthImportant)
 			break
 		}
 	}
@@ -103,8 +108,8 @@ func RunMCTS(mc *MCTS, workerID int, timeToRun time.Duration, boardSize int, tre
 }
 
 // RunIteration runs one iteration of MCTS
-func (mcts *MCTS) RunIteration() {
-	mcts.selExpPlayBack(mcts.mcTree.GetRoot())
+func (mcts *MCTS) RunIteration(gameLengthImportant bool) {
+	mcts.selExpPlayBack(mcts.mcTree.GetRoot(), gameLengthImportant)
 }
 
 // selExpPlayBack performs one iteration of MCTS
@@ -113,10 +118,9 @@ func (mcts *MCTS) RunIteration() {
 //		UCT value
 // 	expansion: expand leaf node that was reached by recursive call (only if the
 //		node has been visited often enough)
-// 	playout: randomly select moves until goal state is reached (no possible
-//		actions)
+// 	playout: randomly select moves until goal state is reached
 // 	backpropagation: update values on nodes on selected branch in the tree
-func (mcts *MCTS) selExpPlayBack(node *tree.Node) float64 {
+func (mcts *MCTS) selExpPlayBack(node *tree.Node, gameLengthImportant bool) float64 {
 	children := node.GetChildren()
 	nodeValue := node.GetValue().(*mctsNodeValue)
 
@@ -136,9 +140,9 @@ func (mcts *MCTS) selExpPlayBack(node *tree.Node) float64 {
 		// Playout phase
 		var score float64
 		if newNode != nil {
-			score = mcts.playout(newNode)
+			score = mcts.playout(newNode, gameLengthImportant)
 		} else {
-			score = mcts.playout(node)
+			score = mcts.playout(node, gameLengthImportant)
 		}
 
 		// Backpropagation begins - update two last nodes:
@@ -166,7 +170,7 @@ func (mcts *MCTS) selExpPlayBack(node *tree.Node) float64 {
 	}
 
 	// Recursive call (selection)
-	score := -mcts.selExpPlayBack(bestNode)
+	score := -mcts.selExpPlayBack(bestNode, gameLengthImportant)
 
 	// Update N and Q values (backpropagation)
 	nodeValue.updateNodeValues(score)
@@ -200,24 +204,24 @@ func (mcts *MCTS) expansion(node *tree.Node) {
 }
 
 // playout starts playout phase of MCTS from Node node
-func (mcts *MCTS) playout(node *tree.Node) float64 {
+func (mcts *MCTS) playout(node *tree.Node, gameLengthImportant bool) float64 {
 	nodeValue := node.GetValue().(*mctsNodeValue)
 	state := nodeValue.state
-	return playoutFromState(state)
+	return playoutFromState(state, gameLengthImportant)
 }
 
 // playoutFromState recursively performs a random action from the list of
 // possible actions. After reaching a goal state it returns its value
-func playoutFromState(state game.State) float64 {
+func playoutFromState(state game.State, gameLengthImportant bool) float64 {
 	if g, _ := state.IsGoalState(false); g {
-		return state.EvaluateGoalState()
+		return state.EvaluateGoalState(gameLengthImportant)
 	}
 	possibleActions := state.GetPossibleActions()
-	if possibleActions == nil || len(possibleActions) <= 0 {
+	if len(possibleActions) == 0 {
 		panic(fmt.Sprintf("Not in a goal state yet, but no action possible. Something is wrong."))
 	}
 	randomAction := possibleActions[rand.Intn(len(possibleActions))]
-	return -playoutFromState(state.GetSuccessorState(randomAction))
+	return -playoutFromState(state.GetSuccessorState(randomAction), gameLengthImportant)
 }
 
 // getUCTValue calculates UCT value of a Node node.

@@ -38,7 +38,8 @@ func main() {
 	}
 
 	// Run the algorithm
-	mcts.RunMCTSinParallel(numWorkers, boardSize, treasholdN, time.Duration(secondsToRun)*time.Second, outputFolder, patternsFile, mc)
+	mcts.RunMCTSinParallel(numWorkers, boardSize, treasholdN, time.Duration(secondsToRun)*time.Second,
+		outputFolder, patternsFile, mc, false)
 
 	if writeJSON {
 		// Write JSON

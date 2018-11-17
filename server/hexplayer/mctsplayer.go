@@ -73,7 +73,7 @@ func (mp *MCTSplayer) NextAction() (*hex.Action, error) {
 		case <-timer.C:
 			timeOut = true
 		default:
-			mp.mc.RunIteration()
+			mp.mc.RunIteration(true)
 		}
 	}
 

@@ -171,9 +171,15 @@ func (s State) IsGoalState(veryEnd bool) (bool, interface{}) {
 }
 
 // EvaluateGoalState returns 1.0 because the player who makes the last action
-// (action that leads to the goal state) wins
-func (s State) EvaluateGoalState() float64 {
-	return 1.0
+// (action that leads to the goal state) wins.
+// If gameLengthImportant is true, than a shorter path to victory gets a higher
+// value than a longer path.
+func (s State) EvaluateGoalState(gameLengthImportant bool) float64 {
+	if !gameLengthImportant {
+		return 1.0
+	}
+	_, _, e := s.GetNumOfStones()
+	return 1 + float64(e)
 }
 
 // Same returns true if states s and s2 represent the same state on the board.
