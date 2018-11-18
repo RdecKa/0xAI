@@ -21,6 +21,7 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, createTree bool,
 	gridChan chan []uint32, resultChan chan [2][]int,
 	getEstimatedValue func(s *Sample) float64) (*hex.Action, *tree.Tree) {
 
+	var val float64
 	var selectedAction, a *hex.Action
 	var rootNode, rn *tree.Node
 	var err error
@@ -34,7 +35,7 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, createTree bool,
 		// fmt.Printf("Starting AB on depth %d\n", depthLimit)
 
 		transpositionTable := make(map[string]float64)
-		_, a, rn, err = alphaBeta(ctx, 0, depthLimit, state, nil, -abInit, abInit, gridChan, resultChan, transpositionTable, oldTransitionTable, createTree, getEstimatedValue)
+		val, a, rn, err = alphaBeta(ctx, 0, depthLimit, state, nil, -abInit, abInit, gridChan, resultChan, transpositionTable, oldTransitionTable, createTree, getEstimatedValue)
 		oldTransitionTable = transpositionTable
 
 		if err != nil {
@@ -51,6 +52,11 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, createTree bool,
 		selectedAction = a
 		rootNode = rn
 		// fmt.Printf("Selected action: %v\n", selectedAction)
+
+		// If the game is decided there is no need to continue with the search
+		if math.IsInf(val, 0) {
+			break
+		}
 	}
 
 	// Cancel the Context
