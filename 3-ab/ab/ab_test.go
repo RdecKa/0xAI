@@ -22,17 +22,17 @@ func benchmarkAB(actions []*hex.Action, size byte, b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		// Now when time is added, results cannot really be compared anymore ...
-		AlphaBeta(state, time.Second, false, gridChan, resultChan)
+		AlphaBeta(state, time.Second, false, gridChan, resultChan, GetEstimateFunction("abLR"))
 	}
 }
 
-func Benchmark0(b *testing.B) {
+func _Benchmark0(b *testing.B) {
 	actions := []*hex.Action{}
 
 	benchmarkAB(actions, 7, b)
 }
 
-func Benchmark1(b *testing.B) {
+func _Benchmark1(b *testing.B) {
 	actions := []*hex.Action{
 		hex.NewAction(2, 2, hex.Red),
 		hex.NewAction(3, 5, hex.Blue),
@@ -43,7 +43,7 @@ func Benchmark1(b *testing.B) {
 	benchmarkAB(actions, 7, b)
 }
 
-func Benchmark2(b *testing.B) {
+func _Benchmark2(b *testing.B) {
 	actions := []*hex.Action{
 		hex.NewAction(5, 0, hex.Red),
 		hex.NewAction(3, 1, hex.Blue),
@@ -79,7 +79,7 @@ func getActionsAndStateSample() ([]*hex.Action, *hex.State) {
 	return actions, state
 }
 
-func benchAB(b *testing.B, depthLimit int) {
+func benchAB(b *testing.B, depthLimit int, abSubtype string) {
 	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
 	defer func() { stopChan <- struct{}{} }()
 
@@ -89,21 +89,34 @@ func benchAB(b *testing.B, depthLimit int) {
 		var oldTranspositionTable map[string]float64
 		for depth := 2; depth <= depthLimit; depth += 2 {
 			transpositionTable := make(map[string]float64)
-			alphaBeta(context.TODO(), 0, depth, state, nil, -1e14, 1e14, gridChan,
-				resultChan, transpositionTable, oldTranspositionTable, false)
+			alphaBeta(context.TODO(), 0, depth, state, nil, -1e14, 1e14,
+				gridChan, resultChan, transpositionTable, oldTranspositionTable,
+				false, GetEstimateFunction(abSubtype))
 			oldTranspositionTable = transpositionTable
 		}
 	}
 }
 
-func BenchmarkABLevel2(b *testing.B) {
-	benchAB(b, 2)
+func BenchmarkAbLrLevel2(b *testing.B) {
+	benchAB(b, 2, "abLR")
 }
 
-func BenchmarkABLevel4(b *testing.B) {
-	benchAB(b, 4)
+func BenchmarkAbLrLevel4(b *testing.B) {
+	benchAB(b, 4, "abLR")
 }
 
-func BenchmarkABLevel6(b *testing.B) {
-	benchAB(b, 6)
+func BenchmarkAbLrLevel6(b *testing.B) {
+	benchAB(b, 6, "abLR")
+}
+
+func BenchmarkAbDtLevel2(b *testing.B) {
+	benchAB(b, 2, "abDT")
+}
+
+func BenchmarkAbDtLevel4(b *testing.B) {
+	benchAB(b, 4, "abDT")
+}
+
+func BenchmarkAbDtLevel6(b *testing.B) {
+	benchAB(b, 6, "abDT")
 }
