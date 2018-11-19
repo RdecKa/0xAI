@@ -127,12 +127,15 @@ func countPatternInGrid(pat pattern, grid []uint32) (int, int, [2][]bool, [2][]b
 	for yStart := 0; yStart <= len(grid)-pat.h; yStart++ {
 		for xStart := 0; xStart <= len(grid)-pat.w; xStart++ {
 			found := -1
-			if matches(pat, grid, xStart, yStart, Red) {
-				countRed++
-				found = 0
-			} else if matches(pat, grid, xStart, yStart, Blue) {
-				countBlue++
-				found = 1
+			if m, c := matches(pat, grid, xStart, yStart); m {
+				switch c {
+				case Red:
+					countRed++
+					found = 0
+				case Blue:
+					countBlue++
+					found = 1
+				}
 			}
 			if found >= 0 && !pat.excluded {
 				for x := xStart; x < xStart+pat.w; x++ {
@@ -149,7 +152,9 @@ func countPatternInGrid(pat pattern, grid []uint32) (int, int, [2][]bool, [2][]b
 }
 
 // matches checks whether a subgrid matches the given pattern.
-func matches(pat pattern, grid []uint32, xStart, yStart int, player Color) bool {
+// The second value tells which player has a match.
+func matches(pat pattern, grid []uint32, xStart, yStart int) (bool, Color) {
+	possibleRed, possibleBlue := true, true
 	for y := 0; y < pat.h; y++ {
 		rowGrid := grid[yStart+y]
 		rowPat := pat.pat[y]
@@ -157,23 +162,47 @@ func matches(pat pattern, grid []uint32, xStart, yStart int, player Color) bool 
 			cellGrid := (rowGrid >> (2 * uint(xStart+x))) & 3
 			cellPat := (rowPat >> (2 * uint(x))) & 3
 
+			cellColor := GetColorFromBits(cellGrid)
 			switch cellPat {
 			case 0: // Empty cell in the pattern
-				if GetColorFromBits(cellGrid) != None {
-					return false
+				if cellColor != None {
+					return false, None
 				}
 			case 1: // Opponent
-				if GetColorFromBits(cellGrid) != player.Opponent() {
-					return false
+				if cellColor == Red {
+					possibleRed = false
+				} else if cellColor == Blue {
+					possibleBlue = false
+				} else {
+					// The cell is empty -> no player can match
+					return false, None
 				}
 			case 3: // Marked cell in the pattern (player's color)
-				if GetColorFromBits(cellGrid) != player {
-					return false
+				if cellColor == Red {
+					possibleBlue = false
+				} else if cellColor == Blue {
+					possibleRed = false
+				} else {
+					return false, None
 				}
+			}
+
+			if !possibleRed && !possibleBlue {
+				return false, None
 			}
 		}
 	}
-	return true
+
+	if possibleRed && possibleBlue {
+		panic("Both players match a pattern")
+	}
+	if possibleRed {
+		return true, Red
+	} else if possibleBlue {
+		return true, Blue
+	}
+	fmt.Println(fmt.Errorf("If none is possible, then function should return false in the for loop"))
+	return false, None
 }
 
 // patChecker is a goroutine that searches for patterns in grids, sent via
