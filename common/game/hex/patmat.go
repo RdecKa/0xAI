@@ -13,9 +13,9 @@ import (
 // represents one row, and each two bits in an integer represent one column.
 
 type pattern struct {
-	w, h     int     // width and heigth of the pattern
-	pat      []uint8 // pattern
-	excluded bool    // true if rows and columns where this pattern is found do not count as occupied, false otherwise
+	w, h     int       // width and heigth of the pattern
+	pat      [][]uint8 // pattern
+	excluded bool      // true if rows and columns where this pattern is found do not count as occupied, false otherwise
 }
 
 // CreatePatChecker creates a go routine that will serach for patterns in grids.
@@ -40,7 +40,7 @@ func readPatternsFromFile(fileName string) ([][]*pattern, error) {
 	}
 	defer f.Close()
 
-	patterns := make([][]*pattern, 0, 10)
+	patterns := make([][]*pattern, 0, 25)
 	patC, rotC, lineC := -1, -1, 0 // Counters of patterns, rotations for each pattern, and lines in each pattern
 	exclude := false
 
@@ -52,11 +52,11 @@ func readPatternsFromFile(fileName string) ([][]*pattern, error) {
 			exclude = false
 			patC++
 			rotC = -1
-			patterns = append(patterns, make([]*pattern, 0, 6))
+			patterns = append(patterns, make([]*pattern, 0, 1))
 		} else if lineSplit[0] == "---" {
 			rotC++
 			lineC = 0
-			patterns[patC] = append(patterns[patC], &pattern{0, 0, make([]uint8, 0), exclude})
+			patterns[patC] = append(patterns[patC], &pattern{0, 0, make([][]uint8, 0, 3), exclude})
 		} else if lineSplit[0] == "exclude" {
 			exclude = true
 		} else {
@@ -77,27 +77,23 @@ func readPatternsFromFile(fileName string) ([][]*pattern, error) {
 
 // lineToNumber converts ASCII characters that represent a line in a format
 // needed.
-func lineToNumber(lineSplit []string) (uint8, int) {
-	var num uint8
-	width := 0
+func lineToNumber(lineSplit []string) ([]uint8, int) {
+	num := make([]uint8, len(lineSplit))
+	width := len(num)
 
-	reverseLine(lineSplit)
-	for _, ls := range lineSplit {
-		width++
-
-		num = num << 2
+	for i, ls := range lineSplit {
 		switch ls {
 		case ".": // Empty cell
-			num += 0
+			num[i] = 0
 		case "/": // Opponent's color
-			num += 1
+			num[i] = 1
 		case "?": // Cell state not important
-			num += 2
+			num[i] = 2
 		case "*": // Player's color
-			num += 3
+			num[i] = 3
 		default:
 			fmt.Println(fmt.Errorf("Invalid character '%s' in pattern", ls))
-			num += 2
+			num[i] = 2
 		}
 	}
 
@@ -156,14 +152,22 @@ func countPatternInGrid(pat pattern, grid []uint32) (int, int, [2][]bool, [2][]b
 func matches(pat pattern, grid []uint32, xStart, yStart int) (bool, Color) {
 	possibleRed, possibleBlue := true, true
 	for y := 0; y < pat.h; y++ {
-		rowGrid := grid[yStart+y]
+		rowGrid := grid[yStart+y] >> (2 * uint(xStart))
 		rowPat := pat.pat[y]
 		for x := 0; x < pat.w; x++ {
-			cellGrid := (rowGrid >> (2 * uint(xStart+x))) & 3
-			cellPat := (rowPat >> (2 * uint(x))) & 3
-
+			cellGrid := rowGrid & 3
+			cellPat := rowPat[x]
 			cellColor := GetColorFromBits(cellGrid)
+
 			switch cellPat {
+			case 3: // Marked cell in the pattern (player's color)
+				if cellColor == Red {
+					possibleBlue = false
+				} else if cellColor == Blue {
+					possibleRed = false
+				} else {
+					return false, None
+				}
 			case 0: // Empty cell in the pattern
 				if cellColor != None {
 					return false, None
@@ -177,19 +181,13 @@ func matches(pat pattern, grid []uint32, xStart, yStart int) (bool, Color) {
 					// The cell is empty -> no player can match
 					return false, None
 				}
-			case 3: // Marked cell in the pattern (player's color)
-				if cellColor == Red {
-					possibleBlue = false
-				} else if cellColor == Blue {
-					possibleRed = false
-				} else {
-					return false, None
-				}
 			}
 
 			if !possibleRed && !possibleBlue {
 				return false, None
 			}
+
+			rowGrid = rowGrid >> 2
 		}
 	}
 

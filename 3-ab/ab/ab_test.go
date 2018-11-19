@@ -2,6 +2,7 @@ package ab
 
 import (
 	"context"
+	"math"
 	"testing"
 	"time"
 
@@ -58,6 +59,15 @@ func _Benchmark2(b *testing.B) {
 	benchmarkAB(actions, 7, b)
 }
 
+/*
+. . . . . r r
+ . . . b . . .
+  . . . . . . .
+   . . b . r r .
+    . . . b . . .
+     . b . . . . .
+      . . . . . . .
+*/
 func getActionsAndStateSample() ([]*hex.Action, *hex.State) {
 	actions := []*hex.Action{
 		hex.NewAction(5, 0, hex.Red),
@@ -89,7 +99,7 @@ func benchAB(b *testing.B, depthLimit int, abSubtype string) {
 		var oldTranspositionTable map[string]float64
 		for depth := 2; depth <= depthLimit; depth += 2 {
 			transpositionTable := make(map[string]float64)
-			alphaBeta(context.TODO(), 0, depth, state, nil, -1e14, 1e14,
+			alphaBeta(context.TODO(), 0, depth, state, nil, math.Inf(-1), math.Inf(1),
 				gridChan, resultChan, transpositionTable, oldTranspositionTable,
 				false, GetEstimateFunction(abSubtype))
 			oldTranspositionTable = transpositionTable
