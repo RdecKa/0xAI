@@ -21,47 +21,6 @@ type pattern struct {
 	w, h     int          // width and heigth of the pattern
 	pat      [][]cellType // pattern
 	excluded bool         // true if rows and columns where this pattern is found do not count as occupied, false otherwise
-	lspRow   []int        // longest suffix-prefix for rows (KMP algorithm)
-}
-
-// return values:
-//	-1: columns are different
-//	0: non-indefinite cells in columns are the same
-//	1: columns are the same
-func (p *pattern) columnsSame(c1, c2 int) int {
-	possiblySame := false
-	for _, row := range p.pat {
-		if row[c1] != row[c2] {
-			if row[c1] == cellIndefinite || row[c2] == cellIndefinite {
-				possiblySame = true
-			} else {
-				return -1
-			}
-		}
-	}
-	if possiblySame {
-		return 0
-	}
-	return 1
-}
-
-func (p *pattern) rowsSame(r1, r2 int) int {
-	possiblySame := false
-	row1 := p.pat[r1]
-	row2 := p.pat[r2]
-	for col := 0; col < len(p.pat[r1]); col++ {
-		if row1[col] != row2[col] {
-			if row1[col] == cellIndefinite || row2[col] == cellIndefinite {
-				possiblySame = true
-			} else {
-				return -1
-			}
-		}
-	}
-	if possiblySame {
-		return 0
-	}
-	return 1
 }
 
 func (p *pattern) String() string {
@@ -75,8 +34,8 @@ func (p *pattern) String() string {
 		}
 		s += "\n"
 	}
-	return fmt.Sprintf("%ssize: (%d, %d), excluded: %v\nlspRow: %v\n",
-		s, p.w, p.h, p.excluded, p.lspRow)
+	return fmt.Sprintf("%ssize: (%d, %d), excluded: %v\n",
+		s, p.w, p.h, p.excluded)
 }
 
 // --------------------
@@ -166,7 +125,7 @@ func readPatternsFromFile(fileName string) ([][]*pattern, error) {
 		} else if lineSplit[0] == "---" {
 			rotC++
 			lineC = 0
-			patterns[patC] = append(patterns[patC], &pattern{0, 0, make([][]cellType, 0, 3), exclude, nil})
+			patterns[patC] = append(patterns[patC], &pattern{0, 0, make([][]cellType, 0, 3), exclude})
 		} else if lineSplit[0] == "exclude" {
 			exclude = true
 		} else {
@@ -180,24 +139,6 @@ func readPatternsFromFile(fileName string) ([][]*pattern, error) {
 
 	if err = scanner.Err(); err != nil {
 		return nil, err
-	}
-
-	// Calculate LSP tables
-	for _, p := range patterns {
-		for _, r := range p {
-			lspRow := make([]int, r.h)
-			for d := 1; d < len(lspRow); d++ {
-				j := lspRow[d-1]
-				for j > 0 && r.rowsSame(d, j) == -1 {
-					j--
-				}
-				if r.rowsSame(d, j) > -1 {
-					j++
-				}
-				lspRow[d] = j
-			}
-			r.lspRow = lspRow
-		}
 	}
 
 	return patterns, nil
@@ -214,13 +155,6 @@ func lineToNumber(lineSplit []string) ([]cellType, int) {
 	}
 
 	return num, width
-}
-
-// reverseLine reverses a slice of strings in-place.
-func reverseLine(line []string) {
-	for i, j := 0, len(line)-1; i < j; i, j = i+1, j-1 {
-		line[i], line[j] = line[j], line[i]
-	}
 }
 
 // countPatternsInGrid counts how many occurences the given pattern (with given
