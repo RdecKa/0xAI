@@ -8,15 +8,125 @@ import (
 	"strings"
 )
 
-// This file provides functions for pattern matching in hex grids. Patterns
-// and grids must be represented as lists of integers, where one integer
-// represents one row, and each two bits in an integer represent one column.
+// This file provides functions for pattern matching in hex grids. Grids must be
+// represented as lists of integers, where one integer represents one row, and
+// each two bits in an integer represent one column. Patterns must be
+// represented as 2D slices.
+
+// -------------------
+// |     pattern     |
+// -------------------
 
 type pattern struct {
-	w, h     int       // width and heigth of the pattern
-	pat      [][]uint8 // pattern
-	excluded bool      // true if rows and columns where this pattern is found do not count as occupied, false otherwise
+	w, h     int          // width and heigth of the pattern
+	pat      [][]cellType // pattern
+	excluded bool         // true if rows and columns where this pattern is found do not count as occupied, false otherwise
+	lspRow   []int        // longest suffix-prefix for rows (KMP algorithm)
 }
+
+// return values:
+//	-1: columns are different
+//	0: non-indefinite cells in columns are the same
+//	1: columns are the same
+func (p *pattern) columnsSame(c1, c2 int) int {
+	possiblySame := false
+	for _, row := range p.pat {
+		if row[c1] != row[c2] {
+			if row[c1] == cellIndefinite || row[c2] == cellIndefinite {
+				possiblySame = true
+			} else {
+				return -1
+			}
+		}
+	}
+	if possiblySame {
+		return 0
+	}
+	return 1
+}
+
+func (p *pattern) rowsSame(r1, r2 int) int {
+	possiblySame := false
+	row1 := p.pat[r1]
+	row2 := p.pat[r2]
+	for col := 0; col < len(p.pat[r1]); col++ {
+		if row1[col] != row2[col] {
+			if row1[col] == cellIndefinite || row2[col] == cellIndefinite {
+				possiblySame = true
+			} else {
+				return -1
+			}
+		}
+	}
+	if possiblySame {
+		return 0
+	}
+	return 1
+}
+
+func (p *pattern) String() string {
+	s := ""
+	for ri, r := range p.pat {
+		for i := 0; i < ri; i++ {
+			s += " "
+		}
+		for _, c := range r {
+			s += c.String() + " "
+		}
+		s += "\n"
+	}
+	return fmt.Sprintf("%ssize: (%d, %d), excluded: %v\nlspRow: %v\n",
+		s, p.w, p.h, p.excluded, p.lspRow)
+}
+
+// --------------------
+// |     cellType     |
+// --------------------
+
+type cellType byte
+
+// enum for player types
+const (
+	cellEmpty      cellType = 0
+	cellPlayer     cellType = 1
+	cellOpponent   cellType = 2
+	cellIndefinite cellType = 3
+)
+
+func (ct cellType) String() string {
+	switch ct {
+	case cellEmpty:
+		return "."
+	case cellPlayer:
+		return "*"
+	case cellOpponent:
+		return "/"
+	case cellIndefinite:
+		return "?"
+	default:
+		return "?"
+	}
+}
+
+func getCellTypeFromString(s string) cellType {
+	switch s {
+	case ".": // Empty cell
+		return cellEmpty
+	case "/": // Opponent's color
+		return cellOpponent
+	case "?": // Cell state not important
+		return cellIndefinite
+	case "*": // Player's color
+		return cellPlayer
+	default:
+		fmt.Println(fmt.Errorf("Invalid character '%s' in pattern", s))
+		return cellIndefinite
+	}
+}
+
+// ----------------------
+// |     PatChecker     |
+// ----------------------
 
 // CreatePatChecker creates a go routine that will serach for patterns in grids.
 // It returns channels for communicatin with this goroutine.
@@ -56,7 +166,7 @@ func readPatternsFromFile(fileName string) ([][]*pattern, error) {
 		} else if lineSplit[0] == "---" {
 			rotC++
 			lineC = 0
-			patterns[patC] = append(patterns[patC], &pattern{0, 0, make([][]uint8, 0, 3), exclude})
+			patterns[patC] = append(patterns[patC], &pattern{0, 0, make([][]cellType, 0, 3), exclude, nil})
 		} else if lineSplit[0] == "exclude" {
 			exclude = true
 		} else {
@@ -72,29 +182,35 @@ func readPatternsFromFile(fileName string) ([][]*pattern, error) {
 		return nil, err
 	}
 
+	// Calculate LSP tables
+	for _, p := range patterns {
+		for _, r := range p {
+			lspRow := make([]int, r.h)
+			for d := 1; d < len(lspRow); d++ {
+				j := lspRow[d-1]
+				for j > 0 && r.rowsSame(d, j) == -1 {
+					j--
+				}
+				if r.rowsSame(d, j) > -1 {
+					j++
+				}
+				lspRow[d] = j
+			}
+			r.lspRow = lspRow
+		}
+	}
+
 	return patterns, nil
 }
 
 // lineToNumber converts ASCII characters that represent a line in a format
 // needed.
-func lineToNumber(lineSplit []string) ([]uint8, int) {
-	num := make([]uint8, len(lineSplit))
+func lineToNumber(lineSplit []string) ([]cellType, int) {
+	num := make([]cellType, len(lineSplit))
 	width := len(num)
 
 	for i, ls := range lineSplit {
-		switch ls {
-		case ".": // Empty cell
-			num[i] = 0
-		case "/": // Opponent's color
-			num[i] = 1
-		case "?": // Cell state not important
-			num[i] = 2
-		case "*": // Player's color
-			num[i] = 3
-		default:
-			fmt.Println(fmt.Errorf("Invalid character '%s' in pattern", ls))
-			num[i] = 2
-		}
+		num[i] = getCellTypeFromString(ls)
 	}
 
 	return num, width
@@ -120,10 +236,11 @@ func countPatternInGrid(pat pattern, grid []uint32) (int, int, [2][]bool, [2][]b
 	occCols[0] = make([]bool, len(grid))
 	occCols[1] = make([]bool, len(grid))
 
-	for yStart := 0; yStart <= len(grid)-pat.h; yStart++ {
-		for xStart := 0; xStart <= len(grid)-pat.w; xStart++ {
+	for xStart := 0; xStart <= len(grid)-pat.w; xStart++ {
+		for yStart := 0; yStart <= len(grid)-pat.h; {
 			found := -1
-			if m, c := matches(pat, grid, xStart, yStart); m {
+			matchRow, c := matches(pat, grid, xStart, yStart)
+			if matchRow == pat.h {
 				switch c {
 				case Red:
 					countRed++
@@ -141,6 +258,11 @@ func countPatternInGrid(pat pattern, grid []uint32) (int, int, [2][]bool, [2][]b
 					occRows[found][y] = true
 				}
 			}
+			if matchRow == 0 {
+				yStart++
+			} else {
+				yStart += matchRow - pat.lspRow[matchRow-1]
+			}
 		}
 	}
 
@@ -148,8 +270,9 @@ func countPatternInGrid(pat pattern, grid []uint32) (int, int, [2][]bool, [2][]b
 }
 
 // matches checks whether a subgrid matches the given pattern.
-// The second value tells which player has a match.
-func matches(pat pattern, grid []uint32, xStart, yStart int) (bool, Color) {
+// The first return value tells how many rows did match the pattern.
+// The last value tells which player has a match.
+func matches(pat pattern, grid []uint32, xStart, yStart int) (int, Color) {
 	possibleRed, possibleBlue := true, true
 	for y := 0; y < pat.h; y++ {
 		rowGrid := grid[yStart+y] >> (2 * uint(xStart))
@@ -160,31 +283,31 @@ func matches(pat pattern, grid []uint32, xStart, yStart int) (bool, Color) {
 			cellColor := GetColorFromBits(cellGrid)
 
 			switch cellPat {
-			case 3: // Marked cell in the pattern (player's color)
+			case cellPlayer: // Marked cell in the pattern (player's color)
 				if cellColor == Red {
 					possibleBlue = false
 				} else if cellColor == Blue {
 					possibleRed = false
 				} else {
-					return false, None
+					return y, None
 				}
-			case 0: // Empty cell in the pattern
+			case cellEmpty: // Empty cell in the pattern
 				if cellColor != None {
-					return false, None
+					return y, None
 				}
-			case 1: // Opponent
+			case cellOpponent: // Opponent
 				if cellColor == Red {
 					possibleRed = false
 				} else if cellColor == Blue {
 					possibleBlue = false
 				} else {
 					// The cell is empty -> no player can match
-					return false, None
+					return y, None
 				}
 			}
 
 			if !possibleRed && !possibleBlue {
-				return false, None
+				return y, None
 			}
 
 			rowGrid = rowGrid >> 2
@@ -195,12 +318,11 @@ func matches(pat pattern, grid []uint32, xStart, yStart int) (bool, Color) {
 		panic("Both players match a pattern")
 	}
 	if possibleRed {
-		return true, Red
+		return pat.h, Red
 	} else if possibleBlue {
-		return true, Blue
+		return pat.h, Blue
 	}
-	fmt.Println(fmt.Errorf("If none is possible, then function should return false in the for loop"))
-	return false, None
+	return 0, None
 }
 
 // patChecker is a goroutine that searches for patterns in grids, sent via

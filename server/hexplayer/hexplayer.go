@@ -6,9 +6,9 @@ import (
 	"github.com/RdecKa/bachleor-thesis/common/game/hex"
 )
 
-// ------------------
+// ----------------------
 // |     PlayerType     |
-// ------------------
+// ----------------------
 
 type PlayerType byte
 

@@ -24,7 +24,7 @@ func test(t *testing.T, size byte, actions []*Action, expectedRed, expectedBlue 
 	expected := expectedRed + "\n" + expectedBlue
 
 	if sam != expected {
-		t.Fatalf("Got '%s', expected '%s'", sam, expected)
+		t.Fatalf("Got\n'%s',\nexpected\n'%s'", sam, expected)
 	}
 }
 
@@ -275,7 +275,6 @@ func TestGenSample8(t *testing.T) {
 		NewAction(6, 5, Red),
 		NewAction(9, 6, Blue),
 	}
-	//      0 1 2 3 4 5 6 7 8 9 0 1 2 3   4 5 6 7 8 9    0 1 2 3
 	rr := "15,1,0,1,0,1,0,0,0,0,0,6,6,6,0,0,0,2,2,2,7,1,1,1"
 	rt := "15,1,0,1,0,0,0,1,0,0,0,6,6,6,0,0,0,2,2,2,7,1,1,1"
 	bb := "15,0,0,0,0,0,0,0,0,0,0,10,11,9,6,7,4,16,11,12,16,7,6,5"
