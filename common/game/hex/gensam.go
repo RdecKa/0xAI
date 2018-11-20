@@ -9,8 +9,9 @@ import (
 // First learning sample is a representation of a given State s, the second is a
 // representation of the same state but with reversed roles of red and blue
 // player
-func (s State) GenSample(q float64, gridChan chan []uint32, resultChan chan [2][]int) string {
+func (s State) GenSample(q float64, gridChan chan []uint32, patChan chan []int, resultChan chan [2][]int) string {
 	gridChan <- s.GetCopyGrid()
+	patChan <- nil
 
 	if s.lastAction.c == Blue {
 		// Always store the Q value for the red player

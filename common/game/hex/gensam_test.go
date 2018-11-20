@@ -13,13 +13,11 @@ func test(t *testing.T, size byte, actions []*Action, expectedRed, expectedBlue 
 	}
 
 	q := 0.5
-	gridChan := make(chan []uint32, 1)
-	resultChan := make(chan [2][]int, 1)
-	stopChan := make(chan struct{}, 1)
 
-	go patChecker("patterns.txt", gridChan, stopChan, resultChan)
+	gridChan, patChan, stopChan, resultChan := CreatePatChecker("patterns.txt")
+	defer func() { stopChan <- struct{}{} }()
 
-	sam := strings.Trim(state.GenSample(q, gridChan, resultChan), "\n")
+	sam := strings.Trim(state.GenSample(q, gridChan, patChan, resultChan), "\n")
 
 	expected := expectedRed + "\n" + expectedBlue
 

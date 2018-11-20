@@ -18,8 +18,8 @@ var won = abInit
 // In addition to the selected action it returns the tree that was constructed
 // during the last AB search (if wanted).
 func AlphaBeta(state *hex.State, timeToRun time.Duration, createTree bool,
-	gridChan chan []uint32, resultChan chan [2][]int,
-	getEstimatedValue func(s *Sample) float64) (*hex.Action, *tree.Tree) {
+	gridChan chan []uint32, patChan chan []int, resultChan chan [2][]int,
+	getEstimatedValue func(s *Sample) float64, subtype string) (*hex.Action, *tree.Tree) {
 
 	var val float64
 	var selectedAction, a *hex.Action
@@ -35,7 +35,9 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, createTree bool,
 		// fmt.Printf("Starting AB on depth %d\n", depthLimit)
 
 		transpositionTable := make(map[string]float64)
-		val, a, rn, err = alphaBeta(ctx, 0, depthLimit, state, nil, -abInit, abInit, gridChan, resultChan, transpositionTable, oldTransitionTable, createTree, getEstimatedValue)
+		val, a, rn, err = alphaBeta(ctx, 0, depthLimit, state, nil, -abInit, abInit,
+			gridChan, patChan, resultChan, transpositionTable, oldTransitionTable,
+			createTree, getEstimatedValue, subtype)
 		oldTransitionTable = transpositionTable
 
 		if err != nil {
@@ -72,9 +74,10 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, createTree bool,
 }
 
 func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State,
-	lastAction *hex.Action, alpha, beta float64, gridChan chan []uint32, resultChan chan [2][]int,
-	transpositionTable, oldTransitionTable map[string]float64,
-	createTree bool, getEstimatedValue func(s *Sample) float64) (float64, *hex.Action, *tree.Node, error) {
+	lastAction *hex.Action, alpha, beta float64, gridChan chan []uint32,
+	patChan chan []int, resultChan chan [2][]int,
+	transpositionTable, oldTransitionTable map[string]float64, createTree bool,
+	getEstimatedValue func(s *Sample) float64, subtype string) (float64, *hex.Action, *tree.Node, error) {
 
 	// End recursion on timeout
 	select {
@@ -101,7 +104,7 @@ func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State,
 		return -won, lastAction, leaf, nil
 	}
 	if depth >= depthLimit {
-		val, err := eval(state, gridChan, resultChan, getEstimatedValue)
+		val, err := eval(state, gridChan, patChan, resultChan, getEstimatedValue, subtype)
 		if err != nil {
 			return 0, nil, nil, err
 		}
@@ -133,8 +136,8 @@ func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State,
 
 		successor := state.GetSuccessorState(a).(hex.State)
 		value, _, childNode, err := alphaBeta(ctx, depth+1, depthLimit,
-			&successor, a.(*hex.Action), -beta, -alpha, gridChan, resultChan,
-			transpositionTable, oldTransitionTable, createTree, getEstimatedValue)
+			&successor, a.(*hex.Action), -beta, -alpha, gridChan, patChan, resultChan,
+			transpositionTable, oldTransitionTable, createTree, getEstimatedValue, subtype)
 		if err != nil {
 			return 0, nil, nil, err
 		}
@@ -175,9 +178,17 @@ func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State,
 }
 
 // eval returns the estimated value of a sample
-func eval(state *hex.State, gridChan chan []uint32, resultChan chan [2][]int,
-	getEstimatedValue func(s *Sample) float64) (float64, error) {
+func eval(state *hex.State, gridChan chan []uint32, patChan chan []int,
+	resultChan chan [2][]int, getEstimatedValue func(s *Sample) float64,
+	subtype string) (float64, error) {
+
 	gridChan <- state.GetCopyGrid()
+	if subtype == "abLR" {
+		r, b, _ := state.GetNumOfStones()
+		patChan <- getUsedPatternsForStoneNum(r + b)
+	} else {
+		patChan <- nil
+	}
 	patCount := <-resultChan
 
 	args := &[]interface{}{*state, patCount}
@@ -256,6 +267,15 @@ func eval(state *hex.State, gridChan chan []uint32, resultChan chan [2][]int,
 	default:
 		return 0, fmt.Errorf("Invalid color %v", c)
 	}
+}
+
+func getUsedPatternsForStoneNum(numStones int) []int {
+	for i, m := range mxs {
+		if numStones <= m {
+			return usedPatterns[i]
+		}
+	}
+	panic("Cannot find patterns")
 }
 
 // GetEstimateFunction returns a function that will be used for evaluating

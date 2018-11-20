@@ -25,6 +25,7 @@ type AbPlayer struct {
 	createTree         bool                       // If true, create a search tree for debugging purposes
 	gridChan           chan []uint32              // Used for pattern checking
 	stopChan           chan struct{}              // -||-
+	patChan            chan []int                 // -||-
 	resultChan         chan [2][]int              // -||-
 	getEstimatedValue  func(s *ab.Sample) float64 // Function used for evaluating states
 }
@@ -33,10 +34,19 @@ type AbPlayer struct {
 func CreateAbPlayer(c hex.Color, webso *websocket.Conn, t time.Duration,
 	allowResignation bool, patFileName string, createTree bool, subtype PlayerType) *AbPlayer {
 
-	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
-	ap := AbPlayer{c, subtype, webso, t, 0, nil, nil, nil, allowResignation,
-		createTree, gridChan, stopChan, resultChan,
-		ab.GetEstimateFunction(subtype.String())}
+	gridChan, patChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
+	ap := AbPlayer{
+		Color:             c,
+		subtype:           subtype,
+		Webso:             webso,
+		timeToRun:         t,
+		allowResignation:  allowResignation,
+		createTree:        createTree,
+		gridChan:          gridChan,
+		patChan:           patChan,
+		stopChan:          stopChan,
+		resultChan:        resultChan,
+		getEstimatedValue: ab.GetEstimateFunction(subtype.String())}
 	return &ap
 }
 
@@ -67,8 +77,8 @@ func (ap *AbPlayer) NextAction() (*hex.Action, error) {
 	}
 
 	// Run Minimax with alpha-beta pruning
-	chosenAction, searchedTree := ab.AlphaBeta(ap.state, ap.timeToRun,
-		ap.createTree, ap.gridChan, ap.resultChan, ap.getEstimatedValue)
+	chosenAction, searchedTree := ab.AlphaBeta(ap.state, ap.timeToRun, ap.createTree,
+		ap.gridChan, ap.patChan, ap.resultChan, ap.getEstimatedValue, ap.subtype.String())
 
 	if chosenAction == nil {
 		if !ap.allowResignation {

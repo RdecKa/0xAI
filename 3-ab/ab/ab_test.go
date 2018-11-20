@@ -18,12 +18,13 @@ func benchmarkAB(actions []*hex.Action, size byte, b *testing.B) {
 		state = &s
 	}
 
-	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
+	gridChan, patChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
 	defer func() { stopChan <- struct{}{} }()
 
 	for n := 0; n < b.N; n++ {
 		// Now when time is added, results cannot really be compared anymore ...
-		AlphaBeta(state, time.Second, false, gridChan, resultChan, GetEstimateFunction("abLR"))
+		AlphaBeta(state, time.Second, false, gridChan, patChan, resultChan,
+			GetEstimateFunction("abLR"), "abLR")
 	}
 }
 
@@ -90,7 +91,7 @@ func getActionsAndStateSample() ([]*hex.Action, *hex.State) {
 }
 
 func benchAB(b *testing.B, depthLimit int, abSubtype string) {
-	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
+	gridChan, patChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
 	defer func() { stopChan <- struct{}{} }()
 
 	_, state := getActionsAndStateSample()
@@ -100,8 +101,8 @@ func benchAB(b *testing.B, depthLimit int, abSubtype string) {
 		for depth := 2; depth <= depthLimit; depth += 2 {
 			transpositionTable := make(map[string]float64)
 			alphaBeta(context.TODO(), 0, depth, state, nil, math.Inf(-1), math.Inf(1),
-				gridChan, resultChan, transpositionTable, oldTranspositionTable,
-				false, GetEstimateFunction(abSubtype))
+				gridChan, patChan, resultChan, transpositionTable, oldTranspositionTable,
+				false, GetEstimateFunction(abSubtype), abSubtype)
 			oldTranspositionTable = transpositionTable
 		}
 	}

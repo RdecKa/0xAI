@@ -135,7 +135,7 @@ func worker(id int, timeToRun time.Duration, boardSize int, treasholdN uint,
 
 	var mc *MCTS
 	taskID := 0
-	gridChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
+	gridChan, patChan, stopChan, resultChan := hex.CreatePatChecker(patFileName)
 	outputFile.WriteString(hex.GetHeaderCSV())
 	for {
 		select {
@@ -143,7 +143,7 @@ func worker(id int, timeToRun time.Duration, boardSize int, treasholdN uint,
 			outputFile.WriteString(fmt.Sprintf("# Search ID %d\n", taskID))
 			outputFileDet.WriteString(fmt.Sprintf("# Search ID %d started from:\n%v\n", taskID, mc.GetInitialNode()))
 			expCand, err := RunMCTS(mc, id, timeToRun, boardSize, treasholdN,
-				outputFile, logFile, gridChan, resultChan, gameLengthImportant)
+				outputFile, logFile, gridChan, patChan, resultChan, gameLengthImportant)
 			if err != nil {
 				wc.e <- err
 			}

@@ -89,14 +89,15 @@ func getCellTypeFromString(s string) cellType {
 
 // CreatePatChecker creates a go routine that will serach for patterns in grids.
 // It returns channels for communicatin with this goroutine.
-func CreatePatChecker(fileName string) (chan []uint32, chan struct{}, chan [2][]int) {
+func CreatePatChecker(fileName string) (chan []uint32, chan []int, chan struct{}, chan [2][]int) {
 	gridChan := make(chan []uint32, 1)
+	patChan := make(chan []int, 1)
 	stopChan := make(chan struct{}, 1)
 	resultChan := make(chan [2][]int, 1)
 
-	go patChecker(fileName, gridChan, stopChan, resultChan)
+	go patChecker(fileName, gridChan, patChan, stopChan, resultChan)
 
-	return gridChan, stopChan, resultChan
+	return gridChan, patChan, stopChan, resultChan
 }
 
 // readPatternsFromFile reads all patterns from a specified file and returns a
@@ -160,7 +161,7 @@ func lineToNumber(lineSplit []string) ([]cellType, int) {
 // countPatternsInGrid counts how many occurences the given pattern (with given
 // rotation) has in the grid. It also counts how many rows and columns each
 // player has occupied.
-func countPatternsInGrid(patterns [][]*pattern, grid []uint32) [2][]int {
+func countPatternsInGrid(patterns [][]*pattern, grid []uint32, usedPat []int) [2][]int {
 	var results [2][]int
 	// Last two numbers mean number of rows and columns (respectively) occupied by a player
 	results[0] = make([]int, len(patterns)+2) // Counts for red
@@ -173,12 +174,22 @@ func countPatternsInGrid(patterns [][]*pattern, grid []uint32) [2][]int {
 	occCols[0] = make([]bool, len(grid)) // Occupied columns of the red player
 	occCols[1] = make([]bool, len(grid)) // Occupied columns of the blue player
 
-	for xStart := 0; xStart <= len(grid); xStart++ {
-		for yStart := 0; yStart <= len(grid); yStart++ {
-			for pi, p := range patterns {
+	patChecked := 0
+	for pi, p := range patterns {
+		if usedPat != nil {
+			if patChecked >= len(usedPat) {
+				break
+			} else if usedPat[patChecked] == pi {
+				patChecked++
+			} else {
+				continue
+			}
+		}
+		for xStart := 0; xStart <= len(grid); xStart++ {
+			for yStart := 0; yStart <= len(grid); yStart++ {
 				for _, r := range p {
 					if xStart+r.w > len(grid) || yStart+r.h > len(grid) {
-						break
+						continue
 					}
 					found := -1
 					matchRow, c := matches(*r, grid, xStart, yStart)
@@ -287,7 +298,7 @@ func matches(pat pattern, grid []uint32, xStart, yStart int) (int, Color) {
 // goroutine.
 // It also checks in how many rows and columns each player has at least one
 // stoen or virtual connection
-func patChecker(filename string, gridChan chan []uint32, stopChan chan struct{}, resultChan chan [2][]int) {
+func patChecker(filename string, gridChan chan []uint32, patChan chan []int, stopChan chan struct{}, resultChan chan [2][]int) {
 	defer close(gridChan)
 	defer close(stopChan)
 	defer close(resultChan)
@@ -300,7 +311,8 @@ func patChecker(filename string, gridChan chan []uint32, stopChan chan struct{},
 	for {
 		select {
 		case grid := <-gridChan:
-			results := countPatternsInGrid(patterns, grid)
+			usedPats := <-patChan
+			results := countPatternsInGrid(patterns, grid, usedPats)
 			resultChan <- results
 		case <-stopChan:
 			return
