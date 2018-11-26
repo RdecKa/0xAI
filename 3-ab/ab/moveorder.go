@@ -15,7 +15,7 @@ type sortData struct {
 }
 
 func initSortData(possibleActions []game.Action, state *hex.State,
-	oldTransitionTable map[string]float64, increasing bool) *sortData {
+	oldTransitionTable map[uint64]float64, increasing bool) *sortData {
 	sd := &sortData{
 		data:       possibleActions,
 		dataValues: make([]float64, len(possibleActions)),
@@ -51,7 +51,7 @@ func (d *sortData) Swap(i, j int) {
 }
 
 func orderMoves(state *hex.State, possibleActions []game.Action,
-	oldTransitionTable map[string]float64, increasing bool) []game.Action {
+	oldTransitionTable map[uint64]float64, increasing bool) []game.Action {
 
 	if oldTransitionTable == nil {
 		return possibleActions

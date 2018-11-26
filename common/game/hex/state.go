@@ -2,7 +2,6 @@ package hex
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/RdecKa/bachleor-thesis/common/astarsearch"
 	"github.com/RdecKa/bachleor-thesis/common/game"
@@ -287,10 +286,11 @@ func (s State) GetTransitionAction(sg game.State) game.Action {
 }
 
 // GetMapKey generates a key to be used in a hash map
-func (s State) GetMapKey() string {
-	st := ""
-	for _, row := range s.grid {
-		st += strconv.Itoa(int(row)) + ","
+func (s State) GetMapKey() uint64 {
+	h := uint64(14695981039346656037)
+	for i, st := range s.grid {
+		h *= 1099511628211
+		h ^= (uint64(st) << uint((3*i)%32))
 	}
-	return st
+	return h
 }

@@ -25,7 +25,7 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, createTree bool,
 	var selectedAction, a *hex.Action
 	var rootNode, rn *tree.Node
 	var err error
-	var oldTransitionTable map[string]float64
+	var oldTransitionTable map[uint64]float64
 
 	timeout := timeToRun
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
@@ -34,7 +34,7 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, createTree bool,
 	for depthLimit := 2; depthLimit < boardSize*boardSize; depthLimit += 2 {
 		// fmt.Printf("Starting AB on depth %d\n", depthLimit)
 
-		transpositionTable := make(map[string]float64)
+		transpositionTable := make(map[uint64]float64)
 		val, a, rn, err = alphaBeta(ctx, 0, depthLimit, state, nil, -abInit, abInit,
 			gridChan, patChan, resultChan, transpositionTable, oldTransitionTable,
 			createTree, getEstimatedValue, subtype)
@@ -76,7 +76,7 @@ func AlphaBeta(state *hex.State, timeToRun time.Duration, createTree bool,
 func alphaBeta(ctx context.Context, depth, depthLimit int, state *hex.State,
 	lastAction *hex.Action, alpha, beta float64, gridChan chan []uint32,
 	patChan chan []int, resultChan chan [2][]int,
-	transpositionTable, oldTransitionTable map[string]float64, createTree bool,
+	transpositionTable, oldTransitionTable map[uint64]float64, createTree bool,
 	getEstimatedValue func(s *Sample) float64, subtype string) (float64, *hex.Action, *tree.Node, error) {
 
 	// End recursion on timeout
