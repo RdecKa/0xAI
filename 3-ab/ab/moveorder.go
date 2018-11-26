@@ -42,7 +42,7 @@ func (d *sortData) Less(i, j int) bool {
 	if d.increasing {
 		return d.dataValues[i] < d.dataValues[j]
 	}
-	return d.dataValues[i] > d.dataValues[j]
+	return d.dataValues[i] >= d.dataValues[j]
 }
 
 func (d *sortData) Swap(i, j int) {

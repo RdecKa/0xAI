@@ -20,6 +20,8 @@ import (
 type pattern struct {
 	w, h     int          // width and heigth of the pattern
 	pat      [][]cellType // pattern
+	bounds   [][2]uint    // [[start of pattern in that line, length of pattern in that line], ...]
+	match    [2][]uint32  // how should a line be to match red/blue player
 	excluded bool         // true if rows and columns where this pattern is found do not count as occupied, false otherwise
 }
 
@@ -34,8 +36,68 @@ func (p *pattern) String() string {
 		}
 		s += "\n"
 	}
-	return fmt.Sprintf("%ssize: (%d, %d), excluded: %v\n",
-		s, p.w, p.h, p.excluded)
+	return fmt.Sprintf("%ssize: (%d, %d), excluded: %v\nbounds: %v\nmatch: %v\n",
+		s, p.w, p.h, p.excluded, p.bounds, p.match)
+}
+
+// setBoundsOfLineInPat sets the range of a line that contains definite cells
+// NOTE: A line must NOT contain two separated definite parts, such as [* . ? *]
+func (p *pattern) setBoundsOfLine(line []cellType) {
+	start, length := 0, 0
+	for ; start < len(line) && line[start] == cellIndefinite; start++ {
+	}
+	for i := start; i < len(line) && line[i] != cellIndefinite; i++ {
+		length++
+	}
+	p.bounds = append(p.bounds, [2]uint{2 * uint(start), 2 * uint(length)})
+}
+
+// setMatches sets an exact patterns that match red and blue player
+func (p *pattern) setMatches() {
+	player := Red
+	for pl := 0; pl <= 1; pl++ {
+		matches := make([]uint32, 0, 3)
+		for line := 0; line < len(p.pat); line++ {
+			matches = append(matches, p.getLineForCoparison(line, player))
+		}
+		p.match[pl] = matches
+		player = Blue
+	}
+}
+
+// getLineForComparison returns an exact pattern of a line that matches the
+// specified player
+func (p *pattern) getLineForCoparison(lineIndex int, c Color) uint32 {
+	line := p.pat[lineIndex]
+	bounds := p.bounds[lineIndex]
+	start, length := bounds[0]/2, bounds[1]/2
+	r := uint32(0)
+	for x := int(start+length) - 1; x >= int(start); x-- {
+		r = r << 2
+		if line[x] == cellPlayer {
+			if c == Red {
+				r += 1
+			} else if c == Blue {
+				r += 2
+			} else {
+				fmt.Println(fmt.Errorf("Invalid color in getLineForComparison: '%s'", c))
+			}
+		} else if line[x] == cellOpponent {
+			if c == Red {
+				r += 2
+			} else if c == Blue {
+				r += 1
+			} else {
+				fmt.Println(fmt.Errorf("Invalid color in getLineForComparison: '%s'", c))
+			}
+		} else if line[x] == cellEmpty {
+			// r += 0
+		} else { // cellIndefinite
+			// Program should not be here!
+			fmt.Println(fmt.Errorf("Invalid cellType: %s", line[x]))
+		}
+	}
+	return r
 }
 
 // --------------------
@@ -126,20 +188,33 @@ func readPatternsFromFile(fileName string) ([][]*pattern, error) {
 		} else if lineSplit[0] == "---" {
 			rotC++
 			lineC = 0
-			patterns[patC] = append(patterns[patC], &pattern{0, 0, make([][]cellType, 0, 3), exclude})
+			patterns[patC] = append(patterns[patC], &pattern{
+				pat:      make([][]cellType, 0, 3),
+				bounds:   make([][2]uint, 0, 3),
+				match:    [2][]uint32{make([]uint32, 0, 3), make([]uint32, 0, 3)},
+				excluded: exclude,
+			})
 		} else if lineSplit[0] == "exclude" {
 			exclude = true
 		} else {
 			val, w := lineToNumber(lineSplit)
-			patterns[patC][rotC].pat = append(patterns[patC][rotC].pat, val)
-			patterns[patC][rotC].w = w // Necessary only once, but easier that way
-			patterns[patC][rotC].h++
+			pattern := patterns[patC][rotC]
+			pattern.pat = append(pattern.pat, val)
+			pattern.w = w // Necessary only once, but easier that way
+			pattern.h++
+			pattern.setBoundsOfLine(val)
 			lineC++
 		}
 	}
 
 	if err = scanner.Err(); err != nil {
 		return nil, err
+	}
+
+	for _, p := range patterns {
+		for _, r := range p {
+			r.setMatches()
+		}
 	}
 
 	return patterns, nil
@@ -241,55 +316,30 @@ func countPatternsInGrid(patterns [][]*pattern, grid []uint32, usedPat []int) [2
 // The first return value tells how many rows did match the pattern.
 // The last value tells which player has a match.
 func matches(pat pattern, grid []uint32, xStart, yStart int) (int, Color) {
-	possibleRed, possibleBlue := true, true
-	for y := 0; y < pat.h; y++ {
-		rowGrid := grid[yStart+y] >> (2 * uint(xStart))
-		rowPat := pat.pat[y]
-		for x := 0; x < pat.w; x++ {
-			cellGrid := rowGrid & 3
-			cellPat := rowPat[x]
-			cellColor := GetColorFromBits(cellGrid)
+	for pl := 0; pl <= 1; pl++ {
+		match := true
 
-			switch cellPat {
-			case cellPlayer: // Marked cell in the pattern (player's color)
-				if cellColor == Red {
-					possibleBlue = false
-				} else if cellColor == Blue {
-					possibleRed = false
-				} else {
-					return y, None
-				}
-			case cellEmpty: // Empty cell in the pattern
-				if cellColor != None {
-					return y, None
-				}
-			case cellOpponent: // Opponent
-				if cellColor == Red {
-					possibleRed = false
-				} else if cellColor == Blue {
-					possibleBlue = false
-				} else {
-					// The cell is empty -> no player can match
-					return y, None
-				}
+		for y := 0; y < pat.h; y++ {
+			patStart, patLength := pat.bounds[y][0], pat.bounds[y][1]
+			rowGrid := grid[yStart+y] >> (2*uint(xStart) + patStart)
+			rowGrid = rowGrid & ((1 << patLength) - 1)
+			if rowGrid != pat.match[pl][y] {
+				match = false
+				break
 			}
+		}
 
-			if !possibleRed && !possibleBlue {
-				return y, None
+		if match {
+			if pl == 0 {
+				return pat.h, Red
+			} else if pl == 1 {
+				return pat.h, Blue
+			} else {
+				fmt.Println(fmt.Errorf("Match found but color invalid: '%d'", pl))
 			}
-
-			rowGrid = rowGrid >> 2
 		}
 	}
 
-	if possibleRed && possibleBlue {
-		panic("Both players match a pattern")
-	}
-	if possibleRed {
-		return pat.h, Red
-	} else if possibleBlue {
-		return pat.h, Blue
-	}
 	return 0, None
 }
 
