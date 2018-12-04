@@ -274,3 +274,6 @@ class LinearRegressionModel(Model):
                 s[submodel.get_ID()] = (submodel.model.score(inp, out), len(inp))
 
         return s
+
+    def get_num_submodels(self):
+        return [len(self.submodels[0]), len(self.submodels[1])]

@@ -8,6 +8,7 @@ import seaborn as sns
 
 from sklearn.model_selection import train_test_split
 from matplotlib.ticker import FixedLocator, FormatStrFormatter
+from itertools import product
 
 import decision_tree as dt
 import linear_regression as lr
@@ -29,6 +30,16 @@ def sort_value(x):
     minimum = x[2:]
     minimum = math.inf if minimum == "inf" else int(minimum)
     return minimum, x[0]
+
+
+def generate_colors_and_patterns(n):
+    patterns = ("-", "+", "x", "\\", "/", "|", "*", "o", "O", ".")
+    third = math.ceil(n ** (1/3))
+    intervals = [x/third for x in range(third)]
+    colors = list(product(intervals, intervals, intervals))
+    for i in range(len(colors)):
+        colors[i] = (colors[i], patterns[i % len(patterns)])
+    return colors
 
 
 def main(argv):
@@ -88,6 +99,8 @@ def main(argv):
 
     feature_names = X.columns
     write_sample_file(outfolder, feature_names)
+
+    feature_colors = generate_colors_and_patterns(len(feature_names))
 
     if data_analysis:
         print("Analysing data ...")
@@ -182,7 +195,6 @@ def main(argv):
             new_y1_ticks = transform_ticks(ax2.get_yticks())
             new_y1_ticks = np.append(new_y1_ticks, 0)
             ax1.yaxis.set_major_locator(FixedLocator(new_y1_ticks))
-            ax1.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 
             ax1.grid(True)
             plt.xticks(keys)
@@ -238,10 +250,6 @@ def main(argv):
                 as stats_file:
             models = learner.get_models()
 
-            # Create a plot for feature importances
-            fig, ax = plt.subplots()
-            positions = np.arange(len(feature_names))
-
             for model_index in range(len(models)):
                 model = models[model_index]
                 print("Training model: " + str(model) + " ...")
@@ -249,12 +257,23 @@ def main(argv):
                 # Train
                 model.fit(X_train, y_train)
 
-                # Predict
-                y1 = model.predict(X_test)
-
                 # Print statistics
                 stats_file.write("##########################################\n")
                 stats_file.write("Statistics for: " + str(model) + "\n")
+
+                # Create a plot for feature importances
+                submodel_groups = model.get_num_submodels()
+                plt_setup = []
+                for i, num_submodels in enumerate(submodel_groups):
+                    if num_submodels > 3:
+                        num_cols_in_plot = 4
+                        num_rows_in_plot = math.ceil(num_submodels / num_cols_in_plot)
+                    else:
+                        num_cols_in_plot = num_submodels
+                        num_rows_in_plot = 1
+                    fig_name = learner.short_name() + str(model_index) + str(i)
+                    plt.figure(fig_name, figsize=(10, 14))
+                    plt_setup.append((num_cols_in_plot, num_rows_in_plot, fig_name))
 
                 feature_importances = model.feature_importances(feature_names)
 
@@ -275,9 +294,27 @@ def main(argv):
                         s += "\t" + n + ": " + str(v) + "\n"
                     stats_file.write(s)
 
-                    bar_width = (1 / (len(models) * len(feature_importances)))
-                    pos = positions + (model_index * len(feature_importances) + ind) * bar_width
-                    ax.bar(pos, fi, width=bar_width, label=name, tick_label=feature_names)
+                    if len(plt_setup) == 1:
+                        num_cols_in_plot, num_rows_in_plot, fig_name = plt_setup[0]
+                        index = ind + 1
+                    else:
+                        if ".r_" in name:
+                            num_cols_in_plot, num_rows_in_plot, fig_name = plt_setup[0]
+                            index = ind + 1
+                        else:  # if "._b" in name
+                            num_cols_in_plot, num_rows_in_plot, fig_name = plt_setup[1]
+                            index = ind - submodel_groups[0] + 1
+
+                    total = sum([abs(f) for f in fi])
+                    normalised = [abs(f) / total for f in fi]
+
+                    plt.figure(fig_name).add_subplot(num_rows_in_plot, num_cols_in_plot, index)
+                    acc = 0
+                    for i, f in enumerate(normalised):
+                        plt.bar([name], f, bottom=acc, color=feature_colors[i][0],
+                                edgecolor="black", hatch=feature_colors[i][1],
+                                label=feature_names[i])
+                        acc += f
 
                 sc = model.score(X_test, y_test)
                 stats_file.write("SCORE:\n")
@@ -297,19 +334,24 @@ def main(argv):
                 # Output some custom properties for current model
                 model.custom_output(model_index, outfolder)
 
-            plt.gcf().subplots_adjust(bottom=0.35, right=0.85)
-            plt.xticks(positions-bar_width/2, rotation="vertical")
-            plt.grid(True)
-            ax.set_title("Influence of attributes")
-            ax.legend(loc="center left", bbox_to_anchor=(1, 0.5), fontsize="x-small")
-            ax.set_xlabel("Attribute")
-            ax.set_ylabel("Influence")
+                if len(plt_setup) == 1:
+                    plt.legend(loc=7)
+                    plt.savefig(outfolder + "features_" + learner.short_name() + "_" + str(model_index) + ".pdf")
+                    plt.close()
+                else:
+                    f = plt.figure(plt_setup[0][2])
+                    handles, labels = f.axes[0].get_legend_handles_labels()
+                    handles = handles[:len(feature_names)]
+                    labels = labels[:len(feature_names)]
 
-            plt.yscale("linear")
-            plt.savefig(outfolder + "features_" + learner.short_name() + "_lin.pdf")
-            plt.yscale("symlog")
-            plt.savefig(outfolder + "features_" + learner.short_name() + "_log.pdf")
-            plt.close()
+                    f.legend(handles, labels, loc=7)
+                    plt.savefig(outfolder + "features_" + learner.short_name() + "_" + str(model_index) + "_red.pdf")
+                    plt.close(f)
+
+                    f = plt.figure(plt_setup[1][2])
+                    f.legend(handles, labels, loc=7)
+                    plt.savefig(outfolder + "features_" + learner.short_name() + "_" + str(model_index) + "_blue.pdf")
+                    plt.close(f)
 
 
 if __name__ == "__main__":

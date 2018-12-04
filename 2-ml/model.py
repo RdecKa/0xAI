@@ -16,3 +16,6 @@ class Model:
 
     def score(self, X, y):
         return {0: (self.model.score(X, y), len(X))}
+
+    def get_num_submodels(self):
+        return [1]
