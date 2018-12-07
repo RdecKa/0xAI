@@ -19,6 +19,7 @@ const (
 	MctsType  PlayerType = 2
 	AbDtType  PlayerType = 3
 	AbLrType  PlayerType = 4
+	RandType  PlayerType = 5
 )
 
 // HexPlayer represents a player of hex that can be either human or computer.
@@ -36,6 +37,8 @@ func GetPlayerTypeFromString(t string) PlayerType {
 	switch t {
 	case "human":
 		return HumanType
+	case "rand":
+		return RandType
 	case "mcts":
 		return MctsType
 	case "abDT":
@@ -52,6 +55,8 @@ func (t PlayerType) String() string {
 	switch t {
 	case HumanType:
 		return "human"
+	case RandType:
+		return "rand"
 	case MctsType:
 		return "mcts"
 	case AbDtType:

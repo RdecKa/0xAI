@@ -127,6 +127,8 @@ func RunAll(matches []MatchSetup, outDir string) {
 
 func createPlayer(t hexplayer.PlayerType, c hex.Color, tl int, patternFile string) hexplayer.HexPlayer {
 	switch t {
+	case hexplayer.RandType:
+		return hexplayer.CreateRandPlayer(c)
 	case hexplayer.MctsType:
 		return hexplayer.CreateMCTSplayer(c, math.Sqrt(2), time.Duration(tl)*time.Second, 10, true)
 	case hexplayer.AbDtType:

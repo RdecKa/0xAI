@@ -129,6 +129,8 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	if okRed && red[0] == "human" {
 		rFunc = createHumanPlayer
+	} else if okRed && red[0] == "rand" {
+		rFunc = createRandPlayer
 	} else if okRed && red[0] == "mcts" {
 		rFunc = createMCTSplayer
 	} else if okRed && red[0][:2] == "ab" {
@@ -137,6 +139,8 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	if okBlue && blue[0] == "human" && red[0] != "human" {
 		bFunc = createHumanPlayer
+	} else if okBlue && blue[0] == "rand" {
+		bFunc = createRandPlayer
 	} else if okBlue && blue[0] == "mcts" {
 		bFunc = createMCTSplayer
 	} else if okBlue && blue[0][:2] == "ab" {
@@ -170,7 +174,11 @@ func createMCTSplayer(color hex.Color, _ *websocket.Conn, secondsPerAction int, 
 }
 
 func createAbPlayer(color hex.Color, conn *websocket.Conn, secondsPerAction int, allowResignation bool, subtype hexplayer.PlayerType) hexplayer.HexPlayer {
-	return hexplayer.CreateAbPlayer(color, conn, time.Duration(secondsPerAction)*time.Second, allowResignation, patternFile, true, subtype)
+	return hexplayer.CreateAbPlayer(color, conn, time.Duration(secondsPerAction)*time.Second, allowResignation, patternFile, false, subtype)
+}
+
+func createRandPlayer(color hex.Color, _ *websocket.Conn, _ int, _ bool, _ hexplayer.PlayerType) hexplayer.HexPlayer {
+	return hexplayer.CreateRandPlayer(color)
 }
 
 func comparePlayers() {

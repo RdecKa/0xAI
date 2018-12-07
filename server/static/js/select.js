@@ -23,10 +23,10 @@ function selectPlayers() {
 					+ "&size=" + this.boardSize
 					+ "&numgames=" + this.numGames;
 
-				if (this.selection.Red.type != "human") {
+				if (this.selection.Red.type != "human" && this.selection.Red.type != "rand") {
 					newLocation += "&redtime=" + this.selection.Red.time
 				}
-				if (this.selection.Blue.type != "human") {
+				if (this.selection.Blue.type != "human" && this.selection.Blue.type != "rand") {
 					newLocation += "&bluetime=" + this.selection.Blue.time
 				}
 
@@ -67,6 +67,9 @@ Vue.component("select-player", {
 				<h2>{{ color }} player</h2>
 				<input type="radio" :id="'human-' + color" :name="color" value="human" v-model="player" @change="selectionChange" />
 				<label :for="'human-' + color">Human</label>
+				<br>
+				<input type="radio" :id="'rand-' + color" :name="color" value="rand" v-model="player" @change="selectionChange" />
+				<label :for="'rand-' + color">Random</label>
 				<br>
 				<input type="radio" :id="'mcts-'  + color" :name="color" value="mcts"  v-model="player" @change="selectionChange" />
 				<label :for="'mcts-'  + color">Computer (MCTS)</label>
