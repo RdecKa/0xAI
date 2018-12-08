@@ -85,13 +85,18 @@ Vue.component("select-player", {
 				<label :for="'abLR-'  + color">Computer (AB-LR)</label>
 				<input type="number" min="1" :id="'time-abLR-' + color" v-model="time.abLR" @change="selectionChange">
 				<label :for="'time-abLR-' + color">seconds</label>
+				<br>
+				<input type="radio" :id="'hybrid-'  + color" :name="color" value="hybrid"  v-model="player" @change="selectionChange" />
+				<label :for="'hybrid-'  + color">Computer (hybrid)</label>
+				<input type="number" min="1" :id="'time-hybrid-' + color" v-model="time.hybrid" @change="selectionChange">
+				<label :for="'time-hybrid-' + color">seconds</label>
 			</div>
 		</div>`,
 	props: ["color"],
 	data: function () {
 		return {
 			player: null,
-			time: {mcts: 1, abDT: 1, abLR: 1},
+			time: {mcts: 1, abDT: 1, abLR: 1, hybrid: 1},
 		}
 	},
 	methods: {

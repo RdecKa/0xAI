@@ -20,6 +20,8 @@ type MatchSetup struct {
 	time1       int
 	time2       int
 	patternFile string
+	extraInfo1  interface{}
+	extraInfo2  interface{}
 }
 
 // CreateMatch sets up the comparison of two players
@@ -29,7 +31,8 @@ type MatchSetup struct {
 // 	p1, p2: player types
 // 	t1, t2: time limits for both players
 // 	patternFile: file with patterns in hex grid
-func CreateMatch(bs, ng int, p1, p2 hexplayer.PlayerType, t1, t2 int, patternFile string) MatchSetup {
+// ei1, ei1: additional parameters for players
+func CreateMatch(bs, ng int, p1, p2 hexplayer.PlayerType, t1, t2 int, patternFile string, ei1, ei2 interface{}) MatchSetup {
 	return MatchSetup{
 		boardSize:   bs,
 		numGames:    ng,
@@ -38,6 +41,8 @@ func CreateMatch(bs, ng int, p1, p2 hexplayer.PlayerType, t1, t2 int, patternFil
 		time1:       t1,
 		time2:       t2,
 		patternFile: patternFile,
+		extraInfo1:  ei1,
+		extraInfo2:  ei2,
 	}
 }
 
@@ -80,13 +85,13 @@ func RunAll(matches []MatchSetup, outDir string) {
 		var players [2][2]hexplayer.HexPlayer
 		// player1 = Red, player2 = Blue
 		players[0] = [2]hexplayer.HexPlayer{
-			createPlayer(ms.player1type, hex.Red, ms.time1, ms.patternFile),
-			createPlayer(ms.player2type, hex.Blue, ms.time2, ms.patternFile),
+			createPlayer(ms.player1type, hex.Red, ms.time1, ms.patternFile, ms.extraInfo1),
+			createPlayer(ms.player2type, hex.Blue, ms.time2, ms.patternFile, ms.extraInfo2),
 		}
 		// player1 = Blue, player2 = Red
 		players[1] = [2]hexplayer.HexPlayer{
-			createPlayer(ms.player2type, hex.Red, ms.time2, ms.patternFile),
-			createPlayer(ms.player1type, hex.Blue, ms.time1, ms.patternFile),
+			createPlayer(ms.player2type, hex.Red, ms.time2, ms.patternFile, ms.extraInfo2),
+			createPlayer(ms.player1type, hex.Blue, ms.time1, ms.patternFile, ms.extraInfo1),
 		}
 
 		for p := 0; p <= 1; p++ {
@@ -125,7 +130,7 @@ func RunAll(matches []MatchSetup, outDir string) {
 	f.WriteString(fmt.Sprintf("\nTesting finished at %s.\n", time.Now().Format("15.04.05 (2006/01/02)")))
 }
 
-func createPlayer(t hexplayer.PlayerType, c hex.Color, tl int, patternFile string) hexplayer.HexPlayer {
+func createPlayer(t hexplayer.PlayerType, c hex.Color, tl int, patternFile string, ei interface{}) hexplayer.HexPlayer {
 	switch t {
 	case hexplayer.RandType:
 		return hexplayer.CreateRandPlayer(c)
@@ -137,6 +142,9 @@ func createPlayer(t hexplayer.PlayerType, c hex.Color, tl int, patternFile strin
 	case hexplayer.AbLrType:
 		return hexplayer.CreateAbPlayer(c, nil, time.Duration(tl)*time.Second,
 			true, patternFile, false, hexplayer.AbLrType)
+	case hexplayer.HybridType:
+		return hexplayer.CreateHybridPlayer(c, time.Duration(tl)*time.Second,
+			true, patternFile, hexplayer.AbLrType, ei.(int))
 	default:
 		fmt.Println(fmt.Errorf("Invalid type '%s'", t.String()))
 		return nil

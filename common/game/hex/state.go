@@ -105,6 +105,13 @@ func (s *State) cloneNoAction() game.State {
 	return State{s.size, newGrid, nil}
 }
 
+// Clone returns a duplicate of a state
+func (s *State) Clone() game.State {
+	ns := s.cloneNoAction().(State)
+	ns.lastAction = s.lastAction
+	return ns
+}
+
 // IsCellValid returns true if a cell (x, y) is on the grid, and false otherwise
 func (s *State) IsCellValid(x, y int) bool {
 	return x >= 0 && x < int(s.size) && y >= 0 && y < int(s.size)
@@ -131,7 +138,7 @@ func (s State) GetSuccessorState(action game.Action) game.State {
 		panic(fmt.Sprintf("Player cannot do two moves in a row! (last player: %s, current action: %s)", s.lastAction.c, a))
 	}
 	if x, y := a.GetCoordinates(); s.getColorOn(byte(x), byte(y)) != None {
-		panic(fmt.Sprintf("Cell (%d, %d) already occupied!", x, y))
+		panic(fmt.Sprintf("Cell (%d, %d) already occupied (player %v's turn)!", x, y, a.c))
 	}
 	newState := s.cloneNoAction().(State)
 	newState.lastAction = action.(*Action)

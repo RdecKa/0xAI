@@ -14,12 +14,13 @@ type PlayerType byte
 
 // enum for player types
 const (
-	Unknown   PlayerType = 0
-	HumanType PlayerType = 1
-	MctsType  PlayerType = 2
-	AbDtType  PlayerType = 3
-	AbLrType  PlayerType = 4
-	RandType  PlayerType = 5
+	Unknown    PlayerType = 0
+	HumanType  PlayerType = 1
+	RandType   PlayerType = 2
+	MctsType   PlayerType = 3
+	AbDtType   PlayerType = 4
+	AbLrType   PlayerType = 5
+	HybridType PlayerType = 6
 )
 
 // HexPlayer represents a player of hex that can be either human or computer.
@@ -45,6 +46,8 @@ func GetPlayerTypeFromString(t string) PlayerType {
 		return AbDtType
 	case "abLR":
 		return AbLrType
+	case "hybrid":
+		return HybridType
 	default:
 		fmt.Println(fmt.Errorf("Invalid type '%s'", t))
 		return Unknown
@@ -63,8 +66,10 @@ func (t PlayerType) String() string {
 		return "abDT"
 	case AbLrType:
 		return "abLR"
+	case HybridType:
+		return "hybrid"
 	default:
-		fmt.Println(fmt.Errorf("Invalid type '%s'", t))
+		fmt.Println(fmt.Errorf("Invalid type '%s'", string(t)))
 		return ""
 	}
 }

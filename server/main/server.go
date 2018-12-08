@@ -125,7 +125,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var rFunc, bFunc func(hex.Color, *websocket.Conn, int, bool, hexplayer.PlayerType) hexplayer.HexPlayer
+	var rFunc, bFunc func(hex.Color, *websocket.Conn, int, int, bool, hexplayer.PlayerType) hexplayer.HexPlayer
 
 	if okRed && red[0] == "human" {
 		rFunc = createHumanPlayer
@@ -135,6 +135,8 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		rFunc = createMCTSplayer
 	} else if okRed && red[0][:2] == "ab" {
 		rFunc = createAbPlayer
+	} else if okRed && red[0] == "hybrid" {
+		rFunc = createHybridPlayer
 	}
 
 	if okBlue && blue[0] == "human" && red[0] != "human" {
@@ -145,16 +147,18 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		bFunc = createMCTSplayer
 	} else if okBlue && blue[0][:2] == "ab" {
 		bFunc = createAbPlayer
+	} else if okBlue && blue[0] == "hybrid" {
+		bFunc = createHybridPlayer
 	}
 
 	if rFunc == nil || bFunc == nil {
 		log.Println("Wrong or missing arguments for players. Using default.")
 		wa = false
-		pair[0] = createHumanPlayer(hex.Red, conn, redTime, wa, hexplayer.GetPlayerTypeFromString(red[0]))
-		pair[1] = createMCTSplayer(hex.Blue, conn, blueTime, wa, hexplayer.GetPlayerTypeFromString(blue[0]))
+		pair[0] = createHumanPlayer(hex.Red, conn, redTime, 0, wa, hexplayer.GetPlayerTypeFromString(red[0]))
+		pair[1] = createMCTSplayer(hex.Blue, conn, blueTime, 0, wa, hexplayer.GetPlayerTypeFromString(blue[0]))
 	} else {
-		pair[0] = rFunc(hex.Red, conn, redTime, wa, hexplayer.GetPlayerTypeFromString(red[0]))
-		pair[1] = bFunc(hex.Blue, conn, blueTime, wa, hexplayer.GetPlayerTypeFromString(blue[0]))
+		pair[0] = rFunc(hex.Red, conn, redTime, 14, wa, hexplayer.GetPlayerTypeFromString(red[0]))
+		pair[1] = bFunc(hex.Blue, conn, blueTime, 14, wa, hexplayer.GetPlayerTypeFromString(blue[0]))
 	}
 
 	c := conn
@@ -165,36 +169,50 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	go hexgame.Play(boardSize, pair, numGames, c, nil, nil, playDir+startTimeFormat)
 }
 
-func createHumanPlayer(color hex.Color, conn *websocket.Conn, _ int, _ bool, _ hexplayer.PlayerType) hexplayer.HexPlayer {
+func createHumanPlayer(color hex.Color, conn *websocket.Conn, _, _ int, _ bool, _ hexplayer.PlayerType) hexplayer.HexPlayer {
 	return hexplayer.CreateHumanPlayer(conn, color)
 }
 
-func createMCTSplayer(color hex.Color, _ *websocket.Conn, secondsPerAction int, allowResignation bool, _ hexplayer.PlayerType) hexplayer.HexPlayer {
+func createMCTSplayer(color hex.Color, _ *websocket.Conn, secondsPerAction, _ int, allowResignation bool, _ hexplayer.PlayerType) hexplayer.HexPlayer {
 	return hexplayer.CreateMCTSplayer(color, math.Sqrt(2), time.Duration(secondsPerAction)*time.Second, 10, allowResignation)
 }
 
-func createAbPlayer(color hex.Color, conn *websocket.Conn, secondsPerAction int, allowResignation bool, subtype hexplayer.PlayerType) hexplayer.HexPlayer {
+func createAbPlayer(color hex.Color, conn *websocket.Conn, secondsPerAction, _ int, allowResignation bool, subtype hexplayer.PlayerType) hexplayer.HexPlayer {
 	return hexplayer.CreateAbPlayer(color, conn, time.Duration(secondsPerAction)*time.Second, allowResignation, patternFile, false, subtype)
 }
 
-func createRandPlayer(color hex.Color, _ *websocket.Conn, _ int, _ bool, _ hexplayer.PlayerType) hexplayer.HexPlayer {
+func createRandPlayer(color hex.Color, _ *websocket.Conn, _, _ int, _ bool, _ hexplayer.PlayerType) hexplayer.HexPlayer {
 	return hexplayer.CreateRandPlayer(color)
+}
+
+func createHybridPlayer(color hex.Color, _ *websocket.Conn, secondsPerAction, changeTypeAt int, allowResignation bool, _ hexplayer.PlayerType) hexplayer.HexPlayer {
+	return hexplayer.CreateHybridPlayer(color, time.Duration(secondsPerAction)*time.Second, allowResignation, patternFile, hexplayer.AbLrType, changeTypeAt)
 }
 
 func comparePlayers() {
 	matches := []cmpr.MatchSetup{
-		cmpr.CreateMatch(11, 10, hexplayer.MctsType, hexplayer.AbDtType, 5, 5, patternFile),
-		cmpr.CreateMatch(11, 10, hexplayer.MctsType, hexplayer.AbDtType, 1, 5, patternFile),
+		cmpr.CreateMatch(11, 2, hexplayer.MctsType, hexplayer.HybridType, 1, 1, patternFile, nil, 14),
 
-		cmpr.CreateMatch(11, 10, hexplayer.MctsType, hexplayer.AbLrType, 5, 5, patternFile),
-		cmpr.CreateMatch(11, 10, hexplayer.MctsType, hexplayer.AbLrType, 1, 5, patternFile),
+		cmpr.CreateMatch(11, 2, hexplayer.RandType, hexplayer.AbDtType, 0, 5, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 2, hexplayer.AbLrType, hexplayer.RandType, 5, 0, patternFile, nil, nil),
 
-		cmpr.CreateMatch(11, 10, hexplayer.AbDtType, hexplayer.AbLrType, 5, 5, patternFile),
-		cmpr.CreateMatch(11, 10, hexplayer.AbDtType, hexplayer.AbLrType, 1, 1, patternFile),
+		cmpr.CreateMatch(11, 2, hexplayer.MctsType, hexplayer.AbDtType, 5, 100, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 2, hexplayer.MctsType, hexplayer.AbDtType, 1, 100, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 6, hexplayer.MctsType, hexplayer.AbDtType, 5, 5, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 6, hexplayer.MctsType, hexplayer.AbDtType, 1, 5, patternFile, nil, nil),
 
-		cmpr.CreateMatch(11, 10, hexplayer.AbDtType, hexplayer.AbDtType, 5, 5, patternFile),
-		cmpr.CreateMatch(11, 10, hexplayer.AbLrType, hexplayer.AbLrType, 5, 5, patternFile),
-		cmpr.CreateMatch(11, 10, hexplayer.MctsType, hexplayer.MctsType, 5, 5, patternFile),
+		cmpr.CreateMatch(11, 2, hexplayer.MctsType, hexplayer.AbLrType, 5, 100, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 2, hexplayer.MctsType, hexplayer.AbLrType, 1, 100, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 6, hexplayer.MctsType, hexplayer.AbLrType, 5, 5, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 6, hexplayer.MctsType, hexplayer.AbLrType, 1, 5, patternFile, nil, nil),
+
+		cmpr.CreateMatch(11, 2, hexplayer.AbDtType, hexplayer.AbLrType, 100, 100, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 6, hexplayer.AbDtType, hexplayer.AbLrType, 5, 5, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 6, hexplayer.AbDtType, hexplayer.AbLrType, 1, 1, patternFile, nil, nil),
+
+		cmpr.CreateMatch(11, 6, hexplayer.AbDtType, hexplayer.AbDtType, 5, 5, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 6, hexplayer.AbLrType, hexplayer.AbLrType, 5, 5, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 6, hexplayer.MctsType, hexplayer.MctsType, 5, 5, patternFile, nil, nil),
 	}
 
 	cmpr.RunAll(matches, cmprDir+startTimeFormat)
