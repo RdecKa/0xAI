@@ -121,6 +121,7 @@ def main(argv):
     # Create linear regression models
     lr_models_args = [
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 18, 22, 28, 36, 46, 58, 70, 85, 100],
+        [x for x in range(0, 48)],
     ]
 
     learners = [
@@ -157,7 +158,7 @@ def main(argv):
                         num_cols_in_plot = num_submodels
                         num_rows_in_plot = 1
                     fig_name = learner.short_name() + str(model_index) + str(i)
-                    plt.figure(fig_name, figsize=(10, 14))
+                    plt.figure(fig_name, figsize=(10, 20))
                     plt_setup.append((num_cols_in_plot, num_rows_in_plot, fig_name))
 
                 feature_importances = model.feature_importances(feature_names)
