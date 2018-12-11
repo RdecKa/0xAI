@@ -4,8 +4,11 @@ import math
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 
 from sklearn.model_selection import train_test_split
+from sklearn.metrics.pairwise import cosine_distances
+from sklearn.preprocessing import normalize
 from itertools import product
 
 import decision_tree as dt
@@ -162,6 +165,8 @@ def main(argv):
                     plt_setup.append((num_cols_in_plot, num_rows_in_plot, fig_name))
 
                 feature_importances = model.feature_importances(feature_names)
+                vectors = [[], []]
+                model_names = [[], []]
 
                 for ind, feat in enumerate(feature_importances):
                     if len(feat) == 0:
@@ -187,9 +192,13 @@ def main(argv):
                         if ".r_" in name:
                             num_cols_in_plot, num_rows_in_plot, fig_name = plt_setup[0]
                             index = ind + 1
+                            vectors[0].append(fi)
+                            model_names[0].append(name)
                         else:  # if "._b" in name
                             num_cols_in_plot, num_rows_in_plot, fig_name = plt_setup[1]
                             index = ind - submodel_groups[0] + 1
+                            vectors[1].append(fi)
+                            model_names[1].append(name)
 
                     total = sum([abs(f) for f in fi])
                     normalised = [abs(f) / total for f in fi]
@@ -239,6 +248,21 @@ def main(argv):
                     plt.savefig(outfolder + "features_" + learner.short_name() + "_" + str(model_index) + "_blue.pdf")
                     plt.close(f)
 
+                if isinstance(learner, lr.LinearRegressionLearner):
+                    for i in range(2):
+                        matrix = pd.DataFrame(vectors[i], columns=feature_names, index=model_names[i])
+                        mean = matrix.mean()
+
+                        # Substract column average, then normalize
+                        matrix_adjusted = matrix.sub(mean)
+                        matrix_adjusted = normalize(matrix, axis=0)
+
+                        cs = cosine_distances(matrix_adjusted)
+
+                        fig, ax = plt.subplots(figsize=(14, 10))
+                        ax = sns.heatmap(cs, xticklabels=model_names[i], yticklabels=model_names[i], square=True, ax=ax)
+                        plt.savefig(outfolder + "heatmap_" + learner.short_name() + "_" + str(model_index) + "." + str(i) + ".pdf")
+                        plt.close()
 
 if __name__ == "__main__":
     main(sys.argv[1:])
