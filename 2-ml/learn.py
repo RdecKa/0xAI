@@ -8,7 +8,7 @@ import seaborn as sns
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics.pairwise import cosine_distances
-from sklearn.preprocessing import normalize
+from sklearn.preprocessing import scale
 from itertools import product
 
 import decision_tree as dt
@@ -251,12 +251,8 @@ def main(argv):
                 if isinstance(learner, lr.LinearRegressionLearner):
                     for i in range(2):
                         matrix = pd.DataFrame(vectors[i], columns=feature_names, index=model_names[i])
-                        mean = matrix.mean()
 
-                        # Substract column average, then normalize
-                        matrix_adjusted = matrix.sub(mean)
-                        matrix_adjusted = normalize(matrix, axis=0)
-
+                        matrix_adjusted = scale(matrix)
                         cs = cosine_distances(matrix_adjusted)
 
                         fig, ax = plt.subplots(figsize=(14, 10))
