@@ -25,7 +25,7 @@ type workerChan struct {
 // the initialised search that is completed first.
 // If gameLengthImportant is true, then a goal state with a shorter path to
 // victory gets a higher estimated value than a goal state with a longer path.
-func RunMCTSinParallel(numWorkers, boardSize int, treasholdN uint, timeToRun time.Duration,
+func RunMCTSinParallel(numWorkers, boardSize int, thresholdN uint, timeToRun time.Duration,
 	outputFolder, patFileName string, mc *MCTS, gameLengthImportant bool) {
 	var err error
 
@@ -76,7 +76,7 @@ func RunMCTSinParallel(numWorkers, boardSize int, treasholdN uint, timeToRun tim
 		defer fDet.Close()
 
 		// Start a worker process
-		go worker(w, timeToRun, boardSize, treasholdN, f, fDet, logFile,
+		go worker(w, timeToRun, boardSize, thresholdN, f, fDet, logFile,
 			patFileName, &wc, gameLengthImportant)
 	}
 
@@ -129,7 +129,7 @@ func RunMCTSinParallel(numWorkers, boardSize int, treasholdN uint, timeToRun tim
 
 // worker waits for tasks and executes them in an infinite loop until the quit
 // signal
-func worker(id int, timeToRun time.Duration, boardSize int, treasholdN uint,
+func worker(id int, timeToRun time.Duration, boardSize int, thresholdN uint,
 	outputFile, outputFileDet, logFile *os.File, patFileName string,
 	wc *workerChan, gameLengthImportant bool) {
 
@@ -142,7 +142,7 @@ func worker(id int, timeToRun time.Duration, boardSize int, treasholdN uint,
 		case mc = <-wc.assign:
 			outputFile.WriteString(fmt.Sprintf("# Search ID %d\n", taskID))
 			outputFileDet.WriteString(fmt.Sprintf("# Search ID %d started from:\n%v\n", taskID, mc.GetInitialNode()))
-			expCand, err := RunMCTS(mc, id, timeToRun, boardSize, treasholdN,
+			expCand, err := RunMCTS(mc, id, timeToRun, boardSize, thresholdN,
 				outputFile, logFile, gridChan, patChan, resultChan, gameLengthImportant)
 			if err != nil {
 				wc.e <- err

@@ -81,7 +81,7 @@ func (mcts *MCTS) GetInitialNode() *tree.Node {
 // RunMCTS executes iterations of MCTS for timeToRun, given initialised MCTS
 // If gameLengthImportant is true, then a goal state with a shorter path to
 // victory gets a higher estimated value than a goal state with a longer path.
-func RunMCTS(mc *MCTS, workerID int, timeToRun time.Duration, boardSize int, treasholdN uint,
+func RunMCTS(mc *MCTS, workerID int, timeToRun time.Duration, boardSize int, thresholdN uint,
 	outputFile, logFile *os.File, gridChan chan []uint32, patChan chan []int,
 	resultChan chan [2][]int, gameLengthImportant bool) ([]*tree.Node, error) {
 
@@ -100,7 +100,7 @@ func RunMCTS(mc *MCTS, workerID int, timeToRun time.Duration, boardSize int, tre
 
 	// Write input-output pairs for supervised machine learning, generate
 	// new nodes to continue MCTS
-	expCand, err := mc.GenSamples(outputFile, treasholdN, gridChan, patChan, resultChan)
+	expCand, err := mc.GenSamples(outputFile, thresholdN, gridChan, patChan, resultChan)
 	if err != nil {
 		return nil, err
 	}

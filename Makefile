@@ -30,7 +30,7 @@ OUT_DATA_DIR = data/$(SIZE)/
 # ---> MCTS variables <---
 TIME = 10
 WORKERS = 3
-TREASHOLD_N = 500
+THRESHOLD_N = 500
 MCTS_DIR = 1-mcts/
 MCTS_FILES := $(shell find $(MCTS_DIR) -type f -name "*.go")
 MCTS_MAIN = $(MCTS_DIR)main/main.go
@@ -93,7 +93,7 @@ mctsrun:
 	mkdir -p "$(MCTS_OUT_DIR)"
 
 	# --> Run MCTS program <--
-	main -output=$(MCTS_OUT_DIR) -json=$(JSON) -indent=$(INDENT) -time=$(TIME) -size=$(SIZE) -workers=$(WORKERS) -patterns=$(PATTERNS_FILE) -treasholdn=$(TREASHOLD_N)
+	main -output=$(MCTS_OUT_DIR) -json=$(JSON) -indent=$(INDENT) -time=$(TIME) -size=$(SIZE) -workers=$(WORKERS) -patterns=$(PATTERNS_FILE) -thresholdn=$(THRESHOLD_N)
 
 mctsjson: DATA_FILE = "$(shell ls $(MCTS_OUT_DIR)*.json)"
 mctsjson:
