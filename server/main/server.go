@@ -157,8 +157,8 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		pair[0] = createHumanPlayer(hex.Red, conn, redTime, 0, wa, hexplayer.GetPlayerTypeFromString(red[0]))
 		pair[1] = createMCTSplayer(hex.Blue, conn, blueTime, 0, wa, hexplayer.GetPlayerTypeFromString(blue[0]))
 	} else {
-		pair[0] = rFunc(hex.Red, conn, redTime, 14, wa, hexplayer.GetPlayerTypeFromString(red[0]))
-		pair[1] = bFunc(hex.Blue, conn, blueTime, 14, wa, hexplayer.GetPlayerTypeFromString(blue[0]))
+		pair[0] = rFunc(hex.Red, conn, redTime, 12, wa, hexplayer.GetPlayerTypeFromString(red[0]))
+		pair[1] = bFunc(hex.Blue, conn, blueTime, 12, wa, hexplayer.GetPlayerTypeFromString(blue[0]))
 	}
 
 	c := conn
@@ -191,28 +191,46 @@ func createHybridPlayer(color hex.Color, _ *websocket.Conn, secondsPerAction, ch
 
 func comparePlayers() {
 	matches := []cmpr.MatchSetup{
-		cmpr.CreateMatch(11, 2, hexplayer.MctsType, hexplayer.HybridType, 1, 1, patternFile, nil, 14),
+		cmpr.CreateMatch(11, 24, hexplayer.RandType, hexplayer.MctsType, 0, 1, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 24, hexplayer.RandType, hexplayer.MctsType, 0, 5, patternFile, nil, nil),
 
-		cmpr.CreateMatch(11, 2, hexplayer.RandType, hexplayer.AbDtType, 0, 5, patternFile, nil, nil),
-		cmpr.CreateMatch(11, 2, hexplayer.AbLrType, hexplayer.RandType, 5, 0, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 24, hexplayer.RandType, hexplayer.AbDtType, 0, 1, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 24, hexplayer.RandType, hexplayer.AbDtType, 0, 5, patternFile, nil, nil),
 
-		cmpr.CreateMatch(11, 2, hexplayer.MctsType, hexplayer.AbDtType, 5, 100, patternFile, nil, nil),
-		cmpr.CreateMatch(11, 2, hexplayer.MctsType, hexplayer.AbDtType, 1, 100, patternFile, nil, nil),
-		cmpr.CreateMatch(11, 6, hexplayer.MctsType, hexplayer.AbDtType, 5, 5, patternFile, nil, nil),
-		cmpr.CreateMatch(11, 6, hexplayer.MctsType, hexplayer.AbDtType, 1, 5, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 24, hexplayer.RandType, hexplayer.AbLrType, 0, 1, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 24, hexplayer.RandType, hexplayer.AbLrType, 0, 5, patternFile, nil, nil),
 
-		cmpr.CreateMatch(11, 2, hexplayer.MctsType, hexplayer.AbLrType, 5, 100, patternFile, nil, nil),
-		cmpr.CreateMatch(11, 2, hexplayer.MctsType, hexplayer.AbLrType, 1, 100, patternFile, nil, nil),
-		cmpr.CreateMatch(11, 6, hexplayer.MctsType, hexplayer.AbLrType, 5, 5, patternFile, nil, nil),
-		cmpr.CreateMatch(11, 6, hexplayer.MctsType, hexplayer.AbLrType, 1, 5, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 12, hexplayer.MctsType, hexplayer.MctsType, 1, 1, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 12, hexplayer.MctsType, hexplayer.MctsType, 5, 5, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 12, hexplayer.MctsType, hexplayer.MctsType, 10, 10, patternFile, nil, nil),
 
-		cmpr.CreateMatch(11, 2, hexplayer.AbDtType, hexplayer.AbLrType, 100, 100, patternFile, nil, nil),
-		cmpr.CreateMatch(11, 6, hexplayer.AbDtType, hexplayer.AbLrType, 5, 5, patternFile, nil, nil),
-		cmpr.CreateMatch(11, 6, hexplayer.AbDtType, hexplayer.AbLrType, 1, 1, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 24, hexplayer.MctsType, hexplayer.AbDtType, 1, 1, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 24, hexplayer.MctsType, hexplayer.AbDtType, 1, 5, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 24, hexplayer.MctsType, hexplayer.AbDtType, 1, 100, patternFile, nil, nil),
 
-		cmpr.CreateMatch(11, 6, hexplayer.AbDtType, hexplayer.AbDtType, 5, 5, patternFile, nil, nil),
-		cmpr.CreateMatch(11, 6, hexplayer.AbLrType, hexplayer.AbLrType, 5, 5, patternFile, nil, nil),
-		cmpr.CreateMatch(11, 6, hexplayer.MctsType, hexplayer.MctsType, 5, 5, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 24, hexplayer.MctsType, hexplayer.AbLrType, 1, 1, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 24, hexplayer.MctsType, hexplayer.AbLrType, 1, 5, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 24, hexplayer.MctsType, hexplayer.AbLrType, 1, 100, patternFile, nil, nil),
+
+		cmpr.CreateMatch(11, 24, hexplayer.MctsType, hexplayer.HybridType, 1, 1, patternFile, nil, 12),
+		cmpr.CreateMatch(11, 24, hexplayer.MctsType, hexplayer.HybridType, 5, 5, patternFile, nil, 12),
+		cmpr.CreateMatch(11, 24, hexplayer.MctsType, hexplayer.HybridType, 10, 10, patternFile, nil, 12),
+
+		cmpr.CreateMatch(11, 12, hexplayer.AbDtType, hexplayer.AbDtType, 1, 1, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 12, hexplayer.AbDtType, hexplayer.AbDtType, 5, 5, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 12, hexplayer.AbDtType, hexplayer.AbDtType, 100, 100, patternFile, nil, nil),
+
+		cmpr.CreateMatch(11, 24, hexplayer.AbDtType, hexplayer.AbLrType, 1, 1, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 24, hexplayer.AbDtType, hexplayer.AbLrType, 5, 5, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 24, hexplayer.AbDtType, hexplayer.AbLrType, 100, 100, patternFile, nil, nil),
+
+		cmpr.CreateMatch(11, 12, hexplayer.AbLrType, hexplayer.AbLrType, 1, 1, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 12, hexplayer.AbLrType, hexplayer.AbLrType, 5, 5, patternFile, nil, nil),
+		cmpr.CreateMatch(11, 12, hexplayer.AbLrType, hexplayer.AbLrType, 100, 100, patternFile, nil, nil),
+
+		cmpr.CreateMatch(11, 12, hexplayer.HybridType, hexplayer.HybridType, 1, 1, patternFile, 12, 12),
+		cmpr.CreateMatch(11, 12, hexplayer.HybridType, hexplayer.HybridType, 5, 5, patternFile, 12, 12),
+		cmpr.CreateMatch(11, 12, hexplayer.HybridType, hexplayer.HybridType, 10, 10, patternFile, 12, 12),
 	}
 
 	cmpr.RunAll(matches, cmprDir+startTimeFormat)

@@ -46,6 +46,16 @@ func CreateMatch(bs, ng int, p1, p2 hexplayer.PlayerType, t1, t2 int, patternFil
 	}
 }
 
+type result struct {
+	results [2][2]int
+	lengths [2][2][2]float64
+}
+
+func runParallel(ms MatchSetup, outDir string, players [2]hexplayer.HexPlayer, ch chan result) {
+	results, lengths := ms.Run(outDir, players)
+	ch <- result{results, lengths}
+}
+
 // Run runs a set of matches between two players
 func (ms MatchSetup) Run(outDir string, players [2]hexplayer.HexPlayer) ([2][2]int, [2][2][2]float64) {
 	resultChanWins := make(chan [2][2]int, 1)
@@ -76,6 +86,8 @@ func RunAll(matches []MatchSetup, outDir string) {
 	}
 	defer f.Close()
 
+	ch0, ch1 := make(chan result, 1), make(chan result, 1)
+
 	f.WriteString(fmt.Sprintf("Testing started at %s.\n\n", time.Now().Format("15.04.05 (2006/01/02)")))
 	for _, ms := range matches {
 		f.WriteString("--------------------\n")
@@ -94,18 +106,26 @@ func RunAll(matches []MatchSetup, outDir string) {
 			createPlayer(ms.player1type, hex.Blue, ms.time1, ms.patternFile, ms.extraInfo1),
 		}
 
+		go runParallel(ms, outDir, players[0], ch0)
+		go runParallel(ms, outDir, players[1], ch1)
+
 		for p := 0; p <= 1; p++ {
 			pls := players[p]
-			results, lengths := ms.Run(outDir, pls)
 
 			var p1p1, p1p2, p2p1, p2p2 int
 			var f1f1, f1f2, f2f1, f2f2 [2]float64
 			if p == 0 {
+				r := <-ch0
+				results := r.results
+				lengths := r.lengths
 				p1p1, f1f1 = results[0][0], lengths[0][0]
 				p1p2, f1f2 = results[0][1], lengths[0][1]
 				p2p1, f2f1 = results[1][0], lengths[1][0]
 				p2p2, f2f2 = results[1][1], lengths[1][1]
 			} else {
+				r := <-ch1
+				results := r.results
+				lengths := r.lengths
 				p1p1, f1f1 = results[1][1], lengths[1][1]
 				p1p2, f1f2 = results[1][0], lengths[1][0]
 				p2p1, f2f1 = results[0][1], lengths[0][1]
@@ -126,6 +146,7 @@ func RunAll(matches []MatchSetup, outDir string) {
 			f.WriteString(fmt.Sprintf("\tPlayer 2: (%6.2f, %6.2f) (%6.2f, %6.2f)\n",
 				f2f1[0], f2f1[1], f2f2[0], f2f2[1]))
 		}
+		f.WriteString(fmt.Sprintf("\nGroup finished at %s.\n\n", time.Now().Format("15.04.05 (2006/01/02)")))
 	}
 	f.WriteString(fmt.Sprintf("\nTesting finished at %s.\n", time.Now().Format("15.04.05 (2006/01/02)")))
 }
