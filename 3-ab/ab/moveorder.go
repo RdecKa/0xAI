@@ -3,8 +3,8 @@ package ab
 import (
 	"sort"
 
-	"github.com/RdecKa/bachleor-thesis/common/game"
-	"github.com/RdecKa/bachleor-thesis/common/game/hex"
+	"github.com/RdecKa/0xAI/common/game"
+	"github.com/RdecKa/0xAI/common/game/hex"
 )
 
 // sortData is a collection used for sorting possibleActions

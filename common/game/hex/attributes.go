@@ -19,7 +19,7 @@ package hex
 import (
 	"fmt"
 
-	"github.com/RdecKa/bachleor-thesis/common/game"
+	"github.com/RdecKa/0xAI/common/game"
 )
 
 // Initialization of all available attributes

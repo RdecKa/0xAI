@@ -3,8 +3,8 @@ package astarsearch
 import (
 	"testing"
 
-	"github.com/RdecKa/bachleor-thesis/common/astarsearch"
-	"github.com/RdecKa/bachleor-thesis/common/game/hex"
+	"github.com/RdecKa/0xAI/common/astarsearch"
+	"github.com/RdecKa/0xAI/common/game/hex"
 )
 
 func benchmarkAStarSearchOnHexGrid(actions []*hex.Action, size byte, b *testing.B) {

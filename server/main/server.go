@@ -13,10 +13,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/RdecKa/bachleor-thesis/common/game/hex"
-	"github.com/RdecKa/bachleor-thesis/server/cmpr"
-	"github.com/RdecKa/bachleor-thesis/server/hexgame"
-	"github.com/RdecKa/bachleor-thesis/server/hexplayer"
+	"github.com/RdecKa/0xAI/common/game/hex"
+	"github.com/RdecKa/0xAI/server/cmpr"
+	"github.com/RdecKa/0xAI/server/hexgame"
+	"github.com/RdecKa/0xAI/server/hexplayer"
 	"github.com/gorilla/websocket"
 )
 

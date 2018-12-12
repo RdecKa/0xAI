@@ -1,1 +1,1 @@
-# Bachleor Thesis: Using AI to play hex
+# 0xAI: Using AI to play hex (Bachelor thesis)

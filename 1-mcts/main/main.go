@@ -6,8 +6,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/RdecKa/bachleor-thesis/1-mcts/mcts"
-	"github.com/RdecKa/bachleor-thesis/common/game/hex"
+	"github.com/RdecKa/0xAI/1-mcts/mcts"
+	"github.com/RdecKa/0xAI/common/game/hex"
 )
 
 func main() {

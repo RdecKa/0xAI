@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/RdecKa/bachleor-thesis/1-mcts/mcts"
-	"github.com/RdecKa/bachleor-thesis/common/game/hex"
+	"github.com/RdecKa/0xAI/1-mcts/mcts"
+	"github.com/RdecKa/0xAI/common/game/hex"
 )
 
 // MCTSplayer represents a computer player that uses only MCTS for selecting

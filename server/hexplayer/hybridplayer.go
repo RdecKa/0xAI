@@ -4,7 +4,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/RdecKa/bachleor-thesis/common/game/hex"
+	"github.com/RdecKa/0xAI/common/game/hex"
 )
 
 // HybridPlayer represents a computer player that combines strategies of MCTS and AB

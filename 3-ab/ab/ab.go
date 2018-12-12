@@ -6,8 +6,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/RdecKa/bachleor-thesis/common/game/hex"
-	"github.com/RdecKa/bachleor-thesis/common/tree"
+	"github.com/RdecKa/0xAI/common/game/hex"
+	"github.com/RdecKa/0xAI/common/tree"
 )
 
 var maxValue = math.Inf(0)

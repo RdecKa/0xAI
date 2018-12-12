@@ -4,15 +4,18 @@ SHELL = /bin/sh
 GO_COMMAND = go
 GO_INSTALL = $(GO_COMMAND) install
 GO_CLEAN = $(GO_COMMAND) clean -i
-GO_CLEAN_FILES = github.com/RdecKa/bachleor-thesis/1-mcts/mcts \
-	github.com/RdecKa/bachleor-thesis/3-ab/ab \
-	github.com/RdecKa/bachleor-thesis/common/astarsearch \
-	github.com/RdecKa/bachleor-thesis/common/game \
-	github.com/RdecKa/bachleor-thesis/common/pq \
-	github.com/RdecKa/bachleor-thesis/common/tree \
-	github.com/RdecKa/bachleor-thesis/common/game/hex \
-	github.com/RdecKa/bachleor-thesis/server/hexgame \
-	github.com/RdecKa/bachleor-thesis/server/hexplayer
+GO_CLEAN_FILES = github.com/RdecKa/0xAI/1-mcts/main \
+	github.com/RdecKa/0xAI/1-mcts/mcts \
+	github.com/RdecKa/0xAI/3-ab/ab \
+	github.com/RdecKa/0xAI/common/astarsearch \
+	github.com/RdecKa/0xAI/common/game \
+	github.com/RdecKa/0xAI/common/pq \
+	github.com/RdecKa/0xAI/common/tree \
+	github.com/RdecKa/0xAI/common/game/hex \
+	github.com/RdecKa/0xAI/server/cmpr \
+	github.com/RdecKa/0xAI/server/hexgame \
+	github.com/RdecKa/0xAI/server/hexplayer \
+	github.com/RdecKa/0xAI/server/main
 
 # ---> Python variables <---
 PYTHON_COMMAND = python3
@@ -24,13 +27,13 @@ CSS_COMPILER = sass
 START_TIME := $(shell date +"%Y%m%dT%H%M%S")
 PATTERNS_FILE = common/game/hex/patterns.txt
 OPEN_IN_BROWSER = xdg-open
-SIZE = 7
+SIZE = 11
 OUT_DATA_DIR = data/$(SIZE)/
 
 # ---> MCTS variables <---
 TIME = 10
-WORKERS = 3
-THRESHOLD_N = 500
+WORKERS = 6
+THRESHOLD_N = 1000
 MCTS_DIR = 1-mcts/
 MCTS_FILES := $(shell find $(MCTS_DIR) -type f -name "*.go")
 MCTS_MAIN = $(MCTS_DIR)main/main.go

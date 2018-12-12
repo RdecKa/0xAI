@@ -3,7 +3,7 @@ package ab
 import (
 	"fmt"
 
-	"github.com/RdecKa/bachleor-thesis/common/game/hex"
+	"github.com/RdecKa/0xAI/common/game/hex"
 )
 
 // ---------------------

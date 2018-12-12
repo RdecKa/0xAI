@@ -6,9 +6,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/RdecKa/bachleor-thesis/common/game/hex"
-	"github.com/RdecKa/bachleor-thesis/server/hexgame"
-	"github.com/RdecKa/bachleor-thesis/server/hexplayer"
+	"github.com/RdecKa/0xAI/common/game/hex"
+	"github.com/RdecKa/0xAI/server/hexgame"
+	"github.com/RdecKa/0xAI/server/hexplayer"
 )
 
 // MatchSetup contains information needed for comparing two players

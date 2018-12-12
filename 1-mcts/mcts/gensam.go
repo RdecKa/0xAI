@@ -3,7 +3,7 @@ package mcts
 import (
 	"os"
 
-	"github.com/RdecKa/bachleor-thesis/common/tree"
+	"github.com/RdecKa/0xAI/common/tree"
 )
 
 // GenSamples traverses the MCTS tree and writes samples (nodes that have been
