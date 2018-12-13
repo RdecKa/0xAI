@@ -79,7 +79,7 @@ all: mcts ml serv
 
 clean:
 	$(GO_CLEAN) $(GO_CLEAN_FILES)
-	rm -f $(AB_GEN_TREE_FILE) $(AB_GEN_SAMP_FILE)
+	rm -f $(AB_GEN_TREE_FILE) $(AB_GEN_SAMP_FILE) $(AB_GEN_LINEAR_FILE) $(AB_GEN_USED_PATTERNS_FILE)
 	rm -f $(VISUAL_DATA_DIR)style.css*
 	rm -f $(SERV_DIR)static/css/style.css*
 
