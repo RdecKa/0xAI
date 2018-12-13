@@ -44,7 +44,7 @@ func findSafeCells(winPath [][2]int, boardSize int, playerColor hex.Color) [][2]
 		}
 	}
 	for i := range winPath[:len(winPath)-2] {
-		if !(directlyConnected(winPath[i], winPath[i+1])) {
+		if !(hex.DirectlyConnected(winPath[i], winPath[i+1])) {
 			safeCells = append(safeCells, returnTwoSafeCellsBetween(winPath[i][0], winPath[i][1], winPath[i+1][0], winPath[i+1][1]))
 		}
 	}
@@ -54,48 +54,8 @@ func findSafeCells(winPath [][2]int, boardSize int, playerColor hex.Color) [][2]
 // returnTwoSafeCellsBetween returns two cells between (x1, y1) and (x2, y2).
 // (x1, y1) -- (x2, y2) must be a bridge, this function does not check that.
 func returnTwoSafeCellsBetween(x1, y1, x2, y2 int) [2]cell {
-	var nx1, nx2, ny1, ny2 int
-	if (x1-x2)%2 == 0 {
-		nx1 = (x1 + x2) / 2
-		nx2 = nx1
-	} else {
-		nx1 = (x1 + x2) / 2
-		nx2 = nx1 + 1
-	}
-
-	if (y1-y2)%2 == 0 {
-		ny1 = (y1 + y2) / 2
-		ny2 = ny1
-	} else {
-		ny2 = (y1 + y2) / 2
-		ny1 = ny2 + 1
-	}
-
-	return [2]cell{cell{nx1, ny1}, cell{nx2, ny2}}
-}
-
-// directlyConnected checks whether two cells are directly connected (they share
-// one side)
-func directlyConnected(c1, c2 [2]int) bool {
-	x1, y1 := c1[0], c1[1]
-	x2, y2 := c2[0], c2[1]
-	if x1 == x2 && abs(y1-y2) == 1 {
-		return true
-	}
-	if y1 == y2 && abs(x1-x2) == 1 {
-		return true
-	}
-	if abs(x1-x2) == 1 && abs(y1-y2) == 1 && (x1-x2)+(y1-y2) == 0 {
-		return true
-	}
-	return false
-}
-
-func abs(a int) int {
-	if a >= 0 {
-		return a
-	}
-	return -a
+	r := hex.GetTwoCellsBewteen([2]int{x1, y1}, [2]int{x2, y2})
+	return [2]cell{cell{r[0][0], r[0][1]}, cell{r[1][0], r[1][1]}}
 }
 
 // getAttackedBridge returns two integers:

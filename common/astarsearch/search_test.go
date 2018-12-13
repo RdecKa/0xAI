@@ -1,6 +1,7 @@
 package astarsearch
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/RdecKa/0xAI/common/astarsearch"
@@ -138,4 +139,33 @@ func Benchmark3(b *testing.B) {
 	}
 
 	benchmarkAStarSearchOnHexGrid(actions, 7, b)
+}
+
+/*
+. . . . .
+ . . b . .
+  . . . b .
+   . b r . .
+    . . . r .
+*/
+func Test1(t *testing.T) {
+	actions := []*hex.Action{
+		hex.NewAction(1, 3, hex.Blue),
+		hex.NewAction(2, 3, hex.Red),
+		hex.NewAction(2, 1, hex.Blue),
+		hex.NewAction(3, 4, hex.Red),
+		hex.NewAction(3, 2, hex.Blue),
+	}
+
+	state := hex.NewState(5, hex.Blue)
+	for _, a := range actions {
+		s := state.GetSuccessorState(a).(hex.State)
+		state = &s
+	}
+
+	e, s := state.IsGoalState(false)
+	if e {
+		t.Fatalf("Solution found, but it does not exist")
+		fmt.Println(s)
+	}
 }

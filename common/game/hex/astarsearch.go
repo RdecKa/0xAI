@@ -130,13 +130,38 @@ func (s searchState) GetSuccessorStates(veryEnd bool) []astarsearch.State {
 				x, y := s.x+vc[0], s.y+vc[1]
 
 				if s.gameState.IsEndingCell(x, y, s.c) ||
-					s.gameState.IsCellValid(x, y) && s.gameState.getColorOn(byte(x), byte(y)) == s.c {
+					s.gameState.IsCellValid(x, y) &&
+						s.gameState.getColorOn(byte(x), byte(y)) == s.c &&
+						!s.overlapsWithIncomingVirtualConnection(x, y) {
 					successors = append(successors, searchState{x, y, s.c, s.gameState, &s})
 				}
 			}
 		}
 	}
 	return successors
+}
+
+func (s searchState) overlapsWithIncomingVirtualConnection(x, y int) bool {
+	curCoords := [2]int{s.x, s.y}
+	newCoords := [2]int{x, y}
+	if DirectlyConnected(newCoords, curCoords) {
+		return false
+	}
+
+	prvCoords := [2]int{s.prevSearchState.x, s.prevSearchState.y}
+	if DirectlyConnected(curCoords, prvCoords) {
+		return false
+	}
+
+	lastConn := GetTwoCellsBewteen(curCoords, prvCoords)
+	nextConn := GetTwoCellsBewteen(curCoords, newCoords)
+
+	if lastConn[0] == nextConn[0] || lastConn[0] == nextConn[1] ||
+		lastConn[1] == nextConn[0] || lastConn[1] == nextConn[1] {
+		return true
+	}
+
+	return false
 }
 
 func (s searchState) String() string {
