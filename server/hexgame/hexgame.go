@@ -42,7 +42,6 @@ func playOneGame(boardSize int, players [2]hexplayer.HexPlayer, passiveClient he
 		players[turn].PrevAction(prevAction)
 		nextAction, err := players[turn].NextAction()
 		if err != nil {
-			fmt.Println(err)
 			return -1, -1, err
 		}
 		if nextAction == nil {
@@ -98,7 +97,7 @@ func playNGames(boardSize int, players [2]hexplayer.HexPlayer, passiveClient hex
 	for g := 0; g < numGames; g++ {
 		winPlayer, gameLength, err := playOneGame(boardSize, players, passiveClient, startingPlayer, outFile)
 		if err != nil {
-			fmt.Println("Game canceled: " + err.Error())
+			outFile.WriteString("Game canceled: " + err.Error())
 			continue
 		}
 
@@ -131,11 +130,12 @@ func Play(boardSize int, players [2]hexplayer.HexPlayer, numGames int,
 	}
 
 	outFile, err := os.Create(fmt.Sprintf("%sgames_%s_%s_%s_%d.txt",
-		outDir, time.Now().Format("150405"),
+		outDir, time.Now().Format("20060102T150405"),
 		players[0].GetType().String(),
 		players[1].GetType().String(), numGames))
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 
 	outFile.WriteString(fmt.Sprintf("%s: %s\n", players[0].GetColor().String(),

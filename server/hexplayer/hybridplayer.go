@@ -51,6 +51,9 @@ func (hp *HybridPlayer) PrevAction(prevAction *hex.Action) {
 // NextAction returns an action to be performed
 func (hp *HybridPlayer) NextAction() (*hex.Action, error) {
 	selected, err := hp.subPlayers[hp.activeSubplayer].NextAction()
+	if err != nil {
+		return nil, err
+	}
 	hp.updatePlayerState(selected)
 	return selected, err
 }
