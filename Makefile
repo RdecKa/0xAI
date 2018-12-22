@@ -57,9 +57,9 @@ ML_DOT_FILES = $(shell find $(ML_OUT_DIR) -type f -name "*.dot")
 ML_PS_FILES = $(ML_DOT_FILES:.dot=.ps)
 ML_SELECT_TREE = 2
 ML_SELECT_TREE_FILE = $(ML_OUT_DIR)tree$(ML_SELECT_TREE)code.go
-ML_LINEAR_REGRESSION_FILE = $(ML_OUT_DIR)linear0code.go
+ML_LINEAR_REGRESSION_FILE = $(ML_OUT_DIR)linear2code.go
 ML_GEN_SAMPLE_FILE = $(ML_OUT_DIR)sample.go
-ML_USED_PATTERNS_FILE = $(ML_OUT_DIR)linear0used.go
+ML_USED_PATTERNS_FILE = $(ML_OUT_DIR)linear2used.go
 
 # ---> AB variables <---
 AB_DIR = 3-ab/ab/
