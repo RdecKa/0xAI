@@ -97,9 +97,9 @@ func benchAB(b *testing.B, depthLimit int, abSubtype string) {
 	_, state := getActionsAndStateSample()
 
 	for n := 0; n < b.N; n++ {
-		var oldTranspositionTable map[string]float64
+		var oldTranspositionTable map[uint64]float64
 		for depth := 2; depth <= depthLimit; depth += 2 {
-			transpositionTable := make(map[string]float64)
+			transpositionTable := make(map[uint64]float64)
 			alphaBeta(context.TODO(), 0, depth, state, nil, math.Inf(-1), math.Inf(1),
 				gridChan, patChan, resultChan, transpositionTable, oldTranspositionTable,
 				false, GetEstimateFunction(abSubtype), abSubtype)

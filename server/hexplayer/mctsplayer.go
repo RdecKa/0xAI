@@ -40,17 +40,11 @@ func (mp *MCTSplayer) InitGame(boardSize int, firstPlayer hex.Color) error {
 	return nil
 }
 
-func (mp *MCTSplayer) initGameFromState(initState *hex.State, lastOpponentAction *hex.Action) error {
+func (mp *MCTSplayer) initGameFromState(initState *hex.State, lastOpponentAction *hex.Action, safeWinCells [][2]cell) error {
 	mp.mc = mcts.InitMCTS(initState, mp.explorationFactor, mp.minBeforeExpand)
 	mp.state = initState
 	mp.lastOpponentAction = lastOpponentAction
-
-	if exists, solution := initState.IsGoalState(false); exists {
-		winPath := solution.([][2]int)
-		mp.safeWinCells = findSafeCells(winPath, initState.GetSize(), mp.Color)
-	} else {
-		mp.safeWinCells = nil
-	}
+	mp.safeWinCells = safeWinCells
 
 	return nil
 }

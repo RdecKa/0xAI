@@ -55,7 +55,7 @@ func (hp *HybridPlayer) NextAction() (*hex.Action, error) {
 		return nil, err
 	}
 	hp.updatePlayerState(selected)
-	return selected, err
+	return selected, nil
 }
 
 // updatePlayerState updates the game state of the player
@@ -70,7 +70,9 @@ func (hp *HybridPlayer) updatePlayerState(a *hex.Action) {
 	if hp.numStonesplaced == hp.changeTypeAt {
 		hp.activeSubplayer = 1
 		s := hp.state.Clone().(hex.State)
-		(hp.subPlayers[1]).(*MCTSplayer).initGameFromState(&s, hp.lastOpponentAction)
+		(hp.subPlayers[1]).(*MCTSplayer).initGameFromState(&s,
+			hp.lastOpponentAction,
+			hp.subPlayers[0].(*AbPlayer).safeWinCells)
 	}
 }
 
