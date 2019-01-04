@@ -78,7 +78,7 @@ class LinearRegressionModel(Model):
                     if fn in submodel.used_features:
                         i = submodel.used_features.index(fn)
                         fi[ind] = submodel.model.coef_[i]
-                s.append((self.ID + "." + submodel.get_ID(), fi))
+                s.append((submodel.get_ID(), fi))
         return s
 
     def custom_output(self, model_index, outfolder):

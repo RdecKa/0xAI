@@ -6,12 +6,31 @@ import numpy as np
 def analyse(outfolder, df, feature_names):
     print("Analysing data ...")
 
+    color1 = "#0F2F8C"
+    color2 = "#A60303"
+    color3 = "#AAAAAA"
+
     # Create a plot showing attribute distributions
     plt.gcf().subplots_adjust(bottom=0.25)
     sns.boxplot(data=df, color="darkorchid")
     plt.xticks(rotation="vertical")
     plt.savefig(outfolder + "attrs_boxplot.pdf")
     plt.close()
+
+    # Check number of samples
+    data_same_number = df.groupby("num_stones")
+
+    ks = []
+    ns = []
+    for n in data_same_number.groups.keys():
+        ns.append(n)
+        ks.append(len(data_same_number.groups[n]))
+
+    plt.bar(ns, ks, color=color1)
+    plt.xlabel("Število vseh kamenčkov na plošči")
+    plt.ylabel("Število učnih primerov")
+    plt.yscale("log")
+    plt.savefig(outfolder + "countalldata.pdf")
 
     # Check how similar values do samples with the same attributes have
     data_same_attributes = df.groupby([a for a in feature_names])
@@ -79,9 +98,6 @@ def analyse(outfolder, df, feature_names):
                     sizes_groups.append(0)
 
         fig1, ax1 = plt.subplots()
-        color1 = "#0F2F8C"
-        color2 = "#A60303"
-        color3 = "#33BB33"
 
         means = np.array(means)
         stds = np.array(stds)
@@ -90,26 +106,28 @@ def analyse(outfolder, df, feature_names):
 
         # Plot mean of standard deviations
         ax1.plot(keys, means, color=color1)
-        ax1.fill_between(keys, lower_bounds, upper_bounds, alpha=0.3)
-        ax1.set_ylabel("Mean of standard deviations", color=color1)
-        ax1.set_xlabel("Number of stones")
+
+        ax1.set_ylabel("Povprečje standardnih odklonov", color=color1)
+        ax1.set_xlabel("Število vseh kamenčkov na plošči")
         ax1.tick_params("y", colors=color1)
-        ax1.set_title("Mean and std of stds of sample values in groups, " +
-                      "created by samples\nhaving the same attribute values, " +
-                      "then grouped by number of stones")
 
         # Plot number of groups with a given number of stones
         ax2 = ax1.twinx()
         plt.yscale("log")
-        ax2.bar(keys_sizes, sizes_groups, color=color2, alpha=0.15)
+        ax2.bar(keys_sizes, sizes_groups, color=color2, alpha=0.3)
         ax2.tick_params("y", colors=color2)
-        ax2.set_ylabel("Number of groups with a given number of stones", color=color2)
-
-        ax2.bar(keys_sizes, sizes_singletons, color=color3, alpha=0.15, bottom=sizes_groups)
+        ax2.set_ylabel("Število različnih kombinacij atributov", color=color2)
 
         ax1.grid(True)
         plt.savefig(outfolder + "std.pdf")
         plt.close()
+
+        plt.bar(keys_sizes, sizes_groups, color=color1)
+        plt.bar(keys_sizes, sizes_singletons, color=color2, bottom=sizes_groups)
+        plt.xlabel("Število vseh kamenčkov na plošči")
+        plt.ylabel("Število različnih kombinacij atributov")
+        plt.yscale("log")
+        plt.savefig(outfolder + "countdata.pdf")
 
     # Create a plot showing relations between attributes
     attrs = df.keys()

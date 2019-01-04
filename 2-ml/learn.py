@@ -111,6 +111,12 @@ def main(argv):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1,
                                                         random_state=4224)
 
+    print("all", len(X), len(y))
+    print("X_train", len(X_train))
+    print("y_train", len(y_train))
+    print("X_test", len(X_test))
+    print("y_test", len(y_test))
+
     # Create decision tree models
     dt_models_args = [  # [max_depth, min_samples_leaf]
         [5, 5],
@@ -190,12 +196,12 @@ def main(argv):
                         num_cols_in_plot, num_rows_in_plot, fig_name = plt_setup[0]
                         index = ind + 1
                     else:
-                        if ".r_" in name:
+                        if "r_" in name:
                             num_cols_in_plot, num_rows_in_plot, fig_name = plt_setup[0]
                             index = ind + 1
                             vectors[0].append(fi)
                             model_names[0].append(name)
-                        else:  # if "._b" in name
+                        else:  # if "b_" in name
                             num_cols_in_plot, num_rows_in_plot, fig_name = plt_setup[1]
                             index = ind - submodel_groups[0] + 1
                             vectors[1].append(fi)
@@ -256,7 +262,7 @@ def main(argv):
                         matrix_adjusted = scale(matrix)
                         cs = cosine_distances(matrix_adjusted)
 
-                        fig, ax = plt.subplots(figsize=(14, 10))
+                        fig, ax = plt.subplots(figsize=(12, 10))
                         ax = sns.heatmap(cs, xticklabels=model_names[i], yticklabels=model_names[i], square=True, ax=ax)
                         plt.savefig(outfolder + "heatmap_" + learner.short_name() + "_" + str(model_index) + "." + str(i) + ".pdf")
                         plt.close()
