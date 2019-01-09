@@ -68,3 +68,21 @@ class DecisionTreeModel(Model):
             code_file.write("func getEstimatedValueDT(s *Sample) float64 {\n")
             subtree_to_go_code(0, 1)
             code_file.write("}\n")
+
+    def score(self, X, y):
+        m = [4, 10, 20, 40, 60, 80]
+
+        def group_func(X, ind_X):
+            for split in m:
+                if X["num_stones"].loc[ind_X] <= split:
+                    return split
+            return 121
+
+        subsets = X.groupby(lambda i: group_func(X, i))
+
+        s = {-1: (self.model.score(X, y), len(X))}
+        for key in subsets.groups.keys():
+            inp = X.loc[subsets.groups[key]]
+            out = y.loc[subsets.groups[key]]
+            s[key] = (self.model.score(inp, out), len(inp))
+        return s
