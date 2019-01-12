@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/RdecKa/0xAI/3-ab/ab"
+	"github.com/RdecKa/0xAI/3-ab"
 	"github.com/RdecKa/0xAI/common/game/hex"
 	"github.com/gorilla/websocket"
 )

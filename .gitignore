@@ -4,10 +4,10 @@ data
 
 # Generated code
 2-ml/sample_out
-3-ab/ab/sample.go
-3-ab/ab/tree*code.go
-3-ab/ab/linear*code.go
-3-ab/ab/linear*used.go
+3-ab/sample.go
+3-ab/tree*code.go
+3-ab/linear*code.go
+3-ab/linear*used.go
 
 # VS Code
 .vs

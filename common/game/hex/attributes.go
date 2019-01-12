@@ -8,7 +8,7 @@
 // 		matching opposite attribute)
 // 	- In 2-ml/learn.py, select a type of the attribute when reading a CSV
 // 		file (for now only integer values are supported)
-// 	- In 3-ab/ab/ab.go, add a line to initialization of Sample sample for each
+// 	- In 3-ab/ab.go, add a line to initialization of Sample sample for each
 // 		instance of the attribute
 //
 // To remove an attribute, simply delete it from the GenSamAttributes. To

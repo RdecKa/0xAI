@@ -6,7 +6,7 @@ GO_INSTALL = $(GO_COMMAND) install
 GO_CLEAN = $(GO_COMMAND) clean -i
 GO_CLEAN_FILES = github.com/RdecKa/0xAI/1-mcts/main \
 	github.com/RdecKa/0xAI/1-mcts/mcts \
-	github.com/RdecKa/0xAI/3-ab/ab \
+	github.com/RdecKa/0xAI/3-ab \
 	github.com/RdecKa/0xAI/common/astarsearch \
 	github.com/RdecKa/0xAI/common/game \
 	github.com/RdecKa/0xAI/common/pq \
@@ -62,7 +62,7 @@ ML_GEN_SAMPLE_FILE = $(ML_OUT_DIR)sample.go
 ML_USED_PATTERNS_FILE = $(ML_OUT_DIR)linear2used.go
 
 # ---> AB variables <---
-AB_DIR = 3-ab/ab/
+AB_DIR = 3-ab/
 AB_GEN_SAMP_FILE = $(AB_DIR)sample.go
 AB_GEN_TREE_FILE = $(AB_DIR)treecode.go
 AB_GEN_LINEAR_FILE = $(AB_DIR)linearcode.go
