@@ -4,18 +4,21 @@ Code for my bachelor thesis **Using Monte Carlo tree search and machine learning
 
 The thesis with the description of the project (in Slovene) will be avaliable soon.
 
+## Brief description
+Coming soon ...
+
 ## How to run the code
 
 The easiest way is to use the provided *Makefile*.
 
 1. If you want, you can change some values in *Makefile*, for example:
-  * SIZE - the size of the Hex grid
-  * TIME - how much time can a single MCTS run (in seconds)
-  * WORKERS - how many goroutines should be created to run MCTS in parallel
-  * THRESHOLD_N - how many times should a node of MCTS tree be visited to be used as a learning sample.
+    * SIZE - the size of the Hex grid
+    * TIME - how much time can a single MCTS run (in seconds)
+    * WORKERS - how many goroutines should be created to run MCTS in parallel
+    * THRESHOLD_N - how many times should a node of MCTS tree be visited to be used as a learning sample.
 1. Run `make` in the root directory.
-1. Monte Carlo tree search (MCTS) will start generating learning samples in folder *data/SIZE/mcts/run-START_TIME/*. When you are satisfied with the number of samples, type `q` and press Enter.
-1. Machine learning (ML) phase will start and generate code with evaluation functions. Just wait.
+1. MCTS will start generating learning samples in folder *data/SIZE/mcts/run-START_TIME/*. When you are satisfied with the number of samples, type `q` and press Enter.
+1. ML phase will start and generate code with evaluation functions. Just wait.
 1. Code for the server will be compiled. Follow the instructions on the screen to run it.
 1. Open *localhost:8080/select/* and play! Or just watch.
 
