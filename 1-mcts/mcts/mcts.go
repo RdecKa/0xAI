@@ -81,8 +81,8 @@ func (mcts *MCTS) GetInitialNode() *tree.Node {
 // RunMCTS executes iterations of MCTS for timeToRun, given initialised MCTS
 // If gameLengthImportant is true, then a goal state with a shorter path to
 // victory gets a higher estimated value than a goal state with a longer path.
-func RunMCTS(mc *MCTS, workerID int, timeToRun time.Duration, boardSize int, thresholdN uint,
-	outputFile, logFile *os.File, gridChan chan []uint32, patChan chan []int,
+func RunMCTS(mc *MCTS, timeToRun time.Duration, thresholdN uint,
+	outputFile *os.File, gridChan chan []uint32, patChan chan []int,
 	resultChan chan [2][]int, gameLengthImportant bool) ([]*tree.Node, error) {
 
 	timer := time.NewTimer(timeToRun)

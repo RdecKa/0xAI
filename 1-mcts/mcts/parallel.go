@@ -142,8 +142,8 @@ func worker(id int, timeToRun time.Duration, boardSize int, thresholdN uint,
 		case mc = <-wc.assign:
 			outputFile.WriteString(fmt.Sprintf("# Search ID %d\n", taskID))
 			outputFileDet.WriteString(fmt.Sprintf("# Search ID %d started from:\n%v\n", taskID, mc.GetInitialNode()))
-			expCand, err := RunMCTS(mc, id, timeToRun, boardSize, thresholdN,
-				outputFile, logFile, gridChan, patChan, resultChan, gameLengthImportant)
+			expCand, err := RunMCTS(mc, timeToRun, thresholdN,
+				outputFile, gridChan, patChan, resultChan, gameLengthImportant)
 			if err != nil {
 				wc.e <- err
 			}
