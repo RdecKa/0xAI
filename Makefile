@@ -70,8 +70,8 @@ AB_GEN_USED_PATTERNS_FILE = $(AB_DIR)linearused.go
 
 # ---> Server variables <---
 SERV_DIR = server/
-SERV_MAIN = $(SERV_DIR)main/server.go
-SERV_BIN_NAME = server
+SERV_MAIN = $(SERV_DIR)main/hexserver.go
+SERV_BIN_NAME = hexserver
 
 ################################################################################
 
